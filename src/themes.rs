@@ -844,8 +844,14 @@ mod tests {
 
     #[test]
     fn base_files_match_the_code() {
-        assert!(BUNDLED[0].1 == base_css(false, "Craft", "Craft", CRAFT_DESCRIPTION), "assets/themes/craft.css is stale: cargo test --release write_base_css -- --ignored");
-        assert!(BUNDLED[1].1 == base_css(true, "飞书", "Feishu", FEISHU_DESCRIPTION), "assets/themes/feishu.css is stale: cargo test --release write_base_css -- --ignored");
+        for (i, feishu, name, name_en, description) in [(0, false, "Craft", "Craft", CRAFT_DESCRIPTION), (1, true, "飞书", "Feishu", FEISHU_DESCRIPTION)] {
+            let expected = base_css(feishu, name, name_en, description);
+            let actual: Vec<_> = BUNDLED[i].1.lines().collect();
+            let generated: Vec<_> = expected.lines().collect();
+            for line in 0..actual.len().max(generated.len()) {
+                assert_eq!(actual.get(line), generated.get(line), "{} theme line {} differs; regenerate with cargo test --release write_base_css -- --ignored", BUNDLED[i].0, line + 1);
+            }
+        }
     }
 
     /// `cargo test --release write_base_css -- --ignored` rewrites the two base files.

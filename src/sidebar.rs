@@ -606,6 +606,7 @@ impl Workspace {
                 .into_any_element(),
         };
         let renaming = self.rename.as_ref().is_some_and(|r| r.id == e.id);
+        let folder = kids || self.entries.iter().any(|child| child.meta.parent.as_deref() == Some(e.id.as_str()));
         // 批量操作: 我的文档 rows get a checkbox and lose "…"; checked rows are tinted.
         let batch = self.batch.as_ref().filter(|_| key == "doc");
         let checked = batch.is_some_and(|b| b.contains(&e.id));
@@ -636,6 +637,7 @@ impl Workspace {
                 // on pages with children, hovering the row swaps the icon for
                 // a 10px expand triangle.
                 let glyph = div().size(px(20.)).flex().items_center().justify_center().map(|d| match &e.icon {
+                    _ if folder => d.child(icon("folder", ROW_ICON, if selected { Theme::text() } else { Theme::text_caption() })),
                     // 文档图标 replaces the page glyph.
                     Some(em) => d.text_size(px(13.)).line_height(px(20.)).child(em.clone()),
                     None => d.child(icon("doc", ROW_ICON, if selected { Theme::text() } else { Theme::text_caption() })),

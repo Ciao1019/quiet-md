@@ -91,6 +91,6 @@ FDL_FUZZ_SEEDS=2000 cargo test --release random_edits   # 更多随机编辑，�
 
 MIT，见 [LICENSE](LICENSE)。随附的第三方代码、字体、图标和素材列在 [THIRD_PARTY.md](THIRD_PARTY.md)。
 
-**`assets/icons/` 里的 65 个界面图标不在 MIT 范围内**：它们是 Nucleo 商业授权下的图标，本项目按授权允许的方式（公开源码中最多 100 个）随源码分发。fork 时请自行确认授权，或者换成你自己的图标；不要把它们抽出来做成图标库或图标包。
+**`assets/icons/` 里的 65 个 Nucleo 界面图标不在 MIT 范围内**：它们是 Nucleo 商业授权下的图标，本项目按授权允许的方式（公开源码中最多 100 个）随源码分发。fork 时请自行确认授权，或者换成你自己的图标；不要把它们抽出来做成图标库或图标包。
 
 「quiet.md」这个名字和应用图标不在代码许可之内，fork 时请换掉。
