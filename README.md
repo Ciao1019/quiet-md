@@ -8,11 +8,11 @@ macOS 上的本地笔记应用：你的每一篇笔记，就是硬盘上的一�
 
 ## 安装
 
-当前正在准备首次发布。目标最低系统为 macOS 13；架构和系统兼容性以实际发布产物及验证结果为准。
+当前下载包面向 Apple Silicon（arm64），最低系统配置为 macOS 13。尚未提供 Intel 版本，也尚未完成最低系统实机验证。
 
-首次发布前可按下文从源码构建。第一次启动会放入一套「开始指南」，每一篇都能照着改。
+从 [Releases](https://github.com/s1dashu/quiet-md/releases) 下载 ZIP，解压后将 quiet.md.app 拖入「应用程序」。第一次启动会放入一套「开始指南」，每一篇都能照着改。
 
-正式分发包需完成 Developer ID 签名、Apple 公证及 Gatekeeper 校验；当前尚未提供已验证的下载包。
+v0.1.0 的 arm64 分发包已完成 Developer ID 签名、Apple 公证、公证票据装订及本机 Gatekeeper 校验。
 
 ## 为什么用它
 
