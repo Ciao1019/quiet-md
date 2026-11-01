@@ -18,6 +18,8 @@ jobs:
     # The app is macOS-only (AppKit, Metal, objc), so the runner has to be macOS.
     runs-on: macos-15
     timeout-minutes: 45
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
     steps:
       - uses: actions/checkout@v4
 
@@ -31,8 +33,5 @@ jobs:
       - name: Build application
         run: cargo build --release --locked
 
-      - name: cargo test
-        run: cargo test --release --workspace --locked
-
-      - name: cargo clippy
-        run: cargo clippy --release --workspace --all-targets --locked -- -D warnings
+      - name: Tests, bundled guides and clippy
+        run: scripts/check.sh

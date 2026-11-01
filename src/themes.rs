@@ -790,7 +790,8 @@ fn base_css(feishu: bool, name: &str, name_en: &str, description: &str) -> Strin
     }
     out += "\n  /* 其它界面细节（文档内的选中、悬停、表格工具等） */\n";
     for (i, t) in TOKENS.iter().enumerate() {
-        if !RULE_TOKENS.contains(t) { out += &format!("  --token-{}: {};\n", t.replace('_', "-"), css_color(crate::editor_theme::base_color(i, feishu))); }
+        // Window material depends on the running OS, not the document theme.
+        if *t != "window" && !RULE_TOKENS.contains(t) { out += &format!("  --token-{}: {};\n", t.replace('_', "-"), css_color(crate::editor_theme::base_color(i, feishu))); }
     }
     out += "}\n";
     let mut sel = "";
