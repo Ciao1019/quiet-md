@@ -1,0 +1,166 @@
+<title>内容块：列表、引用、高亮块与互动块</title>
+<p>quiet.md 里的文档由一个个「块」组成：每个段落、标题、列表项、图片、表格都是一个块。理解了块，就理解了编辑器的全部操作方式——插入块、转换块、移动块。这一篇先介绍操作块的三个入口，再逐一介绍各种常用的块。</p>
+<h1>操作块的三个入口</h1>
+<h2>斜杠菜单：插入任何东西</h2>
+<p>在空行输入 <code>/</code>（中文输入法下输入顿号 <code>、</code> 也可以），会弹出插入菜单。菜单分为四组：</p>
+<img src="assets/guides/slash.png" width="690" caption="斜杠菜单：继续输入可以筛选，↑ ↓ 选择，回车插入" align="center"/>
+<table>
+  <colgroup><col width="130"/><col width="560"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>分组</p></th><th background-color="light-gray"><p>包含</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p><b>基础</b></p></td><td><p>文本、一到五级标题、有序列表、无序列表、任务、代码块、引用、高亮块、分隔线、链接</p></td></tr>
+    <tr><td><p><b>常用</b></p></td><td><p>任务、图片、视频或文件、表格、分栏、高亮块、公式、按钮、子页面列表</p></td></tr>
+    <tr><td><p><b>团队协作</b></p></td><td><p>日期提醒</p></td></tr>
+    <tr><td><p><b>小应用</b></p></td><td><p>倒计时</p></td></tr>
+  </tbody>
+</table>
+<p>输入 <code>/</code> 之后继续打字可以筛选，支持中文、英文和拼音首字母。几个常用的例子：</p>
+<ul>
+  <li><code>/bg</code> 或 <code>/table</code> → 表格</li>
+  <li><code>/dmk</code> 或 <code>/code</code> → 代码块</li>
+  <li><code>/glk</code> → 高亮块</li>
+  <li><code>/djs</code> → 倒计时</li>
+</ul>
+<h2>块手柄：转换、着色、移动</h2>
+<p>把鼠标移到任意一个块的左侧，会出现<b>块手柄</b>。点击它打开块菜单：</p>
+<img src="assets/guides/block-menu.png" width="690" caption="块菜单：顶部一排图标用来转换块的类型" align="center"/>
+<ol>
+  <li><b>转换为</b>：菜单顶部的一排图标，可以把当前块变成正文、标题、列表、任务、代码块、引用或高亮块，文字内容保持不变。</li>
+  <li><b>缩进和对齐</b>：左对齐、居中、右对齐，增加或减少缩进。</li>
+  <li><b>颜色</b>：整块的文字颜色和背景颜色。</li>
+  <li><b>剪切、复制、删除</b>：对整个块操作，包括它的子块。</li>
+  <li><b>在下方添加</b>：在这个块下面插入新块，效果和斜杠菜单一样。</li>
+</ol>
+<p>在空行上，块手柄会变成一个 <b>+</b>，点击它直接打开插入菜单。</p>
+<h2>拖动与快捷键移动</h2>
+<p>按住块手柄拖动，可以把块移到文档的任何位置。拖动时会出现一条蓝色的指示线，告诉你块会落在哪里；往右拖可以把它放进上一个块里，成为子块。先选中多个块（例如用鼠标从一个块拖选到另一个块），可以一起拖动。</p>
+<p>不想用鼠标的话，把光标放在块里，按 <code>⌃ ⇧ ↑</code> 或 <code>⌃ ⇧ ↓</code> 把它上下移动一格。</p>
+<h1>列表</h1>
+<h2>无序列表</h2>
+<p>输入 <code>- </code> 或按 <code>⌘ ⇧ 8</code>。按 <code>Tab</code> 缩进，<code>⇧ Tab</code> 取消缩进，不同层级会使用不同的符号：</p>
+<ul>
+  <li>旅行准备
+    <ul>
+      <li>证件
+        <ul>
+          <li>护照（有效期六个月以上）</li>
+          <li>签证打印件</li>
+        </ul>
+      </li>
+      <li>电子设备：充电器、转换插头、移动电源</li>
+    </ul>
+  </li>
+  <li>出发当天
+    <ul>
+      <li>提前三小时到机场</li>
+    </ul>
+  </li>
+</ul>
+<p>在空的列表项上按回车，会结束列表、回到正文。</p>
+<h2>有序列表</h2>
+<p>输入 <code>1. </code> 或按 <code>⌘ ⇧ 7</code>。编号会自动计算；嵌套的子列表使用另一种编号样式。</p>
+<ol>
+  <li>准备材料
+    <ol>
+      <li>咖啡豆 15 克，研磨成砂糖粗细</li>
+      <li>92 °C 的热水 250 毫升</li>
+    </ol>
+  </li>
+  <li>闷蒸：注水 30 毫升，等待 30 秒</li>
+  <li>分三次注水，总时长控制在 2 分半以内</li>
+</ol>
+<p>点击某一项的编号，可以选择「继续之前的编号」「开始新列表」或「修改编号值」。下面这个列表从 5 开始，用来接续前文的步骤：</p>
+<ol>
+  <li seq="5">把滤杯移开，轻轻摇匀咖啡</li>
+  <li>倒入预热过的杯子</li>
+</ol>
+<h2>折叠列表</h2>
+<p>有子项的列表项可以折叠。把鼠标移到列表项左侧，点击小三角：</p>
+<ul>
+  <li folded="true">展开查看参考资料（已折叠）
+    <ul>
+      <li>《咖啡冲煮手册》第三章</li>
+      <li>世界咖啡师大赛冲煮规则</li>
+    </ul>
+  </li>
+</ul>
+<h1>任务</h1>
+<p>任务就是可以打勾的列表。输入 <code>[] </code>、<code>【】</code> 加空格，或者按 <code>⌘ ⌥ T</code>。点击方框，或把光标放在任务里按 <code>⌘ Enter</code>，就能切换完成状态。完成的任务会变灰并加上删除线。</p>
+<checkbox done="true">确定发布日期</checkbox>
+<checkbox done="true">完成设计评审</checkbox>
+<checkbox done="false">准备发布说明
+  <checkbox done="true">更新日志</checkbox>
+  <checkbox done="false">截图与演示视频</checkbox>
+  <checkbox done="false">翻译成英文</checkbox>
+</checkbox>
+<checkbox done="false">通知团队成员</checkbox>
+<p>任务也可以嵌套，用来拆解一件大事。任务和其他块一样可以着色、移动，也可以放进高亮块和表格里。</p>
+<h1>引用</h1>
+<p>输入 <code>&gt; </code> 或按 <code>⌘ ⇧ &gt;</code>。引用适合摘录他人的原话、书中的段落，或者把一段补充说明和正文区分开。</p>
+<blockquote>
+  <p>我们无法用制造问题时的同一水平思维来解决问题。</p>
+  <p align="right">—— 一句常被认为出自爱因斯坦的话</p>
+</blockquote>
+<p>引用里可以放多个段落，也可以放列表：</p>
+<blockquote>
+  <p><b>会议纪要摘录</b></p>
+  <ul>
+    <li>下季度重点：稳定性优先于新功能</li>
+    <li>每周五下午进行一次版本回顾</li>
+  </ul>
+</blockquote>
+<h1>高亮块</h1>
+<p>高亮块是一个带图标和底色的方框，用来放提示、警告、结论这些需要读者特别注意的内容。从斜杠菜单插入「高亮块」，或者在块菜单里把一个段落转换成高亮块。</p>
+<callout emoji="💡" background-color="light-blue" border-color="blue">
+  <p><b>提示</b>：高亮块里可以放任何内容，包括段落、列表、任务和图片。</p>
+</callout>
+<callout emoji="⚠️" background-color="light-orange" border-color="orange">
+  <p><b>注意</b>：导出 Markdown 时，高亮块会变成以图标开头的引用。</p>
+</callout>
+<callout emoji="✅" background-color="light-green" border-color="green">
+  <p><b>结论</b>：方案 B 的成本更低，交付周期短两周，推荐采用。</p>
+  <checkbox done="false">周三前与财务确认预算</checkbox>
+</callout>
+<callout emoji="🚫" background-color="light-red" border-color="red">
+  <p><b>不要</b>把密码、密钥这类敏感信息直接写在笔记里。</p>
+</callout>
+<callout emoji="📚" background-color="light-purple" border-color="purple">
+  <p>延伸阅读：高亮块的颜色组合有很多种，不妨给每种用途固定一个颜色。</p>
+</callout>
+<callout emoji="🗒️" background-color="light-gray">
+  <p>没有边框的灰色高亮块，适合放不那么紧要的备注。</p>
+</callout>
+<p>鼠标移到高亮块上，右上角会出现调色板，可以分别设置<b>字体颜色、边框颜色和填充颜色</b>，或者点「随机」换一组搭配。点击左上角的图标，可以从表情面板里换一个。</p>
+<h1>分隔线</h1>
+<p>输入 <code>---</code>，或按 <code>⌘ ⌥ S</code>，插入一条分隔线，用来分开内容上没有直接关系的两部分。分隔线的样式（点线、实线、虚线）由文档主题决定。</p>
+<hr/>
+<h1>互动块</h1>
+<p>下面三种块不只是用来看的，你可以和它们互动。</p>
+<h2>日期提醒</h2>
+<p>在文字中间插入一个日期，到时间会收到系统通知。从斜杠菜单选择「日期提醒」，或按 <code>⌘ ⌥ W</code>。例如：项目周会定在 {{reminder:2026-11-09 10:00}}，季度总结截止日期是 {{reminder-day:2026-12-31}}。</p>
+<ul>
+  <li>点击日期可以修改。勾选「设置时间」可以精确到半小时；不勾选就是全天提醒。</li>
+  <li>「提醒」可以选择事件发生时、提前 5 分钟到提前 1 周。全天提醒会在当天或提前几天的上午 9 点通知你。</li>
+  <li>日期的颜色会随时间变化：一周以内是橙色，过期是红色，更远的是蓝色。</li>
+</ul>
+<callout emoji="🔔" background-color="light-yellow" border-color="yellow">
+  <p>提醒依靠 quiet.md 在后台运行来发出通知。退出应用后，到期的提醒不会弹出通知。</p>
+</callout>
+<h2>倒计时</h2>
+<p>从斜杠菜单选择「倒计时」，插入一个按天、时、分、秒显示的计时器。鼠标移上去点击铅笔图标打开「倒计时设置」：可以输入一段时长，也可以选择一个具体日期；旁边的调色板可以换成七种颜色之一。下面这个倒计时指向 2027 年元旦：</p>
+{{countdown:2027-01-01 00:00}}
+<p>勾选「倒计时结束时显示气泡提醒」后，计时结束时会在页面上弹出提示。</p>
+<h2>按钮</h2>
+<p>按钮把一个操作放进文档里，一键执行。从斜杠菜单选择「按钮」，有两种类型：</p>
+<ul>
+  <li><b>打开超链接</b>：点击后在浏览器里打开一个网址。适合放常用的工具、表单或参考网站。</li>
+  <li><b>创建副本</b>：点击后复制当前文档。适合做成模板：写好一份周报格式，每周点一下按钮就得到一份新的。</li>
+</ul>
+<p>{{button:OpenLink|https://www.apple.com/macos/|了解 macOS|light-blue}}  {{button:DuplicatePage||用这份指南创建一个副本|light-green}}</p>
+<p>鼠标移到按钮上点「编辑」，可以修改按钮文字、从十六种颜色里选一种，或者更换要执行的操作。</p>
+<h1>子页面列表</h1>
+<p>「子页面列表」会自动列出当前文档的所有子文档，新建或删除子文档时它会同步更新。它适合放在一个专题的首页，充当目录。具体用法和示例见 {{doc:organize}}。</p>
+<hr/>
+<p>下一篇：{{doc:tables}}，学习用表格整理数据、用分栏排版。</p>

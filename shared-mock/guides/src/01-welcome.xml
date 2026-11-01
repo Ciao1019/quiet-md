@@ -1,0 +1,81 @@
+<title>欢迎使用 quiet.md</title>
+<p>quiet.md 是一款安静的本地笔记应用。没有账号、不需要联网，每一篇文档都是你电脑上的一个文件。你可以像在纸上一样随手记录，也可以用标题、列表、表格、代码和图片把一件复杂的事写清楚。</p>
+<p>这份指南带你用十分钟认识它。左侧栏里的每一篇「开始指南」都是用 quiet.md 自己写成的，它们本身就是示例：你看到的每一种样式，都可以在编辑器里做出来。<b>放心修改它们</b>，改坏了也没关系。</p>
+<callout emoji="💡" background-color="light-blue" border-color="blue">
+  <p>阅读指南的同时动手试一试，记得最快。想找个不怕弄乱的地方，打开 {{doc:practice}}。</p>
+</callout>
+<h1>界面一览</h1>
+<img src="assets/guides/overview.png" width="690" caption="quiet.md 的主窗口：左侧是文档库，右侧是正在编辑的文档" align="center"/>
+<p>窗口分成两部分。</p>
+<ol>
+  <li><b>侧栏</b>：最上方是「主页」，下面是「置顶」和「我的文档」两组，最底部是「设置」。按 <code>⌘ ]</code> 可以收起或展开侧栏，给正文腾出空间。</li>
+  <li><b>文档区</b>：白色的纸面。顶部从左到右是层级路径、文档标题，右上角是「⋯」更多、搜索和新建三个按钮。</li>
+</ol>
+<p>长文档的左上角还有一份<b>目录</b>，列出所有标题，点击即可跳转，阅读到哪里它就高亮到哪里。</p>
+<h1>五分钟上手</h1>
+<p>跟着下面的清单做一遍，就掌握了最常用的操作。每完成一项，点一下前面的方框，或者把光标放在这一行按 <code>⌘ Enter</code>。</p>
+<checkbox done="true">打开这份指南</checkbox>
+<checkbox done="false">按 <code>⌘ N</code> 新建一篇文档，给它起个标题</checkbox>
+<checkbox done="false">在空行输入 <code>/</code>，从弹出的菜单里插入一个「任务」</checkbox>
+<checkbox done="false">选中一段文字，在浮现的工具条上把它加粗、换个颜色</checkbox>
+<checkbox done="false">输入 <code>## </code>（两个井号加空格），把这一行变成二级标题</checkbox>
+<checkbox done="false">按 <code>⌘ J</code>，搜索「表格」，打开 {{doc:tables}}</checkbox>
+<checkbox done="false">在侧栏里右键一篇文档，把它「添加到置顶」</checkbox>
+<p>不需要保存。你的每一次修改都会在半秒后自动写入磁盘；如果写入失败，顶栏会明确告诉你，文档也不会被悄悄覆盖。</p>
+<h1>三种输入方式</h1>
+<p>quiet.md 的大部分功能都有三种用法，挑你顺手的就好。</p>
+<grid>
+  <column width-ratio="0.3333">
+    <h3>斜杠菜单</h3>
+    <p>在任意空行输入 <code>/</code>，弹出插入菜单。继续输入可以筛选，拼音首字母也行：<code>/bg</code> 是表格，<code>/dmk</code> 是代码块。</p>
+  </column>
+  <column width-ratio="0.3333">
+    <h3>Markdown</h3>
+    <p>习惯 Markdown 的话，直接输入：<code># </code> 变标题，<code>- </code> 变列表，<code>**加粗**</code> 在敲下最后一个星号时就变成<b>加粗</b>。</p>
+  </column>
+  <column width-ratio="0.3334">
+    <h3>快捷键</h3>
+    <p>常用操作都有快捷键，例如 <code>⌘ B</code> 加粗、<code>⌘ ⌥ 1</code> 一级标题。按 <code>⌘ /</code> 随时打开快捷键面板查看。</p>
+  </column>
+</grid>
+<h1>指南目录</h1>
+<p>建议按顺序阅读。每一篇都可以单独看，遇到不熟悉的名词再跳过去。</p>
+<table>
+  <colgroup><col width="330"/><col width="360"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>指南</p></th><th background-color="light-gray"><p>你会学到</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>{{doc:writing}}</p></td><td><p>标题层级、加粗斜体等文字样式、颜色与高亮、对齐与缩进，以及全部 Markdown 快捷输入</p></td></tr>
+    <tr><td><p>{{doc:blocks}}</p></td><td><p>斜杠菜单与块菜单、列表与任务、引用、高亮块、分隔线、日期提醒、倒计时和按钮</p></td></tr>
+    <tr><td><p>{{doc:tables}}</p></td><td><p>插入与编辑表格、合并单元格、标题行、单元格颜色，以及多栏排版</p></td></tr>
+    <tr><td><p>{{doc:code}}</p></td><td><p>代码块的语言、名称、换行与复制，行内代码，用 LaTeX 写公式</p></td></tr>
+    <tr><td><p>{{doc:media}}</p></td><td><p>插入、缩放、裁剪图片和添加描述，附件与视频，文档图标与封面</p></td></tr>
+    <tr><td><p>{{doc:organize}}</p></td><td><p>主页与侧栏、子文档、置顶与收藏、批量操作、@文档 与反向引用、搜索、目录、阅读模式和回收站</p></td></tr>
+    <tr><td><p>{{doc:data}}</p></td><td><p>导入 Markdown 与飞书文档、导出 PDF 与 Markdown、打印，以及文档库的文件结构与备份</p></td></tr>
+    <tr><td><p>{{doc:personalize}}</p></td><td><p>文档主题与自定义 CSS、修改快捷键、全局快速笔记、界面语言，附完整快捷键速查表</p></td></tr>
+  </tbody>
+</table>
+<h1>最常用的快捷键</h1>
+<p>先记住这几个，其余的用到时再查。完整列表在 {{doc:personalize}} 的末尾。</p>
+<table>
+  <colgroup><col width="160"/><col width="185"/><col width="160"/><col width="185"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>按键</p></th><th background-color="light-gray"><p>作用</p></th><th background-color="light-gray"><p>按键</p></th><th background-color="light-gray"><p>作用</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p><code>⌘ N</code></p></td><td><p>新建文档</p></td><td><p><code>⌘ J</code></p></td><td><p>搜索所有文档</p></td></tr>
+    <tr><td><p><code>/</code></p></td><td><p>插入任意内容块</p></td><td><p><code>⌘ F</code></p></td><td><p>在当前文档里查找</p></td></tr>
+    <tr><td><p><code>⌘ B</code> · <code>⌘ I</code> · <code>⌘ U</code></p></td><td><p>加粗 · 斜体 · 下划线</p></td><td><p><code>⌘ K</code></p></td><td><p>插入或编辑链接</p></td></tr>
+    <tr><td><p><code>Tab</code> · <code>⇧ Tab</code></p></td><td><p>增加 · 减少缩进</p></td><td><p><code>⌘ Z</code> · <code>⌘ ⇧ Z</code></p></td><td><p>撤销 · 重做</p></td></tr>
+    <tr><td><p><code>⌘ ]</code></p></td><td><p>收起或展开侧栏</p></td><td><p><code>⌘ /</code></p></td><td><p>打开快捷键面板</p></td></tr>
+  </tbody>
+</table>
+<h1>你的数据在哪里</h1>
+<p>所有文档都保存在「文稿」文件夹里的 <code>Quiet.md</code> 文件夹：每篇文档是 <code>docs</code> 里的一个 <code>.xml</code> 文件，图片和附件在 <code>assets</code> 里。它们就是普通文件，可以用时间机器备份，也可以拷到另一台电脑。</p>
+<blockquote>
+  <p>quiet.md 不联网，也不收集任何数据。唯一会访问网络的情况，是文档里引用了网址图片、并且你在设置里打开了「自动下载网络图片」。</p>
+</blockquote>
+<p>想了解文件结构、备份与迁移，请读 {{doc:data}}。</p>
+<hr/>
+<p align="center">准备好了吗？从 {{doc:writing}} 开始吧。</p>

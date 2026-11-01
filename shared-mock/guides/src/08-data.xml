@@ -1,0 +1,94 @@
+<title>导入、导出与备份</title>
+<p>你的笔记不应该被锁在任何一个应用里。quiet.md 可以导入 Markdown 和飞书文档，可以把任何一篇文档导出为 PDF 或 Markdown，而文档库本身就是一个普通文件夹，备份和迁移都由你掌控。</p>
+<h1>导入</h1>
+<p>在菜单栏选择 <b>文件 › 导入为文档…</b>，或按 <code>⌘ ⇧ I</code>，选择一个或多个文件。每个文件会变成一篇新文档，导入完成后打开最后一篇。</p>
+<table>
+  <colgroup><col width="220"/><col width="470"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>文件类型</p></th><th background-color="light-gray"><p>导入后</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>Markdown（<code>.md</code>、<code>.markdown</code>）</p></td><td><p>标题、列表、任务、引用、代码块、表格、链接、图片都会转换成对应的块。</p></td></tr>
+    <tr><td><p>纯文本（<code>.txt</code>）</p></td><td><p>按 Markdown 规则读取；没有 Markdown 符号的文本就是普通段落。</p></td></tr>
+    <tr><td><p>飞书文档（<code>.xml</code>）</p></td><td><p>飞书导出的 DocxXML 文件，高亮块、分栏、表格合并单元格、颜色都会保留。</p></td></tr>
+  </tbody>
+</table>
+<ul>
+  <li>文档标题取自文件名。如果 Markdown 文件的第一行是和文件名相同的 <code># 标题</code>，这一行不会重复出现在正文里。</li>
+  <li>Markdown 里引用的本地图片（相对路径或 <code>file://</code> 路径）会一起复制进文档库。</li>
+  <li>文件格式无法识别时，会提示「导入失败，请检查文件格式」，已有的文档不受影响。</li>
+</ul>
+<callout emoji="📋" background-color="light-blue" border-color="blue">
+  <p>不想新建文档的话，直接复制粘贴也行：从网页、飞书复制的内容会保留结构；从其他 Markdown 编辑器复制的纯文本，粘贴时会按 Markdown 转换。按 <code>⌘ ⇧ V</code> 粘贴为纯文本，可以丢掉源文档的颜色和字体。</p>
+</callout>
+<h1>导出</h1>
+<p>在文档右上角的「⋯」菜单里选择「下载为」，或在侧栏右键文档选择「下载」。</p>
+<h2>导出为 PDF</h2>
+<p>按 A4 纸张排版，保留文档的样式、颜色、图片和表格。适合发给别人阅读、存档或打印前确认效果。</p>
+<h2>导出为 Markdown</h2>
+<p>会先弹出「导出 Markdown 设置」，选择内容范围：</p>
+<grid>
+  <column width-ratio="0.5">
+    <h3>仅文本</h3>
+    <p>默认选项。只导出一个 <code>.md</code> 文件，不含图片和附件。适合粘贴到别处或交给其他工具处理。</p>
+  </column>
+  <column width-ratio="0.5">
+    <h3>所有内容</h3>
+    <p>在 <code>.md</code> 文件旁边建一个 <code>文档名.assets</code> 文件夹，放进文档里的图片和附件，Markdown 里用相对路径引用它们。</p>
+  </column>
+</grid>
+<p>Markdown 能表达的格式有限，导出时会做以下转换：</p>
+<table>
+  <colgroup><col width="200"/><col width="490"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>quiet.md 里的</p></th><th background-color="light-gray"><p>导出为</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>高亮块</p></td><td><p>以图标开头的引用 <code>&gt; 💡 …</code></p></td></tr>
+    <tr><td><p>公式</p></td><td><p><code>$…$</code></p></td></tr>
+    <tr><td><p>表格</p></td><td><p>用 <code>|</code> 分隔的 Markdown 表格；单元格里的多个段落用 <code>&lt;br&gt;</code> 连接</p></td></tr>
+    <tr><td><p>子页面列表</p></td><td><p>子文档标题组成的列表</p></td></tr>
+    <tr><td><p>「打开超链接」按钮</p></td><td><p>普通链接</p></td></tr>
+    <tr><td><p>文字颜色、背景色、倒计时</p></td><td><p><span text-color="gray">不导出</span></p></td></tr>
+  </tbody>
+</table>
+<h2>打印</h2>
+<p>「⋯」菜单里的「打印」会打开系统的打印面板，排版和导出 PDF 相同。在打印面板左下角的「PDF」菜单里，也可以把文档存成 PDF 或者直接用邮件发送。</p>
+<h1>文档库：你的文件在哪里</h1>
+<p>所有文档都保存在「文稿」里的 <code>Quiet.md</code> 文件夹。打开 <b>设置 › 文档库</b>，点「在访达中显示」就能看到它。文件夹里的结构是这样的：</p>
+<pre lang="plaintext" caption="~/Documents/Quiet.md"><code>Quiet.md/
+├── docs/            每篇文档一个 .xml 文件
+├── assets/          插入的图片和附件
+├── themes/          你自定义的文档主题（CSS）
+├── trash/           回收站里的文档
+├── index.json       文档的层级、置顶、收藏和时间信息
+├── preferences.json 主题、语言等偏好设置
+└── shortcuts.json   你修改过的快捷键</code></pre>
+<p>每篇文档的 <code>.xml</code> 文件使用飞书的 DocxXML 格式，可以用任何文本编辑器打开，也能被其他支持这种格式的工具读取。</p>
+<h2>数据安全</h2>
+<ul>
+  <li><b>自动保存</b>：停止输入半秒后自动写入磁盘。写入时先写一个临时文件，完成后再替换原文件，即使中途断电，文件也只会是旧版本或新版本，不会是写了一半的损坏文件。</li>
+  <li><b>保存失败会提醒</b>：磁盘满了或没有权限时，顶栏会显示错误；在切换文档、新建或退出前，quiet.md 会询问你如何处理，不会悄悄丢掉修改。</li>
+  <li><b>索引有备份</b>：<code>index.json</code> 每次保存前都会留一份 <code>index.json.bak</code>。万一索引损坏，会自动用备份恢复。</li>
+  <li><b>同一时间只有一个窗口写入</b>：同一个文档库只能被一个 quiet.md 打开，避免两个程序互相覆盖。</li>
+</ul>
+<h2>备份</h2>
+<p>因为文档库就是一个文件夹，所有备份方式都适用：</p>
+<ol>
+  <li><b>时间机器</b>：「文稿」默认在时间机器的备份范围里，什么都不用设置。</li>
+  <li><b>手动打包</b>：在终端里运行下面的命令，得到一个带日期的压缩包。
+    <pre lang="bash"><code>cd ~/Documents &amp;&amp; tar -czf "Quiet-$(date +%F).tar.gz" Quiet.md</code></pre>
+  </li>
+  <li><b>同步盘</b>：如果你在系统设置里打开了 iCloud 的「桌面与文稿文件夹」，文档库会自动同步到 iCloud。不要在两台电脑上同时打开同一个文档库。</li>
+</ol>
+<h2>迁移到另一台 Mac</h2>
+<ol>
+  <li>在旧电脑上退出 quiet.md（<code>⌘ Q</code>）。</li>
+  <li>把整个 <code>Quiet.md</code> 文件夹复制到新电脑的「文稿」里。</li>
+  <li>在新电脑上打开 quiet.md，所有文档、层级、主题和快捷键都会原样出现。</li>
+</ol>
+<callout emoji="🧩" background-color="light-purple" border-color="purple">
+  <p>直接放进 <code>docs</code> 文件夹的 <code>.xml</code> 文件也会出现在文档列表里。如果你用命令行工具从飞书批量导出了 DocxXML，把它们拷进这个文件夹即可。</p>
+</callout>
+<hr/>
+<p>下一篇：{{doc:personalize}}，按自己的习惯调整 quiet.md。</p>

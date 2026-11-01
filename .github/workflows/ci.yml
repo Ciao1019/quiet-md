@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: test + clippy
+    # The app is macOS-only (AppKit, Metal, objc), so the runner has to be macOS.
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # rust-toolchain.toml pins the channel and asks for clippy; rustup
+      # installs both here, so local and CI use the same compiler.
+      - name: Install toolchain
+        run: rustup component add clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build application
+        run: cargo build --release --locked
+
+      - name: cargo test
+        run: cargo test --release --workspace --locked
+
+      - name: cargo clippy
+        run: cargo clippy --release --workspace --all-targets --locked -- -D warnings

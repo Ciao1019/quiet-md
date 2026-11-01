@@ -1,0 +1,28 @@
+<title>示例：读书清单</title>
+<p>这是 {{doc:organize}} 下面的一篇示例子文档，演示文档树和反向引用。你可以随意修改或删除它。</p>
+<h1>2026 年想读的书</h1>
+<table>
+  <colgroup><col width="250"/><col width="160"/><col width="140"/><col width="140"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>书名</p></th><th background-color="light-gray"><p>作者</p></th><th background-color="light-gray"><p align="center">进度</p></th><th background-color="light-gray"><p align="center">评分</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>《思考，快与慢》</p></td><td><p>丹尼尔·卡尼曼</p></td><td background-color="light-green"><p align="center">读完</p></td><td><p align="center">★★★★★</p></td></tr>
+    <tr><td><p>《设计心理学》</p></td><td><p>唐纳德·诺曼</p></td><td background-color="light-green"><p align="center">读完</p></td><td><p align="center">★★★★☆</p></td></tr>
+    <tr><td><p>《人月神话》</p></td><td><p>弗雷德里克·布鲁克斯</p></td><td background-color="light-yellow"><p align="center">在读</p></td><td><p align="center">—</p></td></tr>
+    <tr><td><p>《卡片笔记写作法》</p></td><td><p>申克·阿伦斯</p></td><td><p align="center">未开始</p></td><td><p align="center">—</p></td></tr>
+  </tbody>
+</table>
+<h1>读书笔记</h1>
+<h2>《思考，快与慢》</h2>
+<blockquote>
+  <p>我们对自己认为熟悉的东西过于自信，而忽视了自己的无知。</p>
+</blockquote>
+<ul>
+  <li><b>系统 1</b>：快速、直觉、不费力，负责日常大部分判断。</li>
+  <li><b>系统 2</b>：缓慢、需要专注，只在系统 1 应付不了时才出场。</li>
+  <li>启发：重要决定前，<span background-color="light-yellow">刻意放慢一步</span>，让系统 2 参与进来。</li>
+</ul>
+<h2>待办</h2>
+<checkbox done="false">读完《人月神话》第 2 章「人月神话」</checkbox>
+<checkbox done="false">把《设计心理学》的笔记整理成一页卡片</checkbox>

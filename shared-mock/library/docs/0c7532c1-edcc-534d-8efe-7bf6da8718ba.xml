@@ -1,0 +1,89 @@
+<title cover="assets/guides/covers/landscape-2.jpg" cover-y="0.45">图片、附件与封面</title>
+<p>一张截图往往胜过一段描述。这一篇介绍如何在笔记里放图片、视频和各种文件，以及怎样用图标和封面让每篇文档一眼就能认出来。</p>
+<h1>图片</h1>
+<h2>插入图片</h2>
+<p>有三种方式：</p>
+<ol>
+  <li>从斜杠菜单选择「图片」，在弹出的窗口里选一张图片。</li>
+  <li>把图片文件从访达直接拖进文档。</li>
+  <li>截图后（<code>⌘ ⌃ ⇧ 4</code> 会把截图放进剪贴板）在文档里按 <code>⌘ V</code> 粘贴。</li>
+</ol>
+<p>支持 JPG、PNG、GIF、WebP 和 BMP 格式，单张不超过 20 MB。插入的图片会复制一份到文档库的 <code>assets</code> 文件夹，原文件之后移动或删除都不影响笔记。</p>
+<img src="assets/guides/sample-photo.jpg" width="690" caption="一张插入的图片，下方是它的描述" align="center"/>
+<h2>调整大小与对齐</h2>
+<p>点击图片选中它，四个角会出现控制点，拖动即可缩放，比例保持不变。图片上方的工具条可以设置左对齐、居中或右对齐。下面两张是同一张图片的缩小版本，分别左对齐和右对齐：</p>
+<img src="assets/guides/sample-photo.jpg" width="320" align="left"/>
+<img src="assets/guides/sample-photo.jpg" width="320" align="right"/>
+<h2>裁剪</h2>
+<p>工具条上的「裁剪」可以只保留图片的一部分：拖动裁剪框的边和角，完成后点「保存裁剪」，或在框内双击。裁剪不会修改原图，随时可以「重置图片」恢复。下面是上面那张图片裁剪出中间一段的效果：</p>
+<img src="assets/guides/sample-photo.jpg" width="690" caption="裁剪后的图片：只保留了中间的部分" crop="0.25,0.1,0.75,0.9" align="center"/>
+<h2>图片描述</h2>
+<p>点击工具条上的「添加描述」，可以在图片下方写一行说明，例如图片的来源、拍摄时间或者需要注意的细节。描述会随图片一起导出。</p>
+<h2>查看大图</h2>
+<p>选中图片后再点击一次，会打开图片查看器：</p>
+<table>
+  <colgroup><col width="250"/><col width="440"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>操作</p></th><th background-color="light-gray"><p>按键</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>放大 · 缩小</p></td><td><p><code>⌘ +</code> · <code>⌘ -</code>，或 <code>↑</code> · <code>↓</code></p></td></tr>
+    <tr><td><p>适应页面 · 原始尺寸</p></td><td><p><code>⌘ 0</code> · <code>⌘ 1</code></p></td></tr>
+    <tr><td><p>上一张 · 下一张</p></td><td><p><code>←</code> · <code>→</code></p></td></tr>
+    <tr><td><p>旋转</p></td><td><p><code>R</code></p></td></tr>
+    <tr><td><p>关闭</p></td><td><p><code>Esc</code></p></td></tr>
+  </tbody>
+</table>
+<h2>网络图片</h2>
+<p>从网页复制的内容里常常带有网址图片。在 <b>设置 › 通用</b> 里打开「自动下载网络图片」，这些图片会下载到文档库里保存；关闭后 quiet.md 完全不联网，网络图片显示为占位框，需要时单独点击加载。</p>
+<h1>视频与文件</h1>
+<p>PDF、Word、Excel、PPT、音频、视频、压缩包……任何文件都可以放进笔记。从斜杠菜单选择「视频或文件」，或者直接把文件拖进文档，文件会复制到文档库里。</p>
+<h2>三种显示方式</h2>
+<p>选中一个附件，工具条上可以切换它的显示方式：</p>
+<h3>卡片视图</h3>
+<p>默认方式，显示文件图标、名称和大小，占用的空间最小。</p>
+<figure view-type="Card"><source path="assets/guides/quiet-md-cheatsheet.pdf" name="quiet-md-cheatsheet.pdf"/></figure>
+<h3>预览视图</h3>
+<p>直接在文档里显示文件的内容。PDF、Office 文档、图片、文本和代码文件都可以预览；音频文件会显示一个播放器，可以在笔记里直接收听。</p>
+<figure view-type="Preview"><source path="assets/guides/meeting-notes.md" name="meeting-notes.md"/></figure>
+<h3>文本视图</h3>
+<p>把附件变成一个嵌在句子里的小标签，适合在正文中顺带提一句：详细的排期见 <source path="assets/guides/quiet-md-cheatsheet.pdf" name="quiet-md-cheatsheet.pdf"/>，有问题随时补充。</p>
+<h2>打开与下载</h2>
+<ul>
+  <li>选中附件后再点一次，会用 macOS 的「快速查看」打开它；工具条上的「全屏」效果相同。</li>
+  <li>「下载」会把文件另存到你指定的位置。</li>
+  <li>视频支持 MP4、MOV、M4V 格式的预览；其他格式以卡片显示，可以快速查看或下载。</li>
+</ul>
+<h1>文档图标</h1>
+<p>每篇文档都可以设置一个表情图标，它会显示在标题前、侧栏和主页卡片上，代替默认的文档图标。这些指南都没有设置图标，侧栏里显示的是默认图标。</p>
+<ul>
+  <li>鼠标移到标题上方，点击「添加图标」，会随机给一个表情并打开表情面板。</li>
+  <li>点击已有的图标可以更换：面板里可以搜索，按「表情符号、动物、食物、活动、地点、物件、符号」分类浏览，也可以点「随机」。</li>
+  <li>在面板里点「移除」去掉图标。</li>
+</ul>
+<h1>封面</h1>
+<p>封面是标题上方的一张横幅图片。这份指南的顶部就是一张封面，其他指南都没有封面，你可以对比一下两者的效果。</p>
+<h2>选择封面</h2>
+<p>鼠标移到标题上方，点击「添加封面」，在「选择图片」面板里：</p>
+<grid>
+  <column width-ratio="0.5">
+    <h3>官方图库</h3>
+    <p>内置渐变、极光、山峦、几何四个系列共二十多张图片，点击即可使用；「随机」会挑一张给你。</p>
+  </column>
+  <column width-ratio="0.5">
+    <h3>本地上传</h3>
+    <p>用自己的照片做封面。推荐使用 2000 × 400 左右的横向图片，显示效果最好。</p>
+  </column>
+</grid>
+<h2>调整封面</h2>
+<p>鼠标移到封面上，点击「编辑封面」：</p>
+<ul>
+  <li><b>选择图片</b>：换一张封面。</li>
+  <li><b>调整图片位置</b>：上下左右拖动图片，选择露出的部分，点「确认」保存。</li>
+  <li><b>移除封面</b>：去掉封面。</li>
+</ul>
+<callout emoji="🎨" background-color="light-orange" border-color="orange">
+  <p>封面和图标会显示在主页的卡片视图里。给常用的文档配上不同的封面，在主页上一眼就能找到它们。</p>
+</callout>
+<hr/>
+<p>下一篇：<cite type="doc" doc-id="a9990a8f-54d2-50bf-aa14-94226d01fb8e" file-type="docx">整理与查找：管理你的文档库</cite>，管理越来越多的笔记。</p>

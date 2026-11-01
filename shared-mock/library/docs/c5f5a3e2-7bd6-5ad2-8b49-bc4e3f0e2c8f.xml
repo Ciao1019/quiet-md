@@ -1,0 +1,35 @@
+<title>示例：周会记录</title>
+<p>这是 <cite type="doc" doc-id="a9990a8f-54d2-50bf-aa14-94226d01fb8e" file-type="docx">整理与查找：管理你的文档库</cite> 下面的另一篇示例子文档，也是一份可以直接套用的会议记录格式。</p>
+<grid>
+  <column width-ratio="0.3">
+    <p><b>时间</b></p>
+    <p><b>参会</b></p>
+    <p><b>记录</b></p>
+  </column>
+  <column width-ratio="0.7">
+    <p><time expire-time="1793584800000" notify-time="1793584800000" should-notify="true">2026年11月2日 10:00</time></p>
+    <p>林夏、周远、陈默</p>
+    <p>周远</p>
+  </column>
+</grid>
+<h1>上周进展</h1>
+<checkbox done="true">完成设置页改版并发布到测试版</checkbox>
+<checkbox done="true">修复切换主题时闪退的问题</checkbox>
+<checkbox done="false">窄窗口下的主页布局（顺延到本周）</checkbox>
+<h1>本周计划</h1>
+<table>
+  <colgroup><col width="330"/><col width="140"/><col width="220"/></colgroup>
+  <thead>
+    <tr><th background-color="light-gray"><p>事项</p></th><th background-color="light-gray"><p>负责人</p></th><th background-color="light-gray"><p>截止</p></th></tr>
+  </thead>
+  <tbody>
+    <tr><td><p>写完开始指南</p></td><td><p>林夏</p></td><td><p><time expire-time="1793980740000" notify-time="1793926800000" should-notify="true" is-whole-day="true">2026年11月6日</time></p></td></tr>
+    <tr><td><p>导出 PDF 的分页优化</p></td><td><p>陈默</p></td><td><p><time expire-time="1794067140000" notify-time="1794013200000" should-notify="true" is-whole-day="true">2026年11月7日</time></p></td></tr>
+  </tbody>
+</table>
+<h1>决议</h1>
+<callout emoji="✅" background-color="light-green" border-color="green">
+  <p>下个版本以稳定性为主，新功能只做「历史记录」一项。</p>
+</callout>
+<p>按钮可以把这份记录当作模板使用：</p>
+<p><button action="DuplicatePage" background-color="light-blue">复制一份新的周会记录</button></p>
