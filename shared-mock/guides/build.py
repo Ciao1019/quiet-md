@@ -53,11 +53,11 @@ def fill(x):
         return f'<cite type="doc" doc-id="{ids[k]}" file-type="docx">{esc(titles[k])}</cite>'
     def rem(m):
         d = local(m.group(1))
-        return f'<time expire-time="{ms(d)}" notify-time="{ms(d)}" should-notify="true">{d.year}年{d.month}月{d.day}日 {d:%H:%M}</time>'
+        return f'<time expire-time="{ms(d)}" notify-time="{ms(d)}" should-notify="true">{d:%Y-%m-%d %H:%M}</time>'
     def rem_day(m):
         d = local(m.group(1) + " 23:59")
         n = local(m.group(1) + " 09:00")
-        return f'<time expire-time="{ms(d)}" notify-time="{ms(n)}" should-notify="true" is-whole-day="true">{d.year}年{d.month}月{d.day}日</time>'
+        return f'<time expire-time="{ms(d)}" notify-time="{ms(n)}" should-notify="true" is-whole-day="true">{d:%Y-%m-%d}</time>'
     def countdown(m):
         d = local(m.group(1))
         start = now * 1000

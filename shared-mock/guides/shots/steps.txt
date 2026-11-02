@@ -1,51 +1,33 @@
 # The 开始指南 screenshots. SHOT is `shot` (offscreen check) or `deskshot`
 # (on the wallpaper, via shots.sh). Window positions assume a 1352×878 screen.
-resize 1100 700
+resize 1280 800
 place 126 104
 wait 900
-move 1090 690
-click 120 307
-wait 1200
-move 1090 690
-wait 400
-SHOT overview
 key cmd-alt-home
 wait 1200
 move 1090 690
 wait 400
 SHOT home
-key cmd-j
-wait 1000
-SHOT search
-key escape
+click 120 232
+wait 1200
+move 1270 790
 wait 400
-# The footer's 设置 row (⌘, has no focused view to go to once search closes).
-click 100 669
-wait 900
-click 62 135
-wait 900
-move 1090 690
-wait 300
-click 958 129
-wait 800
-move 890 200
-wait 800
-SHOT theme
-key escape
-wait 300
+SHOT editor
 resize 900 600
 place 226 154
 wait 700
+move 890 590
+wait 400
 key cmd-n
 wait 900
-type 周末计划
+type Weekend plans
 key enter
 wait 300
-type 本周的笔记已经整理完毕，下面把结论写进周报。
+type This week's notes are organized. Time to write the review.
 key enter
-type 选中一段文字，格式工具条就会出现在它的上方。
+type Select some text to reveal the formatting toolbar.
 key enter
-type 周报的初稿在周五之前发给团队。
+type Share the first draft with the team before Friday.
 wait 300
 key up
 key cmd-left
@@ -60,12 +42,3 @@ key enter
 type /
 wait 900
 SHOT slash
-key escape
-wait 200
-key backspace
-wait 300
-move 600 190
-wait 700
-click 305 190
-wait 900
-SHOT block-menu

@@ -1,31 +1,23 @@
-<title>代码与公式</title>
-<p>无论你是在记录一段脚本、整理一份接口文档，还是推导一个公式，quiet.md 都能把它们排得清清楚楚：代码块带语法高亮和行号，公式用 LaTeX 书写、按数学排版显示。</p>
-<h1>行内代码</h1>
-<p>写命令、文件名、函数名时，用行内代码把它们和正文区分开：例如运行 <code>brew install ripgrep</code>，或者打开 <code>~/.zshrc</code>。输入时用反引号包住文字即可，也可以选中文字按 <code>⌘ ⌃ C</code>。</p>
-<h1>代码块</h1>
-<h2>插入代码块</h2>
-<ul>
-  <li>在行首输入 <code>```</code> 再按空格或回车；在反引号后面直接写语言，例如 <code>```python</code>，会同时设置语言。</li>
-  <li>从斜杠菜单选择「代码块」，或按 <code>⌘ ⌥ C</code>。</li>
-  <li>把已有的段落转换成代码块：块菜单 → 代码块。</li>
-</ul>
-<p>代码块里，<code>Tab</code> 插入四个空格的缩进、<code>⇧ Tab</code> 减少缩进，回车换行，文字不会被转换成 Markdown 样式，粘贴的内容也一律按纯文本处理。</p>
-<h2>语言与高亮</h2>
-<p>鼠标移到代码块上，左上角会出现语言选择，支持七十多种语言，可以搜索。下面是几种常见语言的高亮效果：</p>
+<title>Code and equations</title>
+<p>Keep a useful script, document an API or work through an equation. Code blocks provide syntax highlighting and line numbers, while LaTeX equations sit naturally alongside your writing.</p>
+<h1>Inline code</h1><p>Use inline code for commands, filenames and function names: <code>brew install ripgrep</code> or <code>~/.zshrc</code>. Wrap text in backticks as you type, or select it and press <code>⌘ ⌃ C</code>.</p>
+<h1>Code blocks</h1><h2>Insert a block</h2><ul><li>Type three backticks at the start of a line, then Space or Enter. Add a language, as in <code>```python</code>, to select it immediately.</li><li>Choose Code block from the slash menu, or press <code>⌘ ⌥ C</code>.</li><li>Use the block menu to turn an existing paragraph into code.</li></ul>
+<p>Inside a code block, Tab inserts four spaces, Shift-Tab reduces indentation, and Enter starts a new line. Markdown formatting is disabled and pasted content is treated as plain text.</p>
+<h2>Languages and highlighting</h2><p>Hover over a code block to choose its language. The searchable picker supports more than seventy languages.</p>
 <pre lang="python" caption="fetch_weather.py"><code>import json
 from urllib.request import urlopen
 
 def fetch_weather(city: str) -&gt; dict:
-    """返回某个城市的实时天气。"""
+    """Example client; replace the placeholder API before running."""
     url = f"https://api.example.com/weather?city={city}"
-    with urlopen(url, timeout=5) as resp:
-        return json.load(resp)
+    with urlopen(url, timeout=5) as response:
+        return json.load(response)
 
 if __name__ == "__main__":
-    print(fetch_weather("Hangzhou")["temp"], "°C")</code></pre>
+    print(fetch_weather("London")["temp"], "°C")</code></pre>
 <pre lang="typescript" caption="useDebounce.ts"><code>import { useEffect, useState } from "react";
 
-// 输入停止 delay 毫秒后，才更新返回值
+// Update only after the input has been quiet for delay milliseconds.
 export function useDebounce&lt;T&gt;(value: T, delay = 300): T {
   const [debounced, setDebounced] = useState(value);
   useEffect(() =&gt; {
@@ -36,7 +28,7 @@ export function useDebounce&lt;T&gt;(value: T, delay = 300): T {
 }</code></pre>
 <pre lang="rust" caption="word_count.rs"><code>use std::collections::HashMap;
 
-/// 统计每个单词出现的次数
+/// Count each word, ignoring capitalization.
 fn word_count(text: &amp;str) -&gt; HashMap&lt;String, usize&gt; {
     let mut counts = HashMap::new();
     for word in text.split_whitespace() {
@@ -44,7 +36,7 @@ fn word_count(text: &amp;str) -&gt; HashMap&lt;String, usize&gt; {
     }
     counts
 }</code></pre>
-<pre lang="sql" caption="月度活跃用户"><code>SELECT date_trunc('month', visited_at) AS month,
+<pre lang="sql" caption="Monthly active users"><code>SELECT date_trunc('month', visited_at) AS month,
        COUNT(DISTINCT user_id)         AS mau
 FROM   visits
 WHERE  visited_at &gt;= '2026-01-01'
@@ -55,53 +47,15 @@ ORDER  BY 1;</code></pre>
   "window_size": [1280, 800],
   "quick_note_size": [640, 800]
 }</code></pre>
-<pre lang="bash" caption="备份文档库"><code># 把文档库打包成带日期的压缩文件
+<pre lang="bash" caption="Back up your library"><code># Create a dated archive of the library.
 cd ~/Documents
-tar -czf "Quiet-$(date +%F).tar.gz" Quiet.md
-echo "备份完成"</code></pre>
-<h2>代码块名称</h2>
-<p>每个代码块上方都有一个名称栏，默认写着「代码块」。点击它可以改成文件名或用途，例如上面的 <code>fetch_weather.py</code>、「备份文档库」，一眼就能看出这段代码是做什么的。</p>
-<h2>自动换行</h2>
-<p>代码行默认不换行，超出宽度时可以左右滚动。很长的一行（比如一段日志或一条长命令）读起来不方便时，在代码块的工具里点「自动换行」：</p>
-<pre lang="plaintext" caption="错误日志" wrap="true"><code>2026-11-01 09:42:17.381 ERROR [sync-worker] Failed to write /Users/me/Documents/Quiet.md/docs/3f2a.xml: No space left on device (os error 28); the document stays unsaved and will be retried when you save again.</code></pre>
-<h2>复制与折叠</h2>
-<ul>
-  <li>鼠标移到代码块上，右上角的「复制」按钮会把整段代码复制到剪贴板，不带行号。</li>
-  <li>代码块左侧的小三角可以把它折叠起来，长代码不再占满屏幕。</li>
-  <li>行号的显示由文档主题决定：Craft、飞书、Obsidian 主题显示行号，Notion 主题不显示。</li>
-</ul>
-<h1>公式</h1>
-<p>quiet.md 用 LaTeX 书写数学公式，公式和文字排在同一行。</p>
-<h2>插入公式</h2>
-<ul>
-  <li>输入时用美元符号包住 LaTeX：输入 <code>$a^2+b^2=c^2$</code>，在敲下最后一个 <code>$</code> 时变成 <latex>a^2+b^2=c^2</latex>。用 <code>$$…$$</code> 包住也可以。</li>
-  <li>从斜杠菜单选择「公式」，在弹出的编辑框里输入 LaTeX，按 <code>Esc</code> 完成。</li>
-  <li>点击已有的公式可以重新编辑。写错的公式会显示为「无效公式」，不会破坏文档。</li>
-</ul>
-<h2>常用示例</h2>
-<table>
-  <colgroup><col width="300"/><col width="390"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>效果</p></th><th background-color="light-gray"><p>LaTeX</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><p><latex>\frac{a}{b} + \sqrt{x}</latex></p></td><td><p><code>\frac{a}{b} + \sqrt{x}</code></p></td></tr>
-    <tr><td><p><latex>x_1, x_2, \ldots, x_n</latex></p></td><td><p><code>x_1, x_2, \ldots, x_n</code></p></td></tr>
-    <tr><td><p><latex>\sum_{i=1}^{n} i = \frac{n(n+1)}{2}</latex></p></td><td><p><code>\sum_{i=1}^{n} i = \frac{n(n+1)}{2}</code></p></td></tr>
-    <tr><td><p><latex>\int_0^1 x^2 \, dx = \frac{1}{3}</latex></p></td><td><p><code>\int_0^1 x^2 \, dx = \frac{1}{3}</code></p></td></tr>
-    <tr><td><p><latex>\lim_{x \to 0} \frac{\sin x}{x} = 1</latex></p></td><td><p><code>\lim_{x \to 0} \frac{\sin x}{x} = 1</code></p></td></tr>
-    <tr><td><p><latex>\alpha, \beta, \gamma, \Delta, \Omega</latex></p></td><td><p><code>\alpha, \beta, \gamma, \Delta, \Omega</code></p></td></tr>
-    <tr><td><p><latex>A = \begin{pmatrix} 1 &amp; 2 \\ 3 &amp; 4 \end{pmatrix}</latex></p></td><td><p><code>\begin{pmatrix} 1 &amp; 2 \\ 3 &amp; 4 \end{pmatrix}</code></p></td></tr>
-    <tr><td><p><latex>f(x) = \begin{cases} x &amp; x \ge 0 \\ -x &amp; x &lt; 0 \end{cases}</latex></p></td><td><p><code>\begin{cases} x &amp; x \ge 0 \\ -x &amp; x &lt; 0 \end{cases}</code></p></td></tr>
-  </tbody>
-</table>
-<h2>在文字里使用公式</h2>
-<p>公式可以自然地嵌在句子里。例如：一元二次方程 <latex>ax^2 + bx + c = 0</latex> 的解是 <latex>x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</latex>；当判别式 <latex>\Delta = b^2 - 4ac &lt; 0</latex> 时，方程没有实数解。</p>
-<p align="center">想让一个公式单独成行，把它放在一个居中对齐的段落里：</p>
-<p align="center"><latex>e^{i\pi} + 1 = 0</latex></p>
-<p align="center"><latex>\mathbb{E}[X] = \sum_{x} x \, P(X = x)</latex></p>
-<callout emoji="📐" background-color="light-purple" border-color="purple">
-  <p>导出 Markdown 时，公式会写成 <code>$…$</code>，可以直接在支持 LaTeX 的 Markdown 编辑器里打开。</p>
-</callout>
-<hr/>
-<p>下一篇：<cite type="doc" doc-id="0c7532c1-edcc-534d-8efe-7bf6da8718ba" file-type="docx">图片、附件与封面</cite>，为笔记加上图片、附件和封面。</p>
+tar -czf "Quiet-$(date +%F).tar.gz" Quiet.md</code></pre>
+<h2>Names and wrapping</h2><p>Click the caption above a code block to give it a filename or a useful description. Long lines scroll horizontally by default. Enable wrapping in the block's controls when you would rather read them without scrolling.</p>
+<pre lang="plaintext" caption="Example error log" wrap="true"><code>2026-11-01 09:42:17.381 ERROR [save] No space left on device. The document remains unsaved; free some space and save again.</code></pre>
+<h2>Copy and fold</h2><ul><li>The copy button copies the complete code block without its line numbers.</li><li>Use the triangle on the left to fold a long block.</li><li>The document theme controls line numbers. Craft, Feishu and Obsidian show them; Notion does not.</li></ul>
+<h1>Equations</h1><h2>Insert an equation</h2><p>Type LaTeX between dollar signs: <code>$a^2+b^2=c^2$</code> becomes <latex>a^2+b^2=c^2</latex> when you type the closing dollar sign. Double-dollar delimiters work too.</p><p>You can also choose Equation from the slash menu. Press Esc to finish editing. Click an existing equation to edit it again; invalid input is marked without damaging the document.</p>
+<h2>Common examples</h2><table><colgroup><col width="300"/><col width="390"/></colgroup><thead><tr><th><p>Result</p></th><th><p>LaTeX</p></th></tr></thead><tbody>
+<tr><td><p><latex>\frac{a}{b} + \sqrt{x}</latex></p></td><td><p><code>\frac{a}{b} + \sqrt{x}</code></p></td></tr><tr><td><p><latex>x_1, x_2, \ldots, x_n</latex></p></td><td><p><code>x_1, x_2, \ldots, x_n</code></p></td></tr><tr><td><p><latex>\sum_{i=1}^{n} i = \frac{n(n+1)}{2}</latex></p></td><td><p><code>\sum_{i=1}^{n} i = \frac{n(n+1)}{2}</code></p></td></tr><tr><td><p><latex>\int_0^1 x^2 \, dx = \frac{1}{3}</latex></p></td><td><p><code>\int_0^1 x^2 \, dx = \frac{1}{3}</code></p></td></tr><tr><td><p><latex>\lim_{x \to 0} \frac{\sin x}{x} = 1</latex></p></td><td><p><code>\lim_{x \to 0} \frac{\sin x}{x} = 1</code></p></td></tr><tr><td><p><latex>\alpha, \beta, \gamma, \Delta, \Omega</latex></p></td><td><p><code>\alpha, \beta, \gamma, \Delta, \Omega</code></p></td></tr><tr><td><p><latex>A = \begin{pmatrix} 1 &amp; 2 \\ 3 &amp; 4 \end{pmatrix}</latex></p></td><td><p><code>\begin{pmatrix} 1 &amp; 2 \\ 3 &amp; 4 \end{pmatrix}</code></p></td></tr><tr><td><p><latex>f(x) = \begin{cases} x &amp; x \ge 0 \\ -x &amp; x &lt; 0 \end{cases}</latex></p></td><td><p><code>\begin{cases} x &amp; x \ge 0 \\ -x &amp; x &lt; 0 \end{cases}</code></p></td></tr>
+</tbody></table>
+<h2>Math in your writing</h2><p>The quadratic equation <latex>ax^2 + bx + c = 0</latex> has solutions <latex>x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}</latex>. When <latex>\Delta = b^2 - 4ac &lt; 0</latex>, it has no real solutions.</p><p>For an equation on its own line, put it in a centered paragraph:</p><p align="center"><latex>e^{i\pi} + 1 = 0</latex></p><p align="center"><latex>\mathbb{E}[X] = \sum_x x \, P(X=x)</latex></p>
+<callout emoji="📐" background-color="light-purple" border-color="purple"><p>Markdown export preserves equations as <code>$…$</code>, ready for another editor that supports LaTeX.</p></callout><hr/><p>Next: <cite type="doc" doc-id="0c7532c1-edcc-534d-8efe-7bf6da8718ba" file-type="docx">Images, files and covers</cite>.</p>

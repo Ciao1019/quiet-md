@@ -1,132 +1,28 @@
-<title>表格与分栏</title>
-<p>当信息有多个维度，比如几个方案在价格、周期、风险上的对比，表格比段落清楚得多；当你想让两段内容并排摆放，比如「优点」和「缺点」，分栏比上下排列更直观。这一篇介绍这两种排版工具。</p>
-<h1>表格</h1>
-<h2>插入表格</h2>
-<p>从斜杠菜单选择「表格」，在弹出的网格里移动鼠标选择行列数（最大 9 × 9），点击即可插入；也可以按 <code>⌘ ⌥ A</code> 直接插入一个 3 × 3 的表格。从网页、飞书或 Markdown 复制的表格，粘贴后也会变成可编辑的表格。</p>
-<h2>一个完整的例子</h2>
-<p>下面这张表展示了表格支持的大部分样式：标题行、合并的单元格、单元格背景色、对齐、单元格里的列表和任务。</p>
-<table>
-  <colgroup><col width="130"/><col width="150"/><col width="150"/><col width="260"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>阶段</p></th><th background-color="light-gray"><p align="center">负责人</p></th><th background-color="light-gray"><p align="center">状态</p></th><th background-color="light-gray"><p>交付物</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td vertical-align="middle" rowspan="2"><p><b>设计</b></p></td><td><p align="center">林夏</p></td><td background-color="light-green"><p align="center">已完成</p></td><td><checkbox done="true">交互稿</checkbox><checkbox done="true">视觉规范</checkbox></td></tr>
-    <tr><td><p align="center">周远</p></td><td background-color="light-yellow"><p align="center">进行中</p></td><td><checkbox done="true">图标库</checkbox><checkbox done="false">插画</checkbox></td></tr>
-    <tr><td><p><b>开发</b></p></td><td><p align="center">陈默</p></td><td background-color="light-blue"><p align="center">排期中</p></td><td><ul><li>客户端：11 月 18 日提测</li><li>服务端：11 月 20 日提测</li></ul></td></tr>
-    <tr><td><p><b>发布</b></p></td><td background-color="light-gray" colspan="2"><p align="center">等待前序阶段完成</p></td><td><p>发布说明、应用商店截图</p></td></tr>
-  </tbody>
-</table>
-<h2>选择与编辑</h2>
-<ul>
-  <li><b>选中单元格</b>：在一个单元格里按住鼠标拖到另一个单元格，就能选中一片区域。</li>
-  <li><b>选中整行整列</b>：点击表格左侧或上方的灰色条，选中整行或整列；按住 <code>⇧</code> 再点，可以扩大选择范围。</li>
-  <li><b>插入行和列</b>：鼠标移到灰色条上的两行（或两列）之间，会出现「插入行」「插入列」的加号，点击插入。</li>
-  <li><b>移动行和列</b>：选中整行或整列后按住拖动，可以调整顺序。</li>
-  <li><b>调整列宽</b>：拖动列的右边线。在块菜单里选「均分列宽」可以让所有列一样宽。</li>
-  <li><b>删除</b>：选中整行或整列后，工具条上会出现「删除行」「删除列」。</li>
-</ul>
-<h2>单元格工具条</h2>
-<p>选中一个或多个单元格后，上方会出现工具条：</p>
-<table>
-  <colgroup><col width="190"/><col width="500"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>功能</p></th><th background-color="light-gray"><p>说明</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><p>合并单元格</p></td><td><p>把选中的矩形区域合并成一个单元格；合并后的单元格可以「拆分单元格」恢复。</p></td></tr>
-    <tr><td><p>单元格背景颜色</p></td><td><p>十六种颜色，适合标出状态或分组。</p></td></tr>
-    <tr><td><p>对齐</p></td><td><p>水平方向左、中、右；垂直方向顶部、居中、底部。</p></td></tr>
-    <tr><td><p>文字样式</p></td><td><p>加粗、斜体、下划线、删除线、行内代码、文字颜色，对选中的所有单元格一次生效。</p></td></tr>
-  </tbody>
-</table>
-<h2>标题行与标题列</h2>
-<p>在表格的块菜单里打开「标题行」，第一行会以标题样式显示，向下滚动长表格时它会固定在顶部；打开「标题列」，第一列以同样的样式显示，适合做矩阵式的对比。</p>
-<table>
-  <colgroup><col width="160"/><col width="176"/><col width="177"/><col width="177"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p></p></th><th background-color="light-gray"><p align="center">方案 A</p></th><th background-color="light-gray"><p align="center">方案 B</p></th><th background-color="light-gray"><p align="center">方案 C</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><th background-color="light-gray"><p>成本</p></th><td><p align="center">¥ 12 万</p></td><td background-color="light-green"><p align="center"><b>¥ 8 万</b></p></td><td><p align="center">¥ 15 万</p></td></tr>
-    <tr><th background-color="light-gray"><p>交付周期</p></th><td><p align="center">6 周</p></td><td background-color="light-green"><p align="center"><b>4 周</b></p></td><td><p align="center">8 周</p></td></tr>
-    <tr><th background-color="light-gray"><p>技术风险</p></th><td background-color="light-yellow"><p align="center">中</p></td><td><p align="center">低</p></td><td background-color="light-red"><p align="center">高</p></td></tr>
-    <tr><th background-color="light-gray"><p>可扩展性</p></th><td><p align="center">好</p></td><td><p align="center">一般</p></td><td><p align="center">很好</p></td></tr>
-  </tbody>
-</table>
-<h2>单元格里能放什么</h2>
-<p>单元格里不只能写字。正文、标题、列表、任务、代码块、公式都可以放进单元格，按回车在单元格里新起一段：</p>
-<table>
-  <colgroup><col width="345"/><col width="345"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>示例</p></th><th background-color="light-gray"><p>说明</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><pre lang="bash"><code>git switch -c feature/table&#10;git push -u origin HEAD</code></pre></td><td><p>代码块放在单元格里，适合做命令速查表。</p></td></tr>
-    <tr><td><p>面积 <latex>S = \pi r^2</latex></p><p>周长 <latex>C = 2\pi r</latex></p></td><td><p>公式和文字混排，一个单元格里可以有多个段落。</p></td></tr>
-  </tbody>
-</table>
-<callout emoji="💡" background-color="light-blue" border-color="blue">
-  <p>把一段 Markdown 表格（用 <code>|</code> 分隔的文本）粘贴进来，会自动变成表格。导出 Markdown 时，表格也会写成这种格式。</p>
-</callout>
-<h1>分栏</h1>
-<p>分栏把页面分成几列，每一列都是独立的区域，里面可以放任何块。从斜杠菜单选择「分栏」，再选择栏数（1 到 5 栏）。</p>
-<h2>两栏：对比</h2>
-<grid>
-  <column width-ratio="0.5">
-    <callout emoji="👍" background-color="light-green" border-color="green">
-      <p><b>优点</b></p>
-      <ul>
-        <li>完全本地，没有网络延迟</li>
-        <li>文档就是文件，便于备份</li>
-        <li>启动快，长文档也流畅</li>
-      </ul>
-    </callout>
-  </column>
-  <column width-ratio="0.5">
-    <callout emoji="🤔" background-color="light-orange" border-color="orange">
-      <p><b>需要注意</b></p>
-      <ul>
-        <li>不会自动在设备间同步</li>
-        <li>备份要靠你自己安排</li>
-        <li>暂时只有 macOS 版本</li>
-      </ul>
-    </callout>
-  </column>
-</grid>
-<h2>三栏：并列的要点</h2>
-<grid>
-  <column width-ratio="0.333">
-    <h3>记录</h3>
-    <p>随时捕捉想法。按 <code>⌘ ⇧ N</code> 打开一个快速笔记窗口，写完就关。</p>
-  </column>
-  <column width-ratio="0.333">
-    <h3>整理</h3>
-    <p>用子文档、置顶和收藏，把零散的笔记归到合适的位置。</p>
-  </column>
-  <column width-ratio="0.333">
-    <h3>回顾</h3>
-    <p>用 <code>⌘ J</code> 搜索全文，用反向引用找到相关的笔记。</p>
-  </column>
-</grid>
-<h2>不等宽的分栏</h2>
-<p>拖动两栏之间的空隙可以调整宽度，靠近均分或整十分比时会轻微吸附。下面是左窄右宽的分栏，适合「标签 + 内容」的排版：</p>
-<grid>
-  <column width-ratio="0.3">
-    <p><b>项目名称</b></p>
-    <p><b>项目周期</b></p>
-    <p><b>项目目标</b></p>
-  </column>
-  <column width-ratio="0.7">
-    <p>本地笔记应用 quiet.md</p>
-    <p>2026 年 10 月 — 12 月</p>
-    <p>做一款安静、可靠、文档完全属于用户的笔记工具</p>
-  </column>
-</grid>
-<h2>增加与删除栏</h2>
-<ul>
-  <li>鼠标移到两栏之间，会出现一个圆形的加号，点击「新增分栏」在这里插入一栏，最多十栏。</li>
-  <li>删除一栏里的全部内容，这一栏就会消失；只剩一栏时，分栏会还原成普通的段落。</li>
-</ul>
-<hr/>
-<p>下一篇：<cite type="doc" doc-id="4ea21fc9-5061-5c03-a5a0-29465f895f0f" file-type="docx">代码与公式</cite>，在笔记里写代码和数学公式。</p>
+<title>Tables and columns</title>
+<p>Use a table when you need to compare several things across the same dimensions. Use columns when you want independent ideas side by side. Both layouts can contain more than plain text.</p>
+<h1>Tables</h1><h2>Insert a table</h2><p>Choose Table from the slash menu and select a size in the grid, up to 9 × 9. Press <code>⌘ ⌥ A</code> to insert a 3 × 3 table directly. Tables pasted from Markdown, web pages or Feishu become editable tables too.</p>
+<h2>A project at a glance</h2><p>This example combines header cells, a merged row, backgrounds, alignment, tasks and lists.</p>
+<table><colgroup><col width="130"/><col width="130"/><col width="150"/><col width="280"/></colgroup><thead><tr><th background-color="light-gray"><p>Stage</p></th><th background-color="light-gray"><p>Owner</p></th><th background-color="light-gray"><p>Status</p></th><th background-color="light-gray"><p>Deliverables</p></th></tr></thead><tbody>
+<tr><td rowspan="2" vertical-align="middle"><p><b>Design</b></p></td><td><p>Alex</p></td><td background-color="light-green"><p>Done</p></td><td><checkbox done="true">Interaction design</checkbox><checkbox done="true">Visual guidelines</checkbox></td></tr>
+<tr><td><p>Jordan</p></td><td background-color="light-yellow"><p>In progress</p></td><td><checkbox done="true">Icons</checkbox><checkbox done="false">Illustrations</checkbox></td></tr>
+<tr><td><p><b>Build</b></p></td><td><p>Sam</p></td><td background-color="light-blue"><p>Scheduled</p></td><td><ul><li>Client review: November 18</li><li>Service review: November 20</li></ul></td></tr>
+<tr><td><p><b>Release</b></p></td><td colspan="2" background-color="light-gray"><p align="center">Waiting for earlier stages</p></td><td><p>Release notes and screenshots</p></td></tr>
+</tbody></table>
+<h2>Select and arrange</h2><ul><li><b>Select cells:</b> drag from one cell to another to select a rectangular range.</li><li><b>Select a row or column:</b> click its gray handle. Hold Shift to extend the selection.</li><li><b>Insert rows or columns:</b> hover between their handles and click the plus control.</li><li><b>Reorder:</b> select a row or column, then drag it.</li><li><b>Resize:</b> drag a column boundary. The block menu can distribute column widths evenly.</li><li><b>Delete:</b> select a row or column and use the toolbar's delete control.</li></ul>
+<h2>The cell toolbar</h2><table><colgroup><col width="210"/><col width="480"/></colgroup><tbody>
+<tr><td><p>Merge and split</p></td><td><p>Merge a rectangular selection into one cell, or split a previously merged cell.</p></td></tr><tr><td><p>Background</p></td><td><p>Use cell colors to show groups or status.</p></td></tr><tr><td><p>Alignment</p></td><td><p>Align left, center or right; place content at the top, middle or bottom.</p></td></tr><tr><td><p>Text styles</p></td><td><p>Apply bold, italic, underline, strikethrough, code or text colors to the selected cells.</p></td></tr>
+</tbody></table>
+<h2>Header rows and columns</h2><p>Enable a header row in the table's block menu to style the first row and keep it visible while scrolling a long table. A header column styles the first column for comparison tables.</p>
+<table><colgroup><col width="180"/><col width="170"/><col width="170"/><col width="170"/></colgroup><thead><tr><th><p></p></th><th><p>Option A</p></th><th><p>Option B</p></th><th><p>Option C</p></th></tr></thead><tbody>
+<tr><th><p>Budget</p></th><td><p>$12,000</p></td><td background-color="light-green"><p><b>$8,000</b></p></td><td><p>$15,000</p></td></tr><tr><th><p>Timeline</p></th><td><p>6 weeks</p></td><td background-color="light-green"><p><b>4 weeks</b></p></td><td><p>8 weeks</p></td></tr><tr><th><p>Risk</p></th><td background-color="light-yellow"><p>Medium</p></td><td><p>Low</p></td><td background-color="light-red"><p>High</p></td></tr><tr><th><p>Flexibility</p></th><td><p>Good</p></td><td><p>Limited</p></td><td><p>Excellent</p></td></tr>
+</tbody></table>
+<h2>Inside a cell</h2><p>Cells can hold paragraphs, headings, lists, tasks, code and equations. Press Enter to add another paragraph within a cell.</p>
+<table><colgroup><col width="345"/><col width="345"/></colgroup><tbody><tr><td><pre lang="bash"><code>git switch -c feature/table&#10;git push -u origin HEAD</code></pre></td><td><p>Code blocks make useful command references.</p></td></tr><tr><td><p>Area: <latex>S = \pi r^2</latex></p><p>Circumference: <latex>C = 2\pi r</latex></p></td><td><p>Mix equations with text and multiple paragraphs.</p></td></tr></tbody></table>
+<callout emoji="💡" background-color="light-blue" border-color="blue"><p>Paste a Markdown table made with <code>|</code> separators to create a table. Markdown export writes tables in that format too.</p></callout>
+<h1>Columns</h1><p>Choose Columns from the slash menu, then choose one to five columns. Each column is an independent area that can contain other blocks.</p>
+<h2>Two columns for a comparison</h2><grid><column width-ratio="0.5"><callout emoji="👍" background-color="light-green" border-color="green"><p><b>What works well</b></p><ul><li>Local files, available offline</li><li>A library you can back up yourself</li><li>A native writing interface</li></ul></callout></column><column width-ratio="0.5"><callout emoji="🤔" background-color="light-orange" border-color="orange"><p><b>Things to plan for</b></p><ul><li>No built-in cross-device sync</li><li>You are responsible for backups</li><li>Currently available on macOS</li></ul></callout></column></grid>
+<h2>Three columns for a workflow</h2><grid><column width-ratio="0.3333"><h3>Capture</h3><p>Press <code>⌘ ⇧ N</code> for a new note window and write down the idea.</p></column><column width-ratio="0.3333"><h3>Organize</h3><p>Group related pages, pin the essentials and favorite useful references.</p></column><column width-ratio="0.3334"><h3>Return</h3><p>Search with <code>⌘ J</code> and follow backlinks to connected notes.</p></column></grid>
+<h2>Adjust the widths</h2><p>Drag the gap between columns. Widths gently snap near equal splits and simple proportions.</p>
+<grid><column width-ratio="0.3"><p><b>Project</b></p><p><b>Timeline</b></p><p><b>Goal</b></p></column><column width-ratio="0.7"><p>quiet.md</p><p>October–December 2026</p><p>A calm, reliable writing tool that keeps your notes in your hands</p></column></grid>
+<h2>Add or remove columns</h2><ul><li>Hover between columns and click the plus control to add one, up to ten columns.</li><li>Remove all content from a column to remove that column. When only one remains, the layout returns to ordinary blocks.</li></ul>
+<hr/><p>Next: <cite type="doc" doc-id="4ea21fc9-5061-5c03-a5a0-29465f895f0f" file-type="docx">Code and equations</cite>.</p>

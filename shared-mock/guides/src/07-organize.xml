@@ -1,102 +1,17 @@
-<title>整理与查找：管理你的文档库</title>
-<p>笔记写多了，找到它们比写下它们更重要。quiet.md 用一棵文档树组织所有笔记，再配上置顶、收藏、双向链接和全文搜索，让任何一篇笔记都在几次按键之内。</p>
-<h1>主页</h1>
-<p>点击侧栏顶部的「主页」，或按 <code>⌘ ⌥ Home</code>，可以总览所有文档。</p>
-<img src="assets/guides/home.png" width="690" caption="主页的宫格视图：每张卡片是文档内容的缩略预览" align="center"/>
-<ul>
-  <li><b>两个标签页</b>：「我的文档」列出全部文档，「收藏」只列出你收藏过的。</li>
-  <li><b>排序</b>：按最近访问时间、最近修改时间、创建时间或标题排列，选择会被记住。</li>
-  <li><b>宫格与列表</b>：右上角切换。宫格视图显示每篇文档的缩略预览和封面；列表视图显示修改、创建和访问时间，适合文档很多的时候。</li>
-  <li>卡片和列表行右键，或点击「⋯」，可以对文档执行和侧栏相同的操作。</li>
-</ul>
-<h1>侧栏与文档树</h1>
-<h2>子文档</h2>
-<p>任何文档都可以有子文档，就像文件夹里的文件。把鼠标移到侧栏里的一篇文档上，点击右侧的 <b>+</b>，就在它下面新建了一篇子文档。有子文档的文档，图标会在鼠标经过时变成一个小三角，点击展开或收起。</p>
-<p>这篇指南下面就有两篇示例子文档：</p>
-<sub-page-list/>
-<p>上面这个列表是一个「子页面列表」块，它会自动列出当前文档的所有子文档。在一个专题的首页放一个子页面列表，就有了一份永远不会过时的目录。打开文档后，页面顶部的层级路径会显示它的上级文档，点击可以返回。</p>
-<h2>文档的操作</h2>
-<p>在侧栏里右键一篇文档，或者点击它右侧的「⋯」，会出现文档菜单：</p>
-<table>
-  <colgroup><col width="190"/><col width="500"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>操作</p></th><th background-color="light-gray"><p>说明</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><p>在新窗口中打开</p></td><td><p>在一个独立的小窗口里打开，方便一边看一边写。</p></td></tr>
-    <tr><td><p>创建副本</p></td><td><p>复制一份，标题后面加上「副本」。</p></td></tr>
-    <tr><td><p>移动到</p></td><td><p>把文档连同它的子文档移到另一篇文档下面，或者移回顶层。弹窗里可以搜索目标位置。</p></td></tr>
-    <tr><td><p>添加到「置顶」</p></td><td><p>让文档出现在侧栏的「置顶」分组里，最常用的文档放在这里。</p></td></tr>
-    <tr><td><p>收藏</p></td><td><p>收藏后可以在主页的「收藏」标签页里找到。</p></td></tr>
-    <tr><td><p>下载</p></td><td><p>导出为 PDF 或 Markdown，见 {{doc:data}}。</p></td></tr>
-    <tr><td><p>重命名</p></td><td><p>直接在侧栏里修改标题，回车确认，<code>Esc</code> 取消。</p></td></tr>
-    <tr><td><p><span text-color="red">删除</span></p></td><td><p>移到回收站，子文档一起移入。</p></td></tr>
-  </tbody>
-</table>
-<p>侧栏里的顶层文档按最近修改时间排列，刚编辑过的文档总在最上面；子文档按创建顺序排列。</p>
-<h2>批量操作</h2>
-<p>一次整理很多文档时，点击「我的文档」标题旁的批量操作图标，或者按住 <code>⇧</code> 点击一篇文档，进入批量模式：</p>
-<ol>
-  <li>每篇文档前出现复选框，勾选要处理的文档（最多 50 篇），标题栏显示已选数量。</li>
-  <li>底部的工具条可以一次性<b>创建副本、移动到或删除</b>选中的文档。</li>
-  <li>点「退出」或按 <code>Esc</code> 离开批量模式。</li>
-</ol>
-<h2>置顶与收藏的区别</h2>
-<grid>
-  <column width-ratio="0.5">
-    <callout emoji="📌" background-color="light-blue" border-color="blue">
-      <p><b>置顶</b></p>
-      <p>出现在侧栏最上方，一抬眼就能看到。适合放三五篇每天都要打开的文档，比如本周计划、待办清单。</p>
-    </callout>
-  </column>
-  <column width-ratio="0.5">
-    <callout emoji="⭐" background-color="light-yellow" border-color="yellow">
-      <p><b>收藏</b></p>
-      <p>集中在主页的「收藏」标签页里，数量不限。适合标记值得反复回看的资料和参考文档。</p>
-    </callout>
-  </column>
-</grid>
-<h1>双向链接</h1>
-<h2>@ 提及其他文档</h2>
-<p>在正文里输入 <code>@</code>，会弹出文档列表：不输入文字时显示最近打开的文档，继续输入可以按标题搜索。选中一篇，就插入了一个指向它的链接，例如 {{doc:writing}}。点击链接直接跳转到那篇文档；即使对方改了标题，链接依然有效。</p>
-<h2>反向引用</h2>
-<p>每篇文档的末尾都有一个引用列表，分两个标签页：</p>
-<ul>
-  <li><b>反向引用</b>：哪些文档提到了这篇文档，以及提到它的那一行。点击某一行，会跳转到那篇文档里提到它的位置。</li>
-  <li><b>本文引用</b>：这篇文档提到了哪些其他文档。</li>
-</ul>
-<p>滚动到这篇指南的底部看看：两篇示例子文档都提到了这篇指南，所以它们会出现在反向引用里。不需要引用列表的话，点击它右上角的 × 隐藏；之后可以在「⋯」菜单 › 更多里重新打开「显示引用列表」。</p>
-<callout emoji="🔗" background-color="light-green" border-color="green">
-  <p>文档树负责「这篇笔记属于哪里」，双向链接负责「这篇笔记和谁有关」。两者结合，笔记就从一堆文件变成了一张知识网络。</p>
-</callout>
-<h1>搜索</h1>
-<h2>全局搜索</h2>
-<p>按 <code>⌘ J</code>（或点击顶栏的搜索图标、主页的搜索框）打开搜索窗口。它会在所有文档的标题和正文里查找，标题匹配的结果排在前面，每条结果显示一段带高亮的摘要。</p>
-<img src="assets/guides/search.png" width="690" caption="搜索窗口：不输入时显示最近浏览的文档" align="center"/>
-<ul>
-  <li>不输入任何文字时，显示最近浏览过的文档，适合快速切换。</li>
-  <li>用 <code>↑</code> <code>↓</code> 选择，回车打开，<code>Esc</code> 关闭。</li>
-  <li>在正文里选中一段文字，点击工具条上的「更多 › 文档库内搜索」，会直接用这段文字搜索。</li>
-</ul>
-<h2>文档内查找与替换</h2>
-<p>按 <code>⌘ F</code> 在当前文档里查找，所有匹配的地方都会高亮，回车跳到下一处，<code>⇧ Enter</code> 跳到上一处。按 <code>⌘ ⇧ H</code> 打开替换，可以逐个「替换」或者「全部替换」。查找不区分大小写。</p>
-<h1>阅读长文档</h1>
-<h2>目录</h2>
-<p>文档里有标题时，页面左上角会出现目录。它列出所有标题，点击跳转，滚动时自动高亮你正在读的那一节。点击目录旁的按钮可以「展开目录」让它常驻，或「收起目录」把它藏起来，每篇文档分别记住。</p>
-<h2>页宽</h2>
-<p>在文档右上角的「⋯」菜单里选择「页宽设置」，有默认、较宽、全宽三种。写表格多的文档时，较宽或全宽能放下更多列。每篇文档分别记住自己的页宽。</p>
-<h2>阅读模式</h2>
-<p>按 <code>⌃ ⌥ V</code> 进入阅读模式，文档变成只读，不会因为误触而改动内容；仍然可以选择、复制文字和折叠标题。按 <code>⌃ ⌥ E</code> 回到编辑模式。</p>
-<h2>文档信息</h2>
-<p>「⋯」菜单里的「文档信息」显示创建时间、最近修改时间、总字数、总字符数和文件大小。字数的算法是：每个汉字算一个字，每个英文单词或数字算一个字。</p>
-<h1>回收站</h1>
-<p>删除的文档会先放进回收站，保留 30 天后自动彻底删除。打开 <b>设置 › 回收站</b> 可以看到它们，以及每篇还剩多少天。</p>
-<ul>
-  <li><b>恢复</b>：放回原来的位置；如果原来的上级文档已经不在，就放回「我的文档」的顶层。</li>
-  <li><b>彻底删除</b>：立即删除，包括它的子文档，无法恢复。</li>
-</ul>
-<callout emoji="🗑️" background-color="light-red" border-color="red">
-  <p>彻底删除前请确认文档里没有还需要的内容。保险起见，可以先「下载」一份 Markdown 或 PDF。</p>
-</callout>
-<hr/>
-<p>下一篇：{{doc:data}}，把文档带进来、带出去。</p>
+<title>Organize and find your notes</title>
+<p>A growing library should stay easy to explore. Use the document tree to give notes a home, pins and favorites to keep useful pages close, and links and search to find connections.</p>
+<h1>Home</h1><p>Click Home in the sidebar or press <code>⌘ ⌥ Home</code> to see your library.</p>
+<ul><li><b>My documents and Favorites:</b> browse everything or just the pages you have marked.</li><li><b>Sort:</b> choose last opened, last modified, creation time or title. Your choice is remembered.</li><li><b>Grid and list:</b> switch at the top right. Cards show content previews and covers; the list emphasizes document details and dates.</li><li>Right-click a card or use its More menu for document actions.</li></ul>
+<h1>The sidebar and document tree</h1><h2>Child documents</h2><p>Any page can contain other pages. Hover over it in the sidebar and click the plus button to create a child. Parent pages show a folder icon; on hover, the icon gives way to a triangle you can click to expand or collapse the children.</p><p>This guide has two example child documents:</p><sub-page-list/>
+<p>The list above is a child-page list block. It updates automatically as children are added or removed. The path at the top of an open document lets you return to its parent.</p>
+<h2>Document actions</h2><p>Right-click a sidebar entry or click its More button.</p><table><colgroup><col width="210"/><col width="480"/></colgroup><tbody>
+<tr><td><p>Open in a new window</p></td><td><p>Keep a reference next to the document you are writing.</p></td></tr><tr><td><p>Duplicate</p></td><td><p>Create a separate copy you can edit.</p></td></tr><tr><td><p>Move to</p></td><td><p>Move the page and its children under another document or back to the top level. Search for a destination in the dialog.</p></td></tr><tr><td><p>Pin</p></td><td><p>Place a shortcut in the sidebar's Pinned section.</p></td></tr><tr><td><p>Favorite</p></td><td><p>Include the document in Home's Favorites tab.</p></td></tr><tr><td><p>Download</p></td><td><p>Export PDF or Markdown; see {{doc:data}}.</p></td></tr><tr><td><p>Rename</p></td><td><p>Edit the title in the sidebar. Enter confirms; Esc cancels.</p></td></tr><tr><td><p><span text-color="red">Delete</span></p></td><td><p>Move the page and its children to Trash.</p></td></tr>
+</tbody></table><p>Top-level sidebar documents are ordered by recent modification. Children are shown in sibling order.</p>
+<h2>Batch actions</h2><p>Use the batch control beside My documents, or Shift-click a document. Select up to 50 pages, then use the footer to duplicate, move or delete them together. Press Esc to leave batch mode.</p>
+<h2>Pins and favorites</h2><grid><column width-ratio="0.5"><callout emoji="📌" background-color="light-blue" border-color="blue"><p><b>Pins</b></p><p>Visible at the top of the sidebar. Keep a few daily essentials here, such as your weekly plan.</p></callout></column><column width-ratio="0.5"><callout emoji="⭐" background-color="light-yellow" border-color="yellow"><p><b>Favorites</b></p><p>Collected in their own Home tab. Useful for references you want to return to without filling the sidebar.</p></callout></column></grid>
+<h1>Links between notes</h1><h2>Mention another document</h2><p>Type <code>@</code> to see recently opened pages, then type a title to search. Pick a page to insert a link, such as {{doc:writing}}. The link keeps working if the destination is renamed.</p><h2>Backlinks</h2><p>The reference area at the end of a document shows incoming and outgoing links. Incoming links include the surrounding text; click one to jump to that mention.</p><p>Both example child pages mention this guide, so they appear in its backlinks. You can hide the reference area with its close button and show it again from the document's More menu.</p><callout emoji="🔗" background-color="light-green" border-color="green"><p>The tree answers “Where does this note belong?” Links answer “What is it connected to?” Use both when a note has more than one context.</p></callout>
+<h1>Search</h1><h2>Search the library</h2><p>Press <code>⌘ J</code> or use the search control in the header or on Home. Search matches document titles and body text, prioritizes titles, and shows highlighted snippets.</p>
+<ul><li>With an empty query, search shows recently visited documents.</li><li>Use the arrow keys to select, Enter to open and Esc to close.</li><li>You can also search selected text from the formatting toolbar's More menu.</li></ul>
+<h2>Find and replace</h2><p>Press <code>⌘ F</code> to find text in the current document. Enter moves to the next match; Shift-Enter moves back. <code>⌘ ⇧ H</code> opens replacement controls for one match or all matches. Search is case-insensitive.</p>
+<h1>Read a long document</h1><ul><li><b>Outline:</b> jump between headings and keep track of the current section. Each document remembers whether its outline is expanded.</li><li><b>Page width:</b> choose the default, wide or full-width layout from the More menu. Wide layouts are useful for tables.</li><li><b>Reading mode:</b> <code>⌃ ⌥ V</code> makes the view read-only while keeping selection, copying and folding available. <code>⌃ ⌥ E</code> returns to editing.</li><li><b>Document information:</b> inspect dates, word and character counts, and file size. Words and numbers are counted as words; each CJK character is counted individually.</li></ul>
+<h1>Trash</h1><p>Deleted documents stay in Trash for 30 days before automatic removal. Open Settings › Trash to restore them or delete them permanently.</p><ul><li>Restore returns a page to its original parent, or to the top level if the parent no longer exists.</li><li>Permanent deletion also removes children and cannot be undone.</li></ul><callout emoji="🗑️" background-color="light-red" border-color="red"><p>Before permanently deleting something you might need, export a copy or back up your library.</p></callout><hr/><p>Next: {{doc:data}}.</p>

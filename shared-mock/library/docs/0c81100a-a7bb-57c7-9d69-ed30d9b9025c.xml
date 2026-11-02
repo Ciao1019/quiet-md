@@ -1,142 +1,24 @@
-<title>个性化：主题、快捷键与设置</title>
-<p>quiet.md 的默认设置适合大多数人，但每个人的书写习惯不同。这一篇介绍如何更换文档的外观、调整快捷键、在任何地方快速记一笔，最后附上一份完整的快捷键速查表。</p>
-<p>按 <code>⌘ ,</code> 打开设置。设置分为通用、外观、快捷键、文档库、回收站和关于六页。</p>
-<h1>文档主题</h1>
-<p>主题决定文档的样子：字体、字号、行距、标题的大小与粗细、链接颜色、代码块的配色、引用的竖线、分隔线的样式等等。主题只改变文档本身，侧栏和菜单保持不变。</p>
-<h2>内置主题</h2>
-<p>打开 <b>设置 › 外观</b>，点击「文档主题」右侧的下拉菜单。鼠标在主题列表上移动，左侧会预览这个主题的效果；点击才会真正应用。</p>
-<img src="assets/guides/theme.png" width="690" caption="主题下拉菜单：悬停预览，点击应用" align="center"/>
-<table>
-  <colgroup><col width="140"/><col width="550"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>主题</p></th><th background-color="light-gray"><p>特点</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><p><b>Craft</b></p></td><td><p>默认主题。系统字体，舒展的行距，点状分隔线，代码块带行号。</p></td></tr>
-    <tr><td><p><b>飞书</b></p></td><td><p>沿用飞书文档的排版和配色，从飞书导入的文档看起来最接近原样。</p></td></tr>
-    <tr><td><p><b>Notion</b></p></td><td><p>暖灰色的文字、较窄的正文栏、实线分隔线，代码块没有行号。</p></td></tr>
-    <tr><td><p><b>Obsidian</b></p></td><td><p>紫色作为强调色，用于链接、任务和引用竖线；标题按比例逐级缩小。</p></td></tr>
-  </tbody>
-</table>
-<h2>自定义主题</h2>
-<p>每个主题都是一份 CSS 文件。在外观页「主题 CSS」一行：</p>
-<ul>
-  <li><b>编辑 CSS</b>：用你电脑上的编辑器打开当前主题的 CSS。内置主题会先复制一份到文档库的 <code>themes</code> 文件夹，你改的是这份副本，它会标记为「已修改」，随时可以「恢复默认」。</li>
-  <li><b>复制为新主题</b>：以当前主题为起点，新建一个你自己的主题。</li>
-  <li>在编辑器里保存文件后，所有窗口里的文档会立即按新样式重画，不需要重启。</li>
-  <li>写错的值或者不认识的属性不会让主题失效，它们会被跳过，并在外观页里列为「未生效」。</li>
-</ul>
-<p>一份主题 CSS 大致是这样的：</p>
+<title>Make it yours: themes and shortcuts</title>
+<p>Choose a document style that suits your writing, adjust the shortcuts you use most, and capture a quick note from anywhere. Open Settings with <code>⌘ ,</code>.</p>
+<h1>Document themes</h1><p>A theme controls document fonts, spacing, headings, links, code blocks, quotes and dividers. It changes the page, while the sidebar and menus keep their own appearance.</p><h2>Built-in themes</h2><p>In Settings › Appearance, open the document-theme picker. Hover to preview; click to apply.</p>
+<table><colgroup><col width="150"/><col width="540"/></colgroup><thead><tr><th><p>Theme</p></th><th><p>Style</p></th></tr></thead><tbody><tr><td><p><b>Craft</b></p></td><td><p>The default: system fonts, comfortable spacing, dotted dividers and code line numbers.</p></td></tr><tr><td><p><b>Feishu</b></p></td><td><p>Typography and colors familiar from Feishu documents.</p></td></tr><tr><td><p><b>Notion</b></p></td><td><p>Warm gray text, a narrower page, solid dividers and no code line numbers.</p></td></tr><tr><td><p><b>Obsidian</b></p></td><td><p>Purple accents for links, tasks and quotes, with proportionally scaled headings.</p></td></tr></tbody></table>
+<h2>Custom CSS</h2><p>Use the theme CSS controls in Appearance to edit a theme or duplicate it as your own. Editing a built-in theme first makes a copy in the library's themes folder. You can restore the original whenever you want.</p><ul><li>Save the CSS file to update all open windows without restarting.</li><li>Unsupported properties and invalid values are skipped and listed in Appearance.</li><li>Drop another theme's CSS file into the themes folder to make it available in the picker.</li></ul>
 <pre lang="css" caption="themes/my-theme.css"><code>:root {
-  --theme-name: "我的主题";
-  --theme-description: "宋体正文，适合长篇阅读";
+  --theme-name: "My reading theme";
+  --theme-name-en: "My reading theme";
+  --theme-description: "Serif text for long-form reading";
   --theme-base: craft;
   --accent: hsl(212, 70%, 45%);
 }
-
-.page { font-family: "Songti SC", serif; font-size: 17px; line-height: 1.8; max-width: 680px; }
+.page { font-family: Georgia, serif; font-size: 17px; line-height: 1.8; max-width: 680px; }
 h1 { font-size: 1.6em; font-weight: 700; margin-top: 40px; }
 a { color: var(--accent); text-decoration: underline; }
 blockquote { border-left: 3px solid var(--accent); font-style: italic; }
 hr { border-top: 1px solid #d0d0d0; }</code></pre>
-<p>把别人分享的 <code>.css</code> 文件放进文档库的 <code>themes</code> 文件夹，它也会出现在主题列表里。</p>
-<h1>快捷键</h1>
-<h2>修改快捷键</h2>
-<p>打开 <b>设置 › 快捷键</b>，所有可以修改的快捷键按「应用与窗口、文档、编辑、文字样式、段落与块」分组列出，右上角可以搜索。</p>
-<ol>
-  <li>点击某一行右侧的按键，它会变成「按下新的组合键…」。</li>
-  <li>按下你想要的组合，立即生效。组合里需要包含 <code>⌘</code>、<code>⌃</code> 或 <code>⌥</code>。</li>
-  <li>如果这个组合已经被别的操作占用，会在这一行下面说明被谁占用了，原来的快捷键保持不变。</li>
-  <li>按 <code>Esc</code> 取消录制。</li>
-</ol>
-<p>改过的行会出现「恢复默认」；改过任何快捷键后，右上角会出现「全部恢复默认」。工具条和菜单里的按键提示，会跟着你的修改一起变化。</p>
-<h2>快速新建笔记</h2>
-<p>灵感总是在你忙别的事情时出现。快速笔记让你在任何应用里按一个组合键，立刻弹出一个新的 quiet.md 小窗口，写完关掉即可，笔记已经自动保存进文档库。</p>
-<ul>
-  <li>在 <b>设置 › 快捷键 › 全局</b> 打开「快速新建笔记」，并设置一个组合键。</li>
-  <li>默认组合是 <code>⌘ Space</code>，它和系统的「聚焦搜索」冲突，通常需要换一个，例如 <code>⌥ ⇧ Space</code>。如果组合被系统或其他应用占用，这一行会显示无法注册的原因。</li>
-  <li>在 quiet.md 里，按 <code>⌘ ⇧ N</code> 或选择菜单栏的 <b>文件 › 新建笔记窗口</b>，效果相同。</li>
-  <li>快速笔记窗口的大小会被记住；同时打开多个时，新窗口会错开一点位置。</li>
-</ul>
-<h1>其他设置</h1>
-<table>
-  <colgroup><col width="160"/><col width="200"/><col width="330"/></colgroup>
-  <thead>
-    <tr><th background-color="light-gray"><p>位置</p></th><th background-color="light-gray"><p>设置项</p></th><th background-color="light-gray"><p>说明</p></th></tr>
-  </thead>
-  <tbody>
-    <tr><td><p>通用</p></td><td><p>界面语言</p></td><td><p>简体中文或 English，只改变界面文字，不改变文档内容。</p></td></tr>
-    <tr><td><p>通用</p></td><td><p>自动下载网络图片</p></td><td><p>关闭后应用完全不联网，网络图片显示为占位框。</p></td></tr>
-    <tr><td><p>文档库</p></td><td><p>文档库文件夹</p></td><td><p>显示文档库的位置，可以在访达中打开。</p></td></tr>
-    <tr><td><p>回收站</p></td><td><p>—</p></td><td><p>查看、恢复或彻底删除已删除的文档。</p></td></tr>
-  </tbody>
-</table>
-<p>另外，侧栏的宽度可以拖动它的右边缘调整；主窗口和主页的视图方式（宫格或列表、排序）都会自动记住。</p>
-<h1>快捷键速查表</h1>
-<p>以下是默认的快捷键。在文档里按 <code>⌘ /</code>，也可以随时打开快捷键面板。</p>
-<h2>应用与窗口</h2>
-<table>
-  <colgroup><col width="200"/><col width="490"/></colgroup>
-  <tbody>
-    <tr><td><p><code>⌘ N</code></p></td><td><p>新建文档</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ N</code></p></td><td><p>新建笔记窗口</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ I</code></p></td><td><p>导入文档</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ Home</code></p></td><td><p>返回主页</p></td></tr>
-    <tr><td><p><code>⌘ ]</code></p></td><td><p>展开或收起侧栏</p></td></tr>
-    <tr><td><p><code>⌘ J</code></p></td><td><p>搜索文档</p></td></tr>
-    <tr><td><p><code>⌘ ,</code></p></td><td><p>打开设置</p></td></tr>
-    <tr><td><p><code>⌘ /</code></p></td><td><p>查看快捷键</p></td></tr>
-    <tr><td><p><code>⌘ W</code> · <code>⌘ Q</code></p></td><td><p>关闭窗口 · 退出</p></td></tr>
-  </tbody>
-</table>
-<h2>文档</h2>
-<table>
-  <colgroup><col width="200"/><col width="490"/></colgroup>
-  <tbody>
-    <tr><td><p><code>⌘ F</code></p></td><td><p>文档内查找</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ H</code></p></td><td><p>查找和替换</p></td></tr>
-    <tr><td><p><code>⌃ ⌥ V</code> · <code>⌃ ⌥ E</code></p></td><td><p>阅读模式 · 编辑模式</p></td></tr>
-    <tr><td><p><code>⌘ S</code></p></td><td><p>立即保存（平时会自动保存）</p></td></tr>
-  </tbody>
-</table>
-<h2>编辑</h2>
-<table>
-  <colgroup><col width="200"/><col width="490"/></colgroup>
-  <tbody>
-    <tr><td><p><code>⌘ Z</code> · <code>⌘ ⇧ Z</code></p></td><td><p>撤销 · 重做</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ V</code></p></td><td><p>粘贴为纯文本</p></td></tr>
-    <tr><td><p><code>⌘ K</code></p></td><td><p>插入链接</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ W</code></p></td><td><p>插入日期提醒</p></td></tr>
-    <tr><td><p><code>⌘ Enter</code></p></td><td><p>切换任务的完成状态</p></td></tr>
-    <tr><td><p><code>⌃ ⇧ ↑</code> · <code>⌃ ⇧ ↓</code></p></td><td><p>上移 · 下移当前块</p></td></tr>
-    <tr><td><p><code>Tab</code> · <code>⇧ Tab</code></p></td><td><p>增加 · 减少缩进；在表格里移到下一个 · 上一个单元格</p></td></tr>
-    <tr><td><p><code>⇧ Enter</code></p></td><td><p>段内换行</p></td></tr>
-  </tbody>
-</table>
-<h2>文字样式</h2>
-<table>
-  <colgroup><col width="200"/><col width="490"/></colgroup>
-  <tbody>
-    <tr><td><p><code>⌘ B</code> · <code>⌘ I</code> · <code>⌘ U</code></p></td><td><p>加粗 · 斜体 · 下划线</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ X</code></p></td><td><p>删除线</p></td></tr>
-    <tr><td><p><code>⌘ ⌃ C</code></p></td><td><p>行内代码</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ H</code></p></td><td><p>应用上次的文字颜色和背景色</p></td></tr>
-  </tbody>
-</table>
-<h2>段落与块</h2>
-<table>
-  <colgroup><col width="200"/><col width="490"/></colgroup>
-  <tbody>
-    <tr><td><p><code>⌘ ⌥ 0</code></p></td><td><p>正文</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ 1</code> 到 <code>⌘ ⌥ 9</code></p></td><td><p>一到九级标题</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ 7</code> · <code>⌘ ⇧ 8</code></p></td><td><p>有序列表 · 无序列表</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ T</code></p></td><td><p>任务</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ C</code></p></td><td><p>代码块</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ &gt;</code></p></td><td><p>引用</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ S</code></p></td><td><p>分隔线</p></td></tr>
-    <tr><td><p><code>⌘ ⌥ A</code></p></td><td><p>插入表格</p></td></tr>
-    <tr><td><p><code>⌘ ⇧ L</code> · <code>⌘ ⇧ E</code> · <code>⌘ ⇧ R</code></p></td><td><p>左对齐 · 居中 · 右对齐</p></td></tr>
-  </tbody>
-</table>
-<hr/>
-<p align="center">你已经读完了全部指南。去 <cite type="doc" doc-id="33f7e56d-02b5-58f6-a842-e9f96c39a86a" file-type="docx">练习场</cite> 试试，或者直接按 <code>⌘ N</code> 开始写吧。</p>
+<h1>Keyboard shortcuts</h1><h2>Change a shortcut</h2><p>Settings › Shortcuts groups commands by application, document, editing, text style and blocks. Use search to find a command.</p><ol><li>Click the shortcut on the right of a row.</li><li>Press a new combination containing Command, Control or Option.</li><li>If the combination is already used, the row explains the conflict and keeps the existing binding.</li><li>Press Esc to cancel recording.</li></ol><p>Changed shortcuts have a reset control, and you can reset all custom bindings at once. Menu and toolbar hints follow your changes.</p>
+<h2>Quick notes</h2><p>A global shortcut can open a small note window while you are using another app. Write the thought down, then close the window; it is saved in your library.</p><ul><li>Enable the global quick-note shortcut in Settings › Shortcuts.</li><li>The default <code>⌘ Space</code> commonly conflicts with Spotlight. Choose another combination, such as <code>⌥ ⇧ Space</code>, if needed. Registration failures are shown in settings.</li><li>Inside quiet.md, press <code>⌘ ⇧ N</code> or use File › New note window.</li><li>Quick-note windows remember their size and open slightly offset from one another.</li></ul>
+<h1>Other preferences</h1><table><colgroup><col width="170"/><col width="520"/></colgroup><tbody><tr><td><p>General</p></td><td><p>Choose English or Simplified Chinese for the interface. Changing interface language does not translate existing document content.</p></td></tr><tr><td><p>Remote images</p></td><td><p>Control automatic downloading. When disabled, remote images wait for you to load them.</p></td></tr><tr><td><p>Library</p></td><td><p>See where your documents are stored.</p></td></tr><tr><td><p>Trash</p></td><td><p>Restore deleted pages or remove them permanently.</p></td></tr></tbody></table><p>Drag the sidebar's right edge to resize it. Window sizes, Home layout and sorting preferences are remembered.</p>
+<h1>Shortcut reference</h1><p>These are the defaults. Press <code>⌘ /</code> to see the currently configured shortcuts.</p>
+<h2>Application and windows</h2><table><colgroup><col width="250"/><col width="440"/></colgroup><tbody><tr><td><p><code>⌘ N</code></p></td><td><p>New document</p></td></tr><tr><td><p><code>⌘ ⇧ N</code></p></td><td><p>New note window</p></td></tr><tr><td><p><code>⌘ ⇧ I</code></p></td><td><p>Import documents</p></td></tr><tr><td><p><code>⌘ ⌥ Home</code></p></td><td><p>Go to Home</p></td></tr><tr><td><p><code>⌘ ]</code></p></td><td><p>Toggle sidebar</p></td></tr><tr><td><p><code>⌘ J</code></p></td><td><p>Search library</p></td></tr><tr><td><p><code>⌘ ,</code> / <code>⌘ /</code></p></td><td><p>Settings / Shortcut reference</p></td></tr><tr><td><p><code>⌘ W</code> / <code>⌘ Q</code></p></td><td><p>Close window / Quit</p></td></tr></tbody></table>
+<h2>Document and editing</h2><table><colgroup><col width="250"/><col width="440"/></colgroup><tbody><tr><td><p><code>⌘ F</code> / <code>⌘ ⇧ H</code></p></td><td><p>Find / Find and replace</p></td></tr><tr><td><p><code>⌃ ⌥ V</code> / <code>⌃ ⌥ E</code></p></td><td><p>Read / Edit</p></td></tr><tr><td><p><code>⌘ S</code></p></td><td><p>Save now</p></td></tr><tr><td><p><code>⌘ Z</code> / <code>⌘ ⇧ Z</code></p></td><td><p>Undo / Redo</p></td></tr><tr><td><p><code>⌘ ⇧ V</code></p></td><td><p>Paste plain text</p></td></tr><tr><td><p><code>⌘ K</code></p></td><td><p>Add a link</p></td></tr><tr><td><p><code>⌘ ⌥ W</code></p></td><td><p>Insert a date reminder</p></td></tr><tr><td><p><code>⌘ Enter</code></p></td><td><p>Toggle a task</p></td></tr><tr><td><p><code>⌃ ⇧ ↑</code> / <code>⌃ ⇧ ↓</code></p></td><td><p>Move a block up / down</p></td></tr><tr><td><p><code>Tab</code> / <code>⇧ Tab</code></p></td><td><p>Indent / Outdent; next / previous cell in tables</p></td></tr><tr><td><p><code>⇧ Enter</code></p></td><td><p>Line break within a paragraph</p></td></tr></tbody></table>
+<h2>Styles and blocks</h2><table><colgroup><col width="250"/><col width="440"/></colgroup><tbody><tr><td><p><code>⌘ B</code> / <code>⌘ I</code> / <code>⌘ U</code></p></td><td><p>Bold / Italic / Underline</p></td></tr><tr><td><p><code>⌘ ⇧ X</code> / <code>⌘ ⌃ C</code></p></td><td><p>Strikethrough / Inline code</p></td></tr><tr><td><p><code>⌘ ⌥ H</code></p></td><td><p>Apply the last-used colors</p></td></tr><tr><td><p><code>⌘ ⌥ 0</code></p></td><td><p>Body text</p></td></tr><tr><td><p><code>⌘ ⌥ 1</code>–<code>⌘ ⌥ 9</code></p></td><td><p>Heading levels 1–9</p></td></tr><tr><td><p><code>⌘ ⇧ 7</code> / <code>⌘ ⇧ 8</code></p></td><td><p>Numbered / Bulleted list</p></td></tr><tr><td><p><code>⌘ ⌥ T</code> / <code>⌘ ⌥ C</code></p></td><td><p>Task / Code block</p></td></tr><tr><td><p><code>⌘ ⇧ &gt;</code> / <code>⌘ ⌥ S</code></p></td><td><p>Quote / Divider</p></td></tr><tr><td><p><code>⌘ ⌥ A</code></p></td><td><p>Table</p></td></tr><tr><td><p><code>⌘ ⇧ L</code> / <code>⌘ ⇧ E</code> / <code>⌘ ⇧ R</code></p></td><td><p>Align left / center / right</p></td></tr></tbody></table><hr/><p align="center">You have reached the end of the guides. Try <cite type="doc" doc-id="33f7e56d-02b5-58f6-a842-e9f96c39a86a" file-type="docx">Playground</cite>, or press <code>⌘ N</code> and start writing.</p>

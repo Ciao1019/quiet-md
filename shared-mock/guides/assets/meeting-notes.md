@@ -1,17 +1,17 @@
-# 产品周会 · 11 月 2 日
+# Product review - November 2
 
-## 上周进展
+## Last week
 
-- 设置页改版已发布到测试版
-- 修复了切换主题时闪退的问题
+- Ship the redesigned settings page to the preview build
+- Fix the crash when switching themes
 
-## 本周计划
+## This week
 
-| 事项 | 负责人 | 截止 |
+| Task | Owner | Due |
 |---|---|---|
-| 写完开始指南 | 林夏 | 11 月 6 日 |
-| 导出 PDF 的分页优化 | 陈默 | 11 月 7 日 |
+| Finish the getting-started guides | Alex | November 6 |
+| Review page breaks in PDF export | Sam | November 7 |
 
-## 决议
+## Decision
 
-> 下个版本以稳定性为主，新功能只做「历史记录」一项。
+> Focus the next cycle on reliability, then review proposed features.
