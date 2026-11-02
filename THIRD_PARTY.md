@@ -752,6 +752,10 @@ quiet.md 本体以 MIT 协议发布（见 [LICENSE](LICENSE)）。下面是随�
 | zvariant_derive | 5.15.1 | MIT |
 | zvariant_utils | 4.2.0 | MIT |
 
+## Windows 运行库
+
+Windows 安装包随附未修改的 Microsoft Visual C++ Runtime `vcruntime140.dll`，从 Visual Studio 的 x64 Redistributable 目录复制。它受微软的分发许可约束，不属于本项目的 MIT 许可；参见 [Visual Studio 2022 Redistribution](https://learn.microsoft.com/en-us/visualstudio/releases/2022/redistribution)。源码仓库不包含该二进制文件。
+
 ## 字体
 
 | 素材 | 许可 |

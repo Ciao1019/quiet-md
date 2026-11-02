@@ -18,6 +18,8 @@
 
 v0.1.0 的分发包已用 Developer ID 签名、通过 Apple 公证、装订公证票据，并在本机通过了 Gatekeeper 校验。
 
+Windows x64 版本正在准备签名发布，当前没有公开的 EXE 下载包。可以按下方说明从源码构建；Windows 暂不支持全局快捷键、PDF 导出和打印。
+
 ## 为什么用它
 
 ### 快，因为它真的不是浏览器
@@ -97,7 +99,7 @@ h1 { font-weight: 600; margin-top: 32px; }
 
 ## 从源码运行
 
-需要 macOS、Xcode Command Line Tools 和 Rust（版本见 rust-toolchain.toml，rustup 会自动选择）。
+macOS 需要 Xcode Command Line Tools；Windows 需要 Visual Studio 2022 C++ Build Tools 和 Windows SDK。两者都需要 Rust（版本见 rust-toolchain.toml，rustup 会自动选择）。
 
 ```sh
 cargo build --release --locked
@@ -118,6 +120,22 @@ SIGNING_IDENTITY="Developer ID Application: …" NOTARY_PROFILE="quiet-md" scrip
 ```
 
 凭据和证书私钥不得提交到仓库。脚本遇到签名或公证失败会停止，失败目录里的中间产物不可作为正式版本分发。
+
+Windows 使用 Inno Setup 7。在 Visual Studio x64 开发者 PowerShell 中运行：
+
+```powershell
+# 本地验收用的未签名安装包，不会上传或发布
+.\scripts\package-windows.ps1 -Iscc 'C:\path\to\ISCC.exe'
+
+# 证书签发并通过硬件令牌或云签名客户端连接后，按指纹选择当前用户的证书
+.\scripts\package-windows.ps1 -Iscc 'C:\path\to\ISCC.exe' `
+  -CertificateThumbprint '<40-character certificate thumbprint>' `
+  -TimestampUrl 'http://time.certum.pl'
+```
+
+签名使用 Windows SDK 的 `signtool.exe`，可用 `-SignTool` 指定路径。时间戳地址应使用证书机构提供的 RFC 3161 服务，示例为 Certum。脚本分别对程序、安装器和卸载器签名，检查发布者、可信签名和时间戳；失败即停止。最终安装包和 SHA-256 输出到 `dist/windows/signed/` 或 `dist/windows/unsigned/`，中间目录不用于发布。无需导出私钥，也不要将密码或证书文件加入仓库。
+
+安装器支持选择位置和可选的桌面快捷方式，默认仅安装到当前用户的应用目录。卸载不删除独立存储的文档。Windows 的文档位置由系统 Documents 目录决定，再加上 `Quiet.md`，不会写死用户名。
 
 ## 参与开发
 
