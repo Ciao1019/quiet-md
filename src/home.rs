@@ -693,7 +693,8 @@ impl Workspace {
     fn render_home_grid(&self, entries: &[Entry], window: &Window, cx: &mut Context<Self>) -> AnyElement {
         let main_w = f32::from(window.viewport_size().width) - if self.sidebar_open { self.sidebar_w(window) } else { 0. };
         let avail = (main_w - 48.).max(1.);
-        let n = (((avail + 16.) / (200. + 16.)).floor() as usize).max(1);
+        let wide_cols = (((avail + 16.) / (200. + 16.)).floor() as usize).max(1);
+        let n = if wide_cols >= 4 { wide_cols } else { (((avail + 16.) / (160. + 16.)).floor() as usize).clamp(1, 3) };
         let card_h = ((avail - 16. * (n - 1) as f32) / n as f32) * (264. / 236.);
         let entries = entries.to_vec();
         let rows = entries.len().div_ceil(n);
