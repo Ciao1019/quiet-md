@@ -12,10 +12,43 @@ pub fn global_key() -> String {
     std::fs::read(path()).ok().and_then(|b| serde_json::from_slice::<BTreeMap<String,String>>(&b).ok()).and_then(|m| m.get("global").cloned()).unwrap_or_else(|| GLOBAL_DEFAULT.into())
 }
 pub fn init(cx: &mut App) {
-    let base = cx.key_bindings().borrow().bindings().cloned().collect();
+    let base = cx.key_bindings().borrow().bindings().cloned().collect::<Vec<_>>();
+    #[cfg(target_os = "windows")]
+    let base = base.into_iter().filter_map(windows_binding).collect();
     let custom = std::fs::read(path()).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default();
     cx.set_global(Shortcuts { base, custom });
     rebuild(cx);
+}
+
+#[cfg(target_os = "windows")]
+fn windows_binding(binding: KeyBinding) -> Option<KeyBinding> {
+    let keys = binding.keystrokes().iter().map(|k| k.unparse().replace("win-", "cmd-")).collect::<Vec<_>>().join(" ");
+    // Cocoa's control-key navigation conflicts with Windows editing shortcuts.
+    if matches!(keys.as_str(), "ctrl-a" | "ctrl-b" | "ctrl-d" | "ctrl-e" | "ctrl-f" | "ctrl-h" | "ctrl-n" | "ctrl-p" | "ctrl-backspace") { return None; }
+    let keys = if binding.action().name().ends_with("::InlineCode") { "ctrl-shift-c".to_string() } else { keys.split(' ').map(|key| match key {
+        "cmd-left" => "home".into(), "cmd-right" => "end".into(),
+        "cmd-shift-left" => "shift-home".into(), "cmd-shift-right" => "shift-end".into(),
+        "cmd-up" => "ctrl-home".into(), "cmd-down" => "ctrl-end".into(),
+        "cmd-shift-up" => "ctrl-shift-home".into(), "cmd-shift-down" => "ctrl-shift-end".into(),
+        "alt-left" | "alt-right" | "alt-shift-left" | "alt-shift-right" | "alt-backspace" | "alt-delete" => key.replacen("alt-", "ctrl-", 1),
+        _ => key.replace("cmd-", "ctrl-"),
+    }).collect::<Vec<String>>().join(" ") };
+    KeyBinding::load(&keys, binding.action().boxed_clone(), binding.predicate(), false, binding.action_input(), &DummyKeyboardMapper).ok()
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod tests {
+    use super::windows_binding;
+    use gpui::KeyBinding;
+    #[test]
+    fn copy_and_inline_code_keep_distinct_windows_shortcuts() {
+        use crate::editor::keymap::{Copy, InlineCode};
+        let copy = windows_binding(KeyBinding::new("cmd-c", Copy, Some("Editor"))).unwrap();
+        let code = windows_binding(KeyBinding::new("cmd-ctrl-c", InlineCode, Some("Editor"))).unwrap();
+        assert_eq!(copy.keystrokes().iter().map(|k| k.unparse()).collect::<Vec<_>>(), ["ctrl-c"]);
+        assert_eq!(code.keystrokes().iter().map(|k| k.unparse()).collect::<Vec<_>>(), ["ctrl-shift-c"]);
+        assert_ne!(copy.keystrokes(), code.keystrokes());
+    }
 }
 /// The user's keys, for `hint` (which runs where no `App` is at hand).
 static CUSTOM: std::sync::RwLock<BTreeMap<String, String>> = std::sync::RwLock::new(BTreeMap::new());
@@ -112,7 +145,7 @@ fn info(name: &str) -> Option<(usize, &'static str, &'static str)> {
 pub fn label(name: &str) -> Option<&'static str> { info(name).map(|(_, zh, en)| if english() { en } else { zh }) }
 fn default_key(s: &Shortcuts, id: &str) -> String {
     if id == "global" { return GLOBAL_DEFAULT.into(); }
-    if id.ends_with("::NewDoc") { return "cmd-n".into(); }
+    if id.ends_with("::NewDoc") { return if cfg!(target_os = "windows") { "ctrl-n" } else { "cmd-n" }.into(); }
     s.base.iter().find(|b| b.action().name() == id).map(|b| b.keystrokes().iter().map(|k| k.unparse()).collect::<Vec<_>>().join(" ")).unwrap_or_default()
 }
 /// The key an action runs on now.
@@ -132,6 +165,7 @@ pub fn rows(cx: &App) -> Vec<(String, String, String)> {
     }
     rows.sort_by_key(|r| r.0);
     std::iter::once(("global".to_string(), tr("全局快速新建笔记窗口", "Quick note from anywhere").to_string(), global_key()))
+        .filter(|_| cfg!(target_os = "macos"))
         .chain(rows.into_iter().map(|(_, id, t, k)| (id, t, k))).collect()
 }
 pub fn pretty(key: &str) -> String {
@@ -314,7 +348,7 @@ impl Workspace {
         let q = self.settings_filter.read(cx).text.trim().to_lowercase();
         let customized = cx.try_global::<Shortcuts>().map(|s| s.custom.keys().filter(|k| *k != "global").cloned().collect::<Vec<_>>()).unwrap_or_default();
         let mut groups: Vec<Vec<AnyElement>> = (0..GROUPS.len()).map(|_| vec![]).collect();
-        for (id, title, key) in rows(cx).into_iter().skip(1) {
+        for (id, title, key) in rows(cx).into_iter().filter(|(id, _, _)| id != "global") {
             let Some((g, zh, en)) = info(&id) else { continue };
             if !q.is_empty() && ![zh.to_lowercase(), en.to_lowercase(), pretty(&key).to_lowercase(), key.to_lowercase()].iter().any(|s| s.contains(&q)) { continue; }
             let recording = self.shortcut_recording.as_ref() == Some(&id);
@@ -344,7 +378,7 @@ impl Workspace {
         let global_err = self.shortcut_error.as_ref().filter(|(id, _)| id == "global").map(|(_, e)| e.clone())
             .or_else(|| on.then(crate::quick_note::hotkey_error).flatten());
         let matches = |zh: &str, en: &str, key: &str| q.is_empty() || [zh.to_lowercase(), en.to_lowercase(), key.to_lowercase()].iter().any(|s| s.contains(&q));
-        let show_global = matches("快速新建笔记", "Quick note", &pretty(&global)) || matches("打开上次使用的文档", "Open last used document", "⌥ ⌘ space");
+        let show_global = cfg!(target_os = "macos") && (matches("快速新建笔记", "Quick note", &pretty(&global)) || matches("打开上次使用的文档", "Open last used document", "⌥ ⌘ space"));
         let empty = empty && !show_global;
         let global_group = div().w_full().flex().flex_col().gap(px(8.))
             .child(crate::settings::group(Some(tr("全局", "Global")), vec![

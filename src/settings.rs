@@ -138,7 +138,7 @@ impl Page {
             Page::General => tr("通用", "General"),
             Page::Appearance => tr("外观", "Appearance"),
             Page::Shortcuts => tr("快捷键", "Shortcuts"),
-            Page::Library => tr("文档库", "Library"),
+            Page::Library => tr("文档库", "Documents"),
             Page::About => tr("关于", "About"),
         }
     }
@@ -684,11 +684,16 @@ impl Workspace {
 
     fn library_page(&self, cx: &mut Context<Self>) -> AnyElement {
         let root = crate::store::Store::root_dir();
+        let location = if cfg!(target_os = "windows") { root.display().to_string() } else {
+            dirs::home_dir().and_then(|h| root.strip_prefix(h).ok().map(|r| format!("~/{}", r.display()))).unwrap_or_else(|| root.display().to_string())
+        };
+        let reveal = if cfg!(target_os = "macos") { tr("在访达中显示", "Show in Finder") } else if cfg!(target_os = "windows") {
+            tr("在文件资源管理器中显示", "Show in File Explorer")
+        } else { tr("在文件管理器中显示", "Show in File Manager") };
         div().w_full().flex().flex_col().gap(px(8.))
             .child(group(None, vec![
-                // Under the home folder as ~/…, the way Finder and other apps write it.
-                row(tr("文档库文件夹", "Library folder"), Some(match dirs::home_dir().and_then(|h| root.strip_prefix(h).ok().map(|r| format!("~/{}", r.display()))) { Some(p) => p, None => root.display().to_string() }.into()),
-                    button("reveal-library", tr("在访达中显示", "Show in Finder")).on_click(|_, _, cx| cx.reveal_path(&crate::store::Store::root_dir()))).into_any_element(),
+                row(tr("文档库文件夹", "Documents folder"), Some(location.into()),
+                    button("reveal-library", reveal).on_click(|_, _, cx| cx.reveal_path(&crate::store::Store::root_dir()))).into_any_element(),
                 row(tr("回收站", "Trash"), Some(if english() { format!("Deleted documents are kept for {} days.", crate::store::TRASH_DAYS) } else { format!("删除的文档保留 {} 天后自动清除。", crate::store::TRASH_DAYS) }.into()),
                     button("open-trash", tr("打开", "Open")).on_click(cx.listener(|w, _, _, cx| w.show_view(View::Trash, cx)))).into_any_element(),
             ]))
