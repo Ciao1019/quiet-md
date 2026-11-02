@@ -34,6 +34,11 @@ SolidCompression=yes
 CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
+#ifdef Signed
+SignTool=quietmd
+SignedUninstaller=yes
+SignedUninstallerDir={#AppSource}
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
