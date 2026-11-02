@@ -6,7 +6,7 @@ use crate::docinfo::DocInfo;
 use crate::docmenu::DocSub;
 use crate::editor::view::{Editor, EditorEvent};
 use crate::input::{TextField, TextFieldEvent};
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::store::Entry;
 use crate::shared_store::SharedStore;
 use crate::theme::{self, Theme, craft};
@@ -383,7 +383,7 @@ impl Workspace {
         // Kept in the top bar (not just a toast): the user should notice.
         let warnings = ws.store.take_warnings();
         if !warnings.is_empty() {
-            let msg = warnings.join("；");
+            let msg = warnings.iter().map(|s| crate::settings::diagnostic(s)).collect::<Vec<_>>().join(crate::settings::tr("；", "; "));
             ws.show_toast_kind(ToastKind::Error, &msg, cx);
             ws.status = SaveStatus::Failed(msg);
         }
@@ -423,7 +423,7 @@ impl Workspace {
         let doc = match self.store.load_for_edit(id, shared) {
             Ok(d) => d,
             Err(e) => {
-                self.show_toast_kind(ToastKind::Error, &format!("无法打开文档：{e}"), cx);
+                self.show_toast_kind(ToastKind::Error, &crate::localized_format!("无法打开文档：{}", "Could not open document: {}", crate::settings::diagnostic(&e.to_string())), cx);
                 cx.notify();
                 return false;
             }
@@ -526,7 +526,7 @@ impl Workspace {
                     ed.read(cx).focus(window);
                 }
             }
-            Err(e) => self.status = SaveStatus::Failed(format!("新建失败：{e}")),
+            Err(e) => self.status = SaveStatus::Failed(crate::localized_format!("新建失败：{}", "Could not create document: {}", crate::settings::diagnostic(&e.to_string()))),
         }
         cx.notify();
     }
@@ -564,7 +564,7 @@ impl Workspace {
             if let Some(handle) = handle.downcast::<Workspace>()
                 && handle.update(cx, |ws, _, _| ws.current.as_ref().is_some_and(|id| all.contains(id))).unwrap_or(false)
             {
-                self.show_toast_kind(ToastKind::Error, "请先关闭正在编辑这些文档的其他窗口，再删除", cx);
+                self.show_toast_kind(ToastKind::Error, crate::settings::text("请先关闭正在编辑这些文档的其他窗口，再删除"), cx);
                 return;
             }
         }
@@ -581,7 +581,7 @@ impl Workspace {
             if root.as_ref().is_some_and(|r| !deleted.contains(r)) { continue; }
             match self.store.delete(id, root.as_deref()) {
                 Ok(()) => deleted.push(id.clone()),
-                Err(e) => errors.push(format!("删除失败：{e}")),
+                Err(e) => errors.push(crate::localized_format!("删除失败：{}", "Could not delete document: {}", crate::settings::diagnostic(&e.to_string()))),
             }
         }
         if self.current.as_ref().is_some_and(|c| deleted.contains(c)) {
@@ -609,9 +609,9 @@ impl Workspace {
         if self.view == View::Trash {
             self.trash = self.store.list_trash();
         }
-        errors.extend(self.store.take_warnings());
+        errors.extend(self.store.take_warnings().iter().map(|s| crate::settings::diagnostic(s)));
         if errors.is_empty() {
-            self.show_toast("删除成功", cx);
+            self.show_toast(crate::settings::text("删除成功"), cx);
         } else {
             let msg = errors.join("；");
             self.show_toast_kind(ToastKind::Error, &msg, cx);
@@ -629,7 +629,7 @@ impl Workspace {
         }
         self.sort();
         self.row_menu = None;
-        self.show_toast(if on { "已添加到“置顶”" } else { "已从“置顶”移除" }, cx);
+        self.show_toast(if on { crate::settings::text("已添加到“置顶”") } else { crate::settings::text("已从“置顶”移除") }, cx);
         cx.notify();
     }
 
@@ -643,7 +643,7 @@ impl Workspace {
         self.row_menu = None;
         self.doc_menu = false;
         self.doc_sub = None;
-        self.show_toast(if on { "已添加到“收藏”" } else { "已从“收藏”中移除" }, cx);
+        self.show_toast(if on { crate::settings::text("已添加到“收藏”") } else { crate::settings::text("已从“收藏”中移除") }, cx);
         cx.notify();
     }
 
@@ -732,7 +732,7 @@ impl Workspace {
                         }
                         self.sort();
                     }
-                    Err(e) => self.status = SaveStatus::Failed(format!("重命名失败：{e}")),
+                    Err(e) => self.status = SaveStatus::Failed(crate::localized_format!("重命名失败：{}", "Could not rename document: {}", crate::settings::diagnostic(&e.to_string()))),
                 }
             }
         }
@@ -835,7 +835,7 @@ impl Workspace {
                 self.unsaved = false;
                 self.sort();
             }
-            Err(e) => self.status = SaveStatus::Failed(format!("保存失败：{e}")),
+            Err(e) => self.status = SaveStatus::Failed(crate::localized_format!("保存失败：{}", "Could not save: {}", crate::settings::diagnostic(&e.to_string()))),
         }
         cx.notify();
         !self.unsaved
@@ -877,7 +877,7 @@ impl Workspace {
     pub(crate) fn save_error(&self) -> String {
         match &self.status {
             SaveStatus::Failed(e) => e.clone(),
-            _ => "保存失败".to_string(),
+            _ => crate::settings::text("保存失败").to_string(),
         }
     }
 
@@ -950,7 +950,7 @@ impl Workspace {
     /// usable width it is None and the caller shows a search icon instead.
     pub(crate) fn header_search(&self, window: &Window, cx: &mut Context<Self>) -> Option<Stateful<Div>> {
         let main = f32::from(window.viewport_size().width) - if self.sidebar_open { self.sidebar_w(window) } else { 0. };
-        let title = crate::settings::label("主页");
+        let title = crate::settings::label(crate::settings::text("主页"));
         let title_w = f32::from(window.text_system().shape_line(title.clone().into(), px(17.), &[window.text_style().highlight(HighlightStyle { font_weight: Some(FontWeight::SEMIBOLD), ..Default::default() }).to_run(title.len())], None).width);
         // page_header's left inset (26 with the sidebar, else the traffic
         // lights plus the 4 + 28 + 12 of 展开侧栏), then 16 clear of the title.
@@ -1076,7 +1076,7 @@ impl Workspace {
                         .flex().items_center().justify_center().rounded(px(8.)).cursor_pointer()
                         .hover(|s| s.bg(Theme::fill_hover_strong()))
                         .active(|s| s.bg(Theme::fill_pressed()))
-                        .tip("返回主页", None)
+                        .tip(crate::settings::text("返回主页"), None)
                         .child(icon("home", 18., Theme::icon()))
                         .on_click(cx.listener(|w, _, _, cx| w.show_view(View::Home, cx))),
                 )
@@ -1140,7 +1140,7 @@ impl Workspace {
                     })
                     .child(
                         seg("doc-search", "search")
-                            .tip_label("搜索(⌘ + J)".into(), TipSide::Below)
+                            .tip_label(crate::settings::text("搜索(⌘ + J)").into(), TipSide::Below)
                             .on_click(cx.listener(|_, _, window, cx| window.dispatch_action(Box::new(FocusSearch), cx))),
                     )
                     .child(

@@ -8,7 +8,7 @@ use std::rc::Rc;
 use super::core::{Pos, Selection};
 use super::overlays::at;
 use super::view::{Editor, EditorEvent};
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::model::{BlockId, DocLink};
 use crate::editor_theme::Theme;
 use crate::editor_ui::{ROW_RADIUS, TipExt, icon, popover, ui_text};
@@ -223,7 +223,7 @@ impl Editor {
         let results = self.mention_results();
         let mut list = div().id("mention-list").max_h(px(366.)).overflow_y_scroll().track_scroll(&self.mention_scroll).py(px(5.)).flex().flex_col();
         if results.is_empty() {
-            list = list.child(div().p(px(16.)).text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child(ui_text("没有匹配结果，换个关键词试试吧")));
+            list = list.child(div().p(px(16.)).text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child(ui_text(crate::settings::text("没有匹配结果，换个关键词试试吧"))));
         }
         for (k, d) in results.into_iter().enumerate() {
             let title = display_title(&d.title).to_string();
@@ -302,7 +302,7 @@ impl Editor {
                                     .line_height(px(16.))
                                     .text_color(Theme::text_placeholder())
                                     .truncate()
-                                    .child(ui_text(format!("最近修改：{}", crate::editor_ui::format_ago(d.modified)))),
+                                    .child(ui_text(crate::localized_format!("最近修改：{}", "Last modified: {}", crate::editor_ui::format_ago(d.modified)))),
                             ),
                     ),
             );
@@ -359,7 +359,7 @@ impl Editor {
             .id("refs-help")
             .ml(px(4.))
             .child(icon("circle-help", 14., Theme::text_placeholder()))
-            .tip_above("本文被以下文档所引用", None);
+            .tip_above(crate::settings::text("本文被以下文档所引用"), None);
         let close = div()
             .id("refs-hide")
             .size(px(24.))
@@ -371,7 +371,7 @@ impl Editor {
             .hover(|s| s.bg(Theme::fill_hover_strong()))
             .on_click(cx.listener(|_, _, _, cx| cx.emit(EditorEvent::HideRefs)))
             .child(icon("x", 16., Theme::text_caption()))
-            .tip_above("隐藏引用列表", None);
+            .tip_above(crate::settings::text("隐藏引用列表"), None);
         let tabs = div()
             .flex()
             .items_center()
@@ -379,14 +379,14 @@ impl Editor {
             .mr(px(20.))
             .border_b_1()
             .border_color(Theme::line_divider())
-            .child(div().flex().items_center().child(tab("refs-tab-back", "反向引用", nb, back, true).child(help)).child(tab("refs-tab-refs", "本文引用", nr, !back, false)))
+            .child(div().flex().items_center().child(tab("refs-tab-back", crate::settings::text("反向引用"), nb, back, true).child(help)).child(tab("refs-tab-refs", crate::settings::text("本文引用"), nr, !back, false)))
             .child(close);
         let mut list = div().py(px(12.)).pr(px(20.)).flex().flex_col();
         let docs = self.links.docs.clone();
         let font = window.text_style().font();
         let title_row = |id: String, row: usize, chevron: Option<bool>, cx: &mut Context<Self>| {
             let d = docs.iter().find(|d| d.id == id);
-            let name = d.map(|d| display_title(&d.title).to_string()).unwrap_or_else(|| "此文档已被删除".into());
+            let name = d.map(|d| display_title(&d.title).to_string()).unwrap_or_else(|| crate::settings::text("此文档已被删除").into());
             let glyph = match d.and_then(|d| d.icon.clone()) {
                 Some(e) => div().mr(px(4.)).text_size(px(16.)).child(e).into_any_element(),
                 None => div()
@@ -423,7 +423,7 @@ impl Editor {
                                 cx.notify();
                             }))
                             .child(icon(if expanded { "triangle-down" } else { "triangle-right" }, 12., Theme::text_caption()))
-                            .tip_above(if expanded { "收起" } else { "展开" }, None),
+                            .tip_above(if expanded { crate::settings::text("收起") } else { crate::settings::text("展开") }, None),
                     )
                 })
                 .child(
@@ -457,7 +457,7 @@ impl Editor {
                     .text_size(px(13.))
                     .line_height(px(20.))
                     .text_color(Theme::text_caption())
-                    .child(ui_text(if back { "本文暂未被其它文档引用" } else { "本文暂未引用其它文档" })),
+                    .child(ui_text(if back { crate::settings::text("本文暂未被其它文档引用") } else { crate::settings::text("本文暂未引用其它文档") })),
             );
         } else if back {
             let backlinks = self.links.backlinks.clone();
@@ -525,7 +525,7 @@ impl Editor {
                         e.links.more[more_ix] = true;
                         cx.notify();
                     }))
-                    .child(ui_text("查看更多")),
+                    .child(ui_text(crate::settings::text("查看更多"))),
             );
         }
         // A quiet box: the light fill inside the note, crisp corners.

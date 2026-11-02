@@ -3,7 +3,7 @@
 //! floats). 30pt rows on a 31pt pitch, selection pill radius 9.
 
 use crate::app::{Confirm, RowMenu, View, Workspace};
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::store::Entry;
 use crate::theme::{self, Theme, craft};
 use crate::ui::{TipExt, TitleBarExt, icon, popover, ui_text};
@@ -166,7 +166,7 @@ impl Workspace {
         // Pinned docs are shortcuts: they stay in 我的文档 too.
         let pinned: Vec<&Entry> = entries.iter().filter(|e| e.meta.pinned).collect();
         if !pinned.is_empty() {
-            list = list.child(self.section(0, "置顶", cx));
+            list = list.child(self.section(0, crate::settings::text("置顶"), cx));
             if !self.folded[0] {
                 for e in pinned {
                     list = list.child(self.doc_row(e, "pinned", 0, false, cx));
@@ -174,7 +174,7 @@ impl Workspace {
             }
             list = list.child(div().h(px(GROUP_GAP - SECTION_TOP)));
         }
-        list = list.child(self.section(1, "我的文档", cx));
+        list = list.child(self.section(1, crate::settings::text("我的文档"), cx));
         if !self.folded[1] {
             let tree = crate::tree::Tree::new(&entries);
             for (e, depth) in tree.rows(|id| self.expanded.contains(id)) {
@@ -227,9 +227,9 @@ impl Workspace {
             .when(self.batch.is_some(), |d| {
                 d.child(
                     div().h(px(46.)).mx(px(SB_X + 6. + 10. - 18.)).flex().items_center().gap(px(4.))
-                        .child(footer_btn("bt-copy", "copy", "创建副本", some, false).on_click(cx.listener(|w, _, _, cx| w.batch_copy(cx))))
-                        .child(footer_btn("bt-move", "folder-input", "移动到", some, false).on_click(cx.listener(|w, _, window, cx| w.batch_move(window, cx))))
-                        .child(footer_btn("bt-delete", "bin", "删除", some, false).on_click(cx.listener(|w, _, _, cx| w.ask_batch_delete(cx)))),
+                        .child(footer_btn("bt-copy", "copy", crate::settings::text("创建副本"), some, false).on_click(cx.listener(|w, _, _, cx| w.batch_copy(cx))))
+                        .child(footer_btn("bt-move", "folder-input", crate::settings::text("移动到"), some, false).on_click(cx.listener(|w, _, window, cx| w.batch_move(window, cx))))
+                        .child(footer_btn("bt-delete", "bin", crate::settings::text("删除"), some, false).on_click(cx.listener(|w, _, _, cx| w.ask_batch_delete(cx)))),
                 )
             });
 
@@ -361,7 +361,7 @@ impl Workspace {
                             cx.notify();
                         })),
                 )
-                .child(div().flex_1().min_w_0().ml(px(8.)).text_size(px(13.)).line_height(px(20.)).text_color(Theme::text()).child(format!("已选 {n} 项")))
+                .child(div().flex_1().min_w_0().ml(px(8.)).text_size(px(13.)).line_height(px(20.)).text_color(Theme::text()).child(crate::localized_format!("已选 {n} 项", "Selected: {n}")))
                 .child(
                     div()
                         .id("batch-exit")
@@ -380,8 +380,8 @@ impl Workspace {
                         .hover(|s| s.bg(theme::c(craft::N100)))
                         .text_size(px(12.))
                         .line_height(px(18.))
-                        .child("退出")
-                        .tip("退出批量操作", None)
+                        .child(crate::settings::text("退出"))
+                        .tip(crate::settings::text("退出批量操作"), None)
                         .on_click(cx.listener(|w, _, _, cx| {
                             w.batch = None;
                             w.row_menu = None;
@@ -401,7 +401,7 @@ impl Workspace {
                 .rounded(px(6.))
                 .cursor_pointer()
                 .hover(|s| s.bg(Theme::sidebar_hover()))
-                .tip(if folded { "点击展开" } else { "点击折叠" }, None)
+                .tip(if folded { crate::settings::text("点击展开") } else { crate::settings::text("点击折叠") }, None)
                 .child(div().pr(px(4.)).text_size(px(13.)).line_height(px(20.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::sidebar_section()).child(crate::settings::label(title)))
                 .child(
                     div()
@@ -415,7 +415,7 @@ impl Workspace {
         )
         .child(div().flex_1())
         .when(idx == 1, |d| {
-            d.child(trigger("section-batch", "batch").tip("批量操作", None).on_click(cx.listener(|w, _, _, cx| {
+            d.child(trigger("section-batch", "batch").tip(crate::settings::text("批量操作"), None).on_click(cx.listener(|w, _, _, cx| {
                 w.batch = Some(vec![]);
                 w.folded[1] = false;
                 w.row_menu = None;
@@ -629,7 +629,7 @@ impl Workspace {
                         .flex()
                         .items_center()
                         .justify_center()
-                        .when(blocked, |d| d.tip("无法选中，选择的页面数已到达上限", None))
+                        .when(blocked, |d| d.tip(crate::settings::text("无法选中，选择的页面数已到达上限"), None))
                         .child(checkbox(if checked { Check::On } else { Check::Off }, blocked, "doc-row")),
                 )
             })
@@ -707,10 +707,10 @@ impl Workspace {
                     w.row_menu = None;
                     cx.notify();
                 }))
-                .child(div().h(px(ROW_ITEM)).px(px(8.)).flex().items_center().text_size(px(12.)).text_color(Theme::text_placeholder()).child(format!("已选 {n} 项")))
-                .child(item("bm-copy", "copy", "创建副本").on_click(cx.listener(|w, _, _, cx| w.batch_copy(cx))))
-                .child(item("bm-move", "folder-input", "移动到").on_click(cx.listener(|w, _, window, cx| w.batch_move(window, cx))))
-                .child(item("bm-delete", "bin", "删除").on_click(cx.listener(|w, _, _, cx| w.ask_batch_delete(cx))));
+                .child(div().h(px(ROW_ITEM)).px(px(8.)).flex().items_center().text_size(px(12.)).text_color(Theme::text_placeholder()).child(crate::localized_format!("已选 {n} 项", "Selected: {n}")))
+                .child(item("bm-copy", "copy", crate::settings::text("创建副本")).on_click(cx.listener(|w, _, _, cx| w.batch_copy(cx))))
+                .child(item("bm-move", "folder-input", crate::settings::text("移动到")).on_click(cx.listener(|w, _, window, cx| w.batch_move(window, cx))))
+                .child(item("bm-delete", "bin", crate::settings::text("删除")).on_click(cx.listener(|w, _, _, cx| w.ask_batch_delete(cx))));
             return vec![
                 deferred(anchored().anchor(m.corner).position(m.pos).snap_to_window_with_margin(px(8.)).child(menu))
                     .with_priority(2)
@@ -745,7 +745,7 @@ impl Workspace {
                 }
             }))
             .child(
-                item("rm-window", "copy", "在新窗口中打开")
+                item("rm-window", "copy", crate::settings::text("在新窗口中打开"))
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, _, cx| {
                         w.row_menu = None;
@@ -755,40 +755,40 @@ impl Workspace {
                     })),
             )
             .child(
-                item("rm-copy", "copy", "创建副本")
+                item("rm-copy", "copy", crate::settings::text("创建副本"))
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, window, cx| w.duplicate_doc(&dup, window, cx))),
             )
             .child(
-                item("rm-move", "folder-input", "移动到")
+                item("rm-move", "folder-input", crate::settings::text("移动到"))
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, window, cx| w.open_move(vec![mv.clone()], window, cx))),
             )
             .child(
-                item("rm-pin", if pinned { "pin-off" } else { "pin" }, if pinned { "从“置顶”移除" } else { "添加到“置顶”" })
+                item("rm-pin", if pinned { "pin-off" } else { "pin" }, if pinned { crate::settings::text("从“置顶”移除") } else { crate::settings::text("添加到“置顶”") })
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, _, cx| w.toggle_pin(&pin, cx))),
             )
             .child(
-                item("rm-star", if starred { "star-off" } else { "star" }, if starred { "取消收藏" } else { "收藏" })
+                item("rm-star", if starred { "star-off" } else { "star" }, if starred { crate::settings::text("取消收藏") } else { crate::settings::tr("收藏", "Add to favorites") })
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, _, cx| w.toggle_star(&star, cx))),
             )
             .child(divider())
             .child(
-                item("rm-download", "export", "下载")
+                item("rm-download", "export", crate::settings::text("下载"))
                     .when(m.sub, |d| d.bg(Theme::menu_highlight()).text_color(gpui::white()))
                     .child(icon("chevron-right", 10., if m.sub { gpui::white() } else { Theme::text_caption() }).group_hover("rm-download", |s| s.text_color(gpui::white())))
                     .on_hover(set_sub(true)),
             )
             .child(
-                item("rm-rename", "square-pen", "重命名")
+                item("rm-rename", "square-pen", crate::settings::text("重命名"))
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, window, cx| w.start_rename(&ren, window, cx))),
             )
             .child(divider())
             .child(
-                item_c("rm-del", "bin", "删除", Theme::danger(), Theme::danger())
+                item_c("rm-del", "bin", crate::settings::text("删除"), Theme::danger(), Theme::danger())
                     .on_hover(set_sub(false))
                     .on_click(cx.listener(move |w, _, _, cx| w.ask_delete(&del, cx))),
             );

@@ -76,7 +76,7 @@ fn layout(groups: Vec<(&'static str, Vec<&'static Emoji>, f32)>) -> Vec<Section>
 /// 最近 and the categories; one untitled section of results while searching.
 fn sections(query: &str) -> Vec<Section> {
     if query.is_empty() {
-        let mut g = vec![("最近", emoji::frequent(), TITLE_H)];
+        let mut g = vec![(crate::settings::text("最近"), emoji::frequent(), TITLE_H)];
         for (i, t) in emoji::CATEGORIES.iter().enumerate() {
             g.push((*t, emoji::category(i).iter().collect(), TITLE_H));
         }
@@ -347,7 +347,7 @@ impl Editor {
             .cursor_pointer()
             .hover(|s| s.bg(Theme::fill_hover()))
             .active(|s| s.bg(Theme::fill_pressed()))
-            .tip_above("随机", None)
+            .tip_above(crate::settings::text("随机"), None)
             .child(icon("shuffle", 18., Theme::text_caption()))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .on_click(cx.listener(move |ed, _, window, cx| ed.pick_emoji(target, emoji::random_pick(), false, window, cx)));
@@ -405,7 +405,7 @@ impl Editor {
             .when(tabs, |d| {
                 d.child(
                     div().flex_none().h(px(TABS_H)).pl(px(24.)).flex().child(
-                        div().pt(px(20.)).pb(px(12.)).text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::primary()).child("表情符号"),
+                        div().pt(px(20.)).pb(px(12.)).text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::primary()).child(crate::settings::text("表情符号")),
                     ),
                 )
                 .child(
@@ -421,7 +421,7 @@ impl Editor {
                         .text_color(Theme::text_caption())
                         .cursor_pointer()
                         .hover(|s| s.bg(Theme::fill_hover()).text_color(Theme::text()))
-                        .child("移除")
+                        .child(crate::settings::text("移除"))
                         .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                         .on_click(cx.listener(|ed, _, window, cx| {
                             ed.close_menu_focus(window, cx);
@@ -459,7 +459,7 @@ fn title_el(t: &'static str, h: f32) -> Div {
         .line_height(px(20.))
         .font_weight(FontWeight::SEMIBOLD)
         .text_color(Theme::text_caption())
-        .child(t)
+        .child(crate::settings::text(t))
 }
 
 #[cfg(test)]

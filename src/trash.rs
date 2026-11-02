@@ -3,7 +3,7 @@
 //! deleted page together with the child pages that went with it.
 
 use crate::app::{Confirm, Workspace};
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::search::doc_icon;
 use crate::store::{TRASH_DAYS, TrashEntry};
 pub(crate) use crate::ui::{close_button, dialog, list_header_text, list_line, menu_label, primary_button, row_hover, scrim, secondary_button};
@@ -17,7 +17,7 @@ pub const TRASH_MENU_W: f32 = 160.;
 fn remaining(deleted: u64) -> String {
     let end = deleted + TRASH_DAYS * 86_400;
     let left = end.saturating_sub(crate::time::now());
-    if left < 86_400 { "即将彻底删除".into() } else { format!("{} 天", left.div_ceil(86_400)) }
+    if left < 86_400 { crate::settings::text("即将彻底删除").into() } else { crate::localized_format!("{} 天", "{} days", left.div_ceil(86_400)) }
 }
 
 /// The page header, as tall as the document's so the header pills sit in
@@ -81,7 +81,7 @@ impl Workspace {
         t.parent
             .as_ref()
             .and_then(|p| self.entries.iter().find(|e| &e.id == p))
-            .map_or_else(|| "我的文档".to_string(), |e| display_title(&e.title))
+            .map_or_else(|| crate::settings::label("我的文档"), |e| display_title(&e.title))
     }
 
     pub(crate) fn render_trash(&mut self, cx: &mut Context<Self>) -> AnyElement {
@@ -92,7 +92,7 @@ impl Workspace {
         );
         let mut page = div().flex_1().min_w_0().h_full().flex().flex_col().child(header);
         if self.trash.is_empty() {
-            return page.child(empty_state("illus/empty-trash.svg", "回收站暂无内容")).into_any_element();
+            return page.child(empty_state("illus/empty-trash.svg", crate::settings::text("回收站暂无内容"))).into_any_element();
         }
         // The list: 13pt tertiary headers over a hairline,
         // 15pt titles, 13pt secondary cells.
@@ -104,7 +104,7 @@ impl Workspace {
                 .text_size(px(13.))
                 .line_height(px(24.))
                 .text_color(list_header_text())
-                .child(label)
+                .child(crate::settings::label(label))
         };
         let table_header = div()
             .h(px(33.))
@@ -208,12 +208,12 @@ impl Workspace {
                 w.trash_menu = None;
                 cx.notify();
             }))
-            .child(item("tm-restore", "restore", "恢复", Theme::text()).on_click(cx.listener(move |w, _, _, cx| {
+            .child(item("tm-restore", "restore", crate::settings::text("恢复"), Theme::text()).on_click(cx.listener(move |w, _, _, cx| {
                 w.trash_menu = None;
                 w.confirm = Some(Confirm::Restore(a.clone()));
                 cx.notify();
             })))
-            .child(item("tm-purge", "bin", "彻底删除", Theme::danger()).on_click(cx.listener(move |w, _, _, cx| {
+            .child(item("tm-purge", "bin", crate::settings::text("彻底删除"), Theme::danger()).on_click(cx.listener(move |w, _, _, cx| {
                 w.trash_menu = None;
                 w.confirm = Some(Confirm::Purge(b.clone()));
                 cx.notify();
@@ -228,10 +228,11 @@ impl Workspace {
     fn restore_doc(&mut self, id: &str, cx: &mut Context<Self>) {
         match self.store.restore(id) {
             Ok(moved) => {
-                self.show_toast(if moved { "恢复成功。部分文档由于原位置不存在，已恢复到“我的文档”" } else { "恢复成功" }, cx);
+                self.show_toast(if moved { crate::settings::text("恢复成功。部分文档由于原位置不存在，已恢复到“我的文档”") } else { crate::settings::text("恢复成功") }, cx);
             }
             Err(e) => {
-                let msg = format!("恢复失败：{e:#}");
+                let detail = e.chain().map(|cause| crate::settings::diagnostic(&cause.to_string())).collect::<Vec<_>>().join(": ");
+                let msg = crate::localized_format!("恢复失败：{}", "Could not restore document: {}", detail);
                 self.show_toast_kind(crate::ui::ToastKind::Error, &msg, cx);
                 self.status = crate::app::SaveStatus::Failed(msg);
             }
@@ -245,8 +246,8 @@ impl Workspace {
 
     fn purge_doc(&mut self, id: &str, cx: &mut Context<Self>) {
         match self.store.purge(id) {
-            Ok(()) => self.show_toast("已彻底删除", cx),
-            Err(e) => self.status = crate::app::SaveStatus::Failed(format!("删除失败：{e}")),
+            Ok(()) => self.show_toast(crate::settings::text("已彻底删除"), cx),
+            Err(e) => self.status = crate::app::SaveStatus::Failed(crate::localized_format!("删除失败：{}", "Could not delete document: {}", crate::settings::diagnostic(&e.to_string()))),
         }
         self.trash = self.store.list_trash();
         self.show_store_warnings(cx);
@@ -255,7 +256,7 @@ impl Workspace {
     fn show_store_warnings(&mut self, cx: &mut Context<Self>) {
         let warnings = self.store.take_warnings();
         if !warnings.is_empty() {
-            let msg = warnings.join("；");
+            let msg = warnings.iter().map(|s| crate::settings::diagnostic(s)).collect::<Vec<_>>().join(crate::settings::tr("；", "; "));
             self.show_toast_kind(crate::ui::ToastKind::Error, &msg, cx);
             self.status = crate::app::SaveStatus::Failed(msg);
         }
@@ -276,24 +277,24 @@ impl Workspace {
         };
         let (title, body, action, danger) = match c {
             Confirm::Delete { ids, batch } => (
-                if *batch || ids.len() > 1 { format!("是否删除所选的 {} 项？", ids.len()) } else { format!("是否删除： {}？", title_of(&ids[0])) },
-                "删除的内容将进入回收站，30 天后自动彻底删除".to_string(),
-                "删除",
+                if *batch || ids.len() > 1 { crate::localized_format!("是否删除所选的 {} 项？", "Delete the {} selected items?", ids.len()) } else { crate::localized_format!("是否删除： {}？", "Delete {}?", title_of(&ids[0])) },
+                crate::settings::text("删除的内容将进入回收站，30 天后自动彻底删除").to_string(),
+                crate::settings::text("删除"),
                 true,
             ),
-            Confirm::Restore(_) => ("确认恢复？".to_string(), "确认后将恢复至原位置".to_string(), "恢复", false),
-            Confirm::Purge(_) => ("确认彻底删除？".to_string(), "彻底删除后，该页面及其子页面将无法恢复".to_string(), "删除", true),
+            Confirm::Restore(_) => (crate::settings::text("确认恢复？").to_string(), crate::settings::text("确认后将恢复至原位置").to_string(), crate::settings::text("恢复"), false),
+            Confirm::Purge(_) => (crate::settings::text("确认彻底删除？").to_string(), crate::settings::text("彻底删除后，该页面及其子页面将无法恢复").to_string(), crate::settings::text("删除"), true),
             Confirm::Refs { show: false, .. } => (
-                "是否隐藏引用列表？".to_string(),
-                "选择隐藏后，协作者将无法查看本文的引用列表。如需重新显示，可点击文档右上角的更多按钮“...”，打开“显示引用列表”开关。".to_string(),
-                "隐藏",
+                crate::settings::text("是否隐藏引用列表？").to_string(),
+                crate::settings::text("选择隐藏后，协作者将无法查看本文的引用列表。如需重新显示，可点击文档右上角的更多按钮“...”，打开“显示引用列表”开关。").to_string(),
+                crate::settings::text("隐藏"),
                 false,
             ),
-            Confirm::Refs { show: true, .. } => ("是否显示引用列表？".to_string(), "选择显示后，协作者可再次查看本文的引用列表。".to_string(), "显示", false),
+            Confirm::Refs { show: true, .. } => (crate::settings::text("是否显示引用列表？").to_string(), crate::settings::text("选择显示后，协作者可再次查看本文的引用列表。").to_string(), crate::settings::text("显示"), false),
             Confirm::SaveFailed => (
-                "文档保存失败".to_string(),
-                format!("{}。可以重试，或先取消并通过右上角“...”→“下载为”导出一份副本；放弃修改将丢失本次未保存的内容。", self.save_error()),
-                "重试",
+                crate::settings::text("文档保存失败").to_string(),
+                crate::localized_format!("{}。可以重试，或先取消并通过右上角“...”→“下载为”导出一份副本；放弃修改将丢失本次未保存的内容。", "{}. Retry, or cancel and export a copy using More → Download as. Discarding changes will lose your unsaved work.", self.save_error()),
+                crate::settings::text("重试"),
                 false,
             ),
         };
@@ -332,15 +333,15 @@ impl Workspace {
                                 cx.notify();
                             }))
                             .child(crate::ui::checkbox(on))
-                            .child(ui_text("不再提示"))
+                            .child(ui_text(crate::settings::text("不再提示")))
                     })))
-                    .child(secondary_button("confirm-cancel", "取消").on_click(cx.listener(|w, _, _, cx| {
+                    .child(secondary_button("confirm-cancel", crate::settings::text("取消")).on_click(cx.listener(|w, _, _, cx| {
                         w.confirm = None;
                         w.after_save = None;
                         cx.notify();
                     })))
                     .when(matches!(c, Confirm::SaveFailed), |d| {
-                        d.child(secondary_button("confirm-discard", "放弃修改").text_color(Theme::danger()).on_click(cx.listener(|w, _, window, cx| {
+                        d.child(secondary_button("confirm-discard", crate::settings::text("放弃修改")).text_color(Theme::danger()).on_click(cx.listener(|w, _, window, cx| {
                             w.confirm = None;
                             w.resolve_save_failed(false, window, cx);
                         })))

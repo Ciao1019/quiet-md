@@ -138,7 +138,7 @@ pub fn entries(doc: &Document) -> Vec<CatEntry> {
     let mut levels: Vec<u8> = raw.iter().map(|r| r.2).collect();
     levels.sort();
     levels.dedup();
-    let title = crate::model::display_title(&doc.title.text);
+    let title = crate::settings::display_title(&doc.title.text);
     // The 文档图标 leads the title entry.
     let title = match &doc.icon {
         Some(icon) => format!("{icon} {title}"),
@@ -299,7 +299,7 @@ impl Editor {
                 icon(if pinned { "catalogue-collapse" } else { "catalogue-list" }, 18., Theme::text_caption())
                     .group_hover("cat-pin", |s| s.text_color(theme::c(craft::old::B500))),
             )
-            .tip_label(if pinned { "收起目录" } else { "展开目录" }.into(), TipSide::Above)
+            .tip_label(if pinned { crate::settings::text("收起目录") } else { crate::settings::text("展开目录") }.into(), TipSide::Above)
             .on_click(cx.listener(move |ed, _, _, cx| ed.set_cat_pinned(!pinned, cx)));
 
         let list_w = match mode {

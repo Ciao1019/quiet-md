@@ -62,8 +62,8 @@ fn rows(list: &[Row]) -> Vec<AnyElement> {
                 .border_b_1()
                 .border_color(Theme::line_divider())
                 .child(div().flex_none().mr(px(8.)).child(icon(ic, 16., Theme::text_caption())))
-                .child(div().flex_none().mr(px(16.)).text_size(px(13.)).line_height(px(18.)).child(*desc))
-                .child(div().flex_1().min_w_0().flex().justify_end().text_size(px(12.)).line_height(px(18.)).text_color(Theme::text_caption()).child(*keys))
+                .child(div().flex_none().mr(px(16.)).text_size(px(13.)).line_height(px(18.)).child(crate::settings::text(desc)))
+                .child(div().flex_1().min_w_0().flex().justify_end().text_size(px(12.)).line_height(px(18.)).text_color(Theme::text_caption()).child(crate::settings::text(keys)))
                 .into_any_element(),
         })
         .collect()
@@ -98,7 +98,7 @@ impl Workspace {
             ed.update(cx, |e, cx| e.set_read_only(reading, cx));
             ed.read(cx).focus(window);
         }
-        self.show_toast_kind(ToastKind::Info, if reading { "已切换为阅读模式" } else { "已切换为编辑模式" }, cx);
+        self.show_toast_kind(ToastKind::Info, if reading { crate::settings::text("已切换为阅读模式") } else { crate::settings::text("已切换为编辑模式") }, cx);
     }
 
     pub fn set_info_row(&mut self, info: crate::store::InfoRow) {
@@ -149,8 +149,8 @@ impl Workspace {
                     cx.notify();
                 }
             }))
-            .child(item("mode-edit", "pen-line", "编辑", "可编辑文档", !reading, false))
-            .child(item("mode-read", "eye-open", "阅读", "仅查看或评论文档", reading, true));
+            .child(item("mode-edit", "pen-line", crate::settings::text("编辑"), crate::settings::text("可编辑文档"), !reading, false))
+            .child(item("mode-read", "eye-open", crate::settings::text("阅读"), crate::settings::text("仅查看或评论文档"), reading, true));
         Some(deferred(anchored().position(point(at.left(), at.bottom() + px(4.))).child(menu)).with_priority(2).into_any_element())
     }
 
@@ -196,7 +196,7 @@ impl Workspace {
                         .px(px(16.))
                         .pb(px(24.))
                         .text_color(Theme::text())
-                        .child(section("键盘快捷键"))
+                        .child(section(crate::settings::text("键盘快捷键")))
                         .children(crate::shortcuts::rows(cx).into_iter().map(|(_, title, key)| div().flex().items_center().justify_between().gap(px(12.)).py(px(10.)).text_size(px(12.)).child(title).child(crate::shortcuts::pretty(&key)).into_any_element()))
                         .children(rows(STANDARD))
                         .child(section("Markdown").mt(px(32.)))
@@ -207,7 +207,7 @@ impl Workspace {
                                 .text_size(px(12.))
                                 .line_height(px(18.))
                                 .text_color(Theme::text_caption())
-                                .child("Markdown 是一种快速输入带格式文本的方式，让你书写文档时行云流水，一气呵成，例如输入#空格，即可输入一级标题。"),
+                                .child(crate::settings::text("Markdown 是一种快速输入带格式文本的方式，让你书写文档时行云流水，一气呵成，例如输入#空格，即可输入一级标题。")),
                         )
                         .children(rows(MARKDOWN)),
                 )

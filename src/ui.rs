@@ -63,7 +63,7 @@ pub fn toast_el(kind: ToastKind, msg: &SharedString, t0: std::time::Instant, win
                 .child(icon("circle-filled", 16., fill).absolute().top_0().left_0())
                 .child(icon(mark, mark_size, gpui::white())),
         )
-        .child(ui_text(msg.clone()));
+        .child(ui_text(crate::settings::label(msg)));
     Some(
         deferred(
             anchored()
@@ -439,13 +439,14 @@ pub(crate) fn window_controls(window: &Window) -> Option<Div> {
 
 /// "名称 (键 + 键)" plus an optional "Markdown: …" line.
 pub fn doc_tip(text: &str, keys: Option<&str>, md: Option<&str>) -> String {
+    let text = crate::settings::text(text);
     let mut s = match keys {
         Some(k) => format!("{text} ({k})"),
         None => text.to_string(),
     };
     if let Some(m) = md {
         s.push_str("\nMarkdown: ");
-        s.push_str(m);
+        s.push_str(crate::settings::text(m));
     }
     s
 }
@@ -470,11 +471,11 @@ pub fn format_time(secs: u64) -> String {
     let (ny, nmo, nd, _, _) = civil(now);
     let (yy, ymo, yd, _, _) = civil(now.saturating_sub(86_400));
     if (y, mo, d) == (ny, nmo, nd) {
-        format!("今天 {h:02}:{mi:02}")
+        crate::localized_format!("今天 {h:02}:{mi:02}", "Today {h:02}:{mi:02}")
     } else if (y, mo, d) == (yy, ymo, yd) {
-        format!("昨天 {h:02}:{mi:02}")
+        crate::localized_format!("昨天 {h:02}:{mi:02}", "Yesterday {h:02}:{mi:02}")
     } else if y == ny {
-        format!("{mo}月{d}日")
+        crate::localized_format!("{mo}月{d}日", "{mo:02}-{d:02}")
     } else {
         if crate::settings::english() { format!("{y}-{mo:02}-{d:02}") } else { format!("{y}年{mo}月{d}日") }
     }
@@ -484,9 +485,9 @@ pub fn format_time(secs: u64) -> String {
 pub fn format_ago(secs: u64) -> String {
     let ago = crate::time::now().saturating_sub(secs);
     if ago < 60 {
-        "刚刚".into()
+        crate::settings::text("刚刚").into()
     } else if ago < 3600 {
-        format!("{} 分钟前", ago / 60)
+        crate::localized_format!("{} 分钟前", "{} min ago", ago / 60)
     } else {
         format_time(secs)
     }
@@ -502,9 +503,9 @@ pub fn format_date(secs: u64) -> String {
 pub fn format_relative(secs: u64) -> String {
     let ago = crate::time::now().saturating_sub(secs);
     match ago {
-        0..60 => "几秒前".into(),
-        60..3600 => format!("{} 分钟前", ago / 60),
-        3600..86_400 => format!("{} 小时前", ago / 3600),
+        0..60 => crate::settings::text("几秒前").into(),
+        60..3600 => crate::localized_format!("{} 分钟前", "{} min ago", ago / 60),
+        3600..86_400 => crate::localized_format!("{} 小时前", "{} hours ago", ago / 3600),
         _ => format_date(secs),
     }
 }

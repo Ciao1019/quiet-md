@@ -4,7 +4,7 @@
 
 use super::render::R;
 use super::view::{Editor, EditorEvent, Menu};
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::model::Block;
 use crate::editor_theme::Theme;
 use crate::editor_ui::{icon, ui_text};
@@ -71,7 +71,7 @@ impl R<'_> {
             });
         if ed.sub_pages.is_empty() {
             content = content.child(
-                div().h(px(240.)).flex().items_center().justify_center().text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child("目录下暂无子页面"),
+                div().h(px(240.)).flex().items_center().justify_center().text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child(crate::settings::text("目录下暂无子页面")),
             );
         }
         for p in &ed.sub_pages {

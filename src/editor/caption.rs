@@ -15,7 +15,7 @@ pub const CODE_CAPTION: &str = "代码块";
 /// The text a caption field shows for a block, if the block has one.
 fn caption_text(b: &Block) -> Option<String> {
     match &b.kind {
-        BlockKind::Code { caption, .. } => Some(caption.clone().unwrap_or_else(|| CODE_CAPTION.into())),
+        BlockKind::Code { caption, .. } => Some(caption.clone().unwrap_or_else(|| crate::settings::text(CODE_CAPTION).into())),
         BlockKind::Image { caption, .. } => Some(caption.clone().unwrap_or_default()),
         _ => None,
     }

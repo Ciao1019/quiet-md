@@ -83,24 +83,28 @@ fn weeks(t: i64) -> i64 {
 /// The chip text (`getTimeString`): 今天 / 明天 / 昨天 / 本周X / 下周X,
 /// then M月D日, then Y年M月D日 in another year; " HH:MM" when timed.
 pub fn time_string(expire: i64, timed: bool, now: i64) -> String {
+    time_string_for(expire, timed, now, crate::settings::english())
+}
+
+fn time_string_for(expire: i64, timed: bool, now: i64, english: bool) -> String {
     let (ey, em, ed) = ymd(expire);
     let (ny, nm, nd) = ymd(now);
     let (e, n) = (i64::from(ed), i64::from(nd));
     let mut s = if ey != ny {
-        format!("{ey}年{em}月{ed}日")
+        if english { format!("{ey}-{em:02}-{ed:02}") } else { format!("{ey}年{em}月{ed}日") }
     } else {
         let dw = weeks(expire) - weeks(now);
         if dw >= 2 || dw <= -1 {
-            if n - e == 1 && dw == -1 && em == nm { "昨天".into() } else { format!("{em}月{ed}日") }
+            if n - e == 1 && dw == -1 && em == nm { crate::settings::localize("昨天", english).into() } else { if english { format!("{em:02}-{ed:02}") } else { format!("{em}月{ed}日") } }
         } else if e == n {
-            "今天".into()
+            crate::settings::localize("今天", english).into()
         } else if n - e == 1 {
-            "昨天".into()
+            crate::settings::localize("昨天", english).into()
         } else if e - n == 1 {
-            "明天".into()
+            crate::settings::localize("明天", english).into()
         } else {
-            let w = WEEK[crate::time::weekday(ey, em, ed) as usize];
-            if dw >= 1 { format!("下周{w}") } else { format!("本周{w}") }
+            let w = crate::settings::localize(WEEK[crate::time::weekday(ey, em, ed) as usize], english);
+            if dw >= 1 { if english { format!("Next {w}") } else { format!("下周{w}") } } else { if english { format!("This {w}") } else { format!("本周{w}") } }
         }
     };
     if timed {
@@ -186,20 +190,20 @@ pub fn parse_time(s: &str) -> Option<i64> {
 /// The 提醒 choices; `cur` is the reminder's notify − expire.
 pub fn jet_lags(whole_day: bool, cur: i64) -> Vec<(&'static str, i64)> {
     if !whole_day {
-        return TIMED.to_vec();
+        return TIMED.iter().map(|&(label, lag)| (crate::settings::text(label), lag)).collect();
     }
     let mut v = vec![];
     if cur == EVENING.1 {
-        v.push(EVENING);
+        v.push((crate::settings::text(EVENING.0), EVENING.1));
     }
-    v.extend(WHOLE);
+    v.extend(WHOLE.iter().map(|&(label, lag)| (crate::settings::text(label), lag)));
     v
 }
 
 fn jet_label(whole_day: bool, cur: i64) -> String {
     match jet_lags(whole_day, cur).into_iter().find(|(_, v)| *v == cur) {
         Some((l, _)) => l.into(),
-        None => format!("提前 {} 分钟", -cur / MINUTE),
+        None => crate::localized_format!("提前 {} 分钟", "{} minutes before", -cur / MINUTE),
     }
 }
 
@@ -242,9 +246,15 @@ pub fn with_jet(r: &InlineReminder, jet: i64) -> InlineReminder {
     InlineReminder { notify: r.expire + jet, ..*r }
 }
 
+pub(crate) fn reminder_label(r: &InlineReminder, sep: &str) -> String {
+    if !crate::settings::english() { return r.label(sep); }
+    let (y, m, d, h, mi) = crate::time::civil(r.expire.max(0) as u64 / 1000);
+    if r.whole_day { format!("{y}-{m:02}-{d:02}") } else { format!("{y}-{m:02}-{d:02}{sep}{h:02}:{mi:02}") }
+}
+
 /// The system notification's body.
 pub fn notification(r: &InlineReminder) -> String {
-    format!("日期提醒：{}", r.label(" "))
+    crate::localized_format!("日期提醒：{}", "Reminder: {}", reminder_label(r, " "))
 }
 
 // ---- UI
@@ -336,7 +346,7 @@ impl Editor {
     pub(super) fn open_reminder(&mut self, p: Pos, cx: &mut Context<Self>) {
         let Some(r) = self.core.reminder_at(p) else { return };
         if self.read_only {
-            return self.toast("当前为阅读模式，请切换为编辑模式后重试", cx);
+            return self.toast(crate::settings::text("当前为阅读模式，请切换为编辑模式后重试"), cx);
         }
         self.hide_button_card(cx);
         self.hide_link_card(cx);
@@ -374,7 +384,7 @@ impl Editor {
     fn apply_reminder(&mut self, f: impl FnOnce(&InlineReminder) -> InlineReminder, window: &mut Window, cx: &mut Context<Self>) {
         let Some(at_) = self.rm.panel.as_ref().map(|p| p.at) else { return };
         let Some(old) = self.core.reminder_at(at_) else {
-            self.toast("该提醒已被删除。", cx);
+            self.toast(crate::settings::text("该提醒已被删除。"), cx);
             return self.close_reminder(window, cx);
         };
         let r = f(&old);
@@ -486,7 +496,7 @@ impl Editor {
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .child(
                 popover().w(px(CARD_W)).child(
-                    div().mx(px(16.)).h(px(40.)).flex().items_center().justify_center().text_size(px(13.)).line_height(px(20.)).child(r.label("，")),
+                    div().mx(px(16.)).h(px(40.)).flex().items_center().justify_center().text_size(px(13.)).line_height(px(20.)).child(reminder_label(r, crate::settings::tr("，", ", "))),
                 ),
             );
         let x = rect.center().x - px(CARD_W / 2.);
@@ -534,10 +544,10 @@ impl Editor {
             .flex()
             .items_center()
             .justify_between()
-            .child(div().text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).child(format!("{vy}年 {vm}月")))
+            .child(div().text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).child(crate::localized_format!("{vy}年 {vm}月", "{vy}-{vm:02}")))
             .child(div().flex().gap(px(4.)).child(nav("rm-prev", "chevron-left", -1)).child(nav("rm-next", "chevron-right", 1)));
         let mut weeks_row = div().mb(px(4.)).flex().justify_between();
-        for w in ["日", "一", "二", "三", "四", "五", "六"] {
+        for w in [crate::settings::text("日"), crate::settings::text("一"), crate::settings::text("二"), crate::settings::text("三"), crate::settings::text("四"), crate::settings::text("五"), crate::settings::text("六")] {
             weeks_row = weeks_row.child(div().size(px(32.)).flex().items_center().justify_center().text_size(px(12.)).text_color(Theme::text_placeholder()).child(w));
         }
         let mut body = div().h(px(248.)).flex().flex_col().justify_between().child(weeks_row);
@@ -648,7 +658,7 @@ impl Editor {
             .child(
                 div()
                     .mt(px(20.))
-                    .child(check_row("rm-set-time", timed, "设置时间").on_mouse_down(
+                    .child(check_row("rm-set-time", timed, crate::settings::text("设置时间")).on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |e, _, window, cx| {
                             e.apply_reminder(|r| toggle(r, !whole, notify, now), window, cx);
@@ -659,7 +669,7 @@ impl Editor {
             .child(
                 div()
                     .mt(px(16.))
-                    .child(check_row("rm-notify", notify, "提醒").on_mouse_down(
+                    .child(check_row("rm-notify", notify, crate::settings::text("提醒")).on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |e, _, window, cx| {
                             e.apply_reminder(|r| toggle(r, whole, !notify, now), window, cx);
@@ -772,13 +782,15 @@ impl Editor {
 
 #[cfg(test)]
 mod tests {
-    use super::{DAY, HOUR, MINUTE, current_slot, day_start, default_reminder, jet_lags, parse_time, status, time_slots, time_string, toggle, Status};
+    use super::{DAY, HOUR, MINUTE, current_slot, day_start, default_reminder, jet_lags, parse_time, status, time_slots, time_string_for, toggle, Status};
     use crate::model::InlineReminder;
     use crate::time::local_to_unix;
 
     fn t(y: i64, m: u32, d: u32, h: u32, mi: u32) -> i64 {
         local_to_unix(y, m, d, h, mi) * 1000
     }
+
+    fn time_string(expire: i64, timed: bool, now: i64) -> String { time_string_for(expire, timed, now, false) }
 
     #[test]
     fn chip_text() {
@@ -793,6 +805,18 @@ mod tests {
         assert_eq!(time_string(t(2026, 11, 3, 9, 0), false, now), "11月3日");
         assert_eq!(time_string(t(2026, 10, 12, 9, 0), false, now), "10月12日");
         assert_eq!(time_string(t(2027, 1, 3, 9, 0), true, now), "2027年1月3日 09:00");
+    }
+
+    #[test]
+    fn english_chip_text() {
+        let now = t(2026, 10, 22, 10, 0);
+        assert_eq!(time_string_for(t(2026, 10, 22, 14, 0), true, now, true), "Today 14:00");
+        assert_eq!(time_string_for(t(2026, 10, 23, 0, 0), false, now, true), "Tomorrow");
+        assert_eq!(time_string_for(t(2026, 10, 21, 9, 5), true, now, true), "Yesterday 09:05");
+        assert_eq!(time_string_for(t(2026, 10, 25, 9, 0), false, now, true), "This Sun");
+        assert_eq!(time_string_for(t(2026, 10, 27, 9, 0), false, now, true), "Next Tue");
+        assert_eq!(time_string_for(t(2026, 11, 3, 9, 0), false, now, true), "11-03");
+        assert_eq!(time_string_for(t(2027, 1, 3, 9, 0), true, now, true), "2027-01-03 09:00");
     }
 
     #[test]

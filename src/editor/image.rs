@@ -323,13 +323,13 @@ fn error_el(w: f32, h: f32, missing: bool, blocked: bool, border: Hsla, retry: O
             })
     };
     let body = if missing {
-        (w > 58. && h > 58.).then(|| text("文件不存在").into_any_element())
+        (w > 58. && h > 58.).then(|| text(crate::settings::text("文件不存在")).into_any_element())
     } else if blocked && w > 220. && h > 58. {
         Some(text("").flex().child(crate::settings::tr("未自动下载网络图片，", "Web image not downloaded. ")).child(link(crate::settings::tr("点击加载", "Load"))).into_any_element())
     } else if w > 162. && h > 58. {
-        Some(text("").flex().child("加载失败，").child(link("点击重试")).into_any_element())
+        Some(text("").flex().child(crate::settings::text("加载失败，")).child(link(crate::settings::text("点击重试"))).into_any_element())
     } else if w > 58. && h > 58. {
-        Some(text("").child(link("点击重试")).into_any_element())
+        Some(text("").child(link(crate::settings::text("点击重试"))).into_any_element())
     } else {
         None
     };
@@ -1016,12 +1016,12 @@ impl Editor {
                     .flex()
                     .items_center()
                     .justify_center()
-                    .tip_above("图片过小，请放大后重试", None)
+                    .tip_above(crate::settings::text("图片过小，请放大后重试"), None)
                     .child(icon("crop", 18., Theme::text_disabled()))
             } else {
                 btn("itb-crop")
                     .when(cropping, |d| d.bg(Theme::fill_turninto_active()))
-                    .tip_above(if cropping { "保存裁剪" } else { "裁剪" }, None)
+                    .tip_above(if cropping { crate::settings::text("保存裁剪") } else { crate::settings::text("裁剪") }, None)
                     .child(icon("crop", 18., if cropping { Theme::primary() } else { Theme::text_code() }))
                     .on_mouse_down(
                         MouseButton::Left,
@@ -1040,7 +1040,7 @@ impl Editor {
             if reset {
                 bar = bar.child(
                     btn("itb-reset")
-                        .tip_above("重置图片", None)
+                        .tip_above(crate::settings::text("重置图片"), None)
                         .child(icon("image-reset", 18., Theme::text_code()))
                         .on_mouse_down(MouseButton::Left, act(|e, id, _, cx| e.reset_crop(id, cx))),
                 );
@@ -1054,7 +1054,7 @@ impl Editor {
         bar = bar
             .child(
                 btn("itb-caption")
-                    .tip_above(if has_caption { "编辑描述" } else { "添加描述" }, None)
+                    .tip_above(if has_caption { crate::settings::text("编辑描述") } else { crate::settings::text("添加描述") }, None)
                     .child(icon("caption", 18., Theme::text_code()))
                     .on_mouse_down(MouseButton::Left, act(|e, id, window, cx| e.edit_caption(id, window, cx))),
             )
@@ -1062,9 +1062,9 @@ impl Editor {
         w += 25.;
         n += 2;
         for (key, ic, tip, a) in [
-            ("itb-left", "align-left", "左对齐", Align::Left),
-            ("itb-center", "align-center", "居中对齐", Align::Center),
-            ("itb-right", "align-right", "右对齐", Align::Right),
+            ("itb-left", "align-left", crate::settings::text("左对齐"), Align::Left),
+            ("itb-center", "align-center", crate::settings::text("居中对齐"), Align::Center),
+            ("itb-right", "align-right", crate::settings::text("右对齐"), Align::Right),
         ] {
             let on = align == a;
             bar = bar.child(
@@ -1536,21 +1536,21 @@ impl Editor {
             .font_family(theme::UI_FONT)
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
             .on_mouse_up(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(tool("lb-prev", "chevron-left", "上一张", lb.ix > 0, |e, _, cx| e.lb_go(-1, cx)))
+            .child(tool("lb-prev", "chevron-left", crate::settings::text("上一张"), lb.ix > 0, |e, _, cx| e.lb_go(-1, cx)))
             .child(label(format!("{}/{}", lb.ix + 1, n), 0.))
-            .child(tool("lb-next", "chevron-right", "下一张", lb.ix + 1 < n, |e, _, cx| e.lb_go(1, cx)))
+            .child(tool("lb-next", "chevron-right", crate::settings::text("下一张"), lb.ix + 1 < n, |e, _, cx| e.lb_go(1, cx)))
             .child(sep())
-            .child(tool("lb-out", "zoom-out", "缩小", lb.scale > 0.1 + 1e-4, |e, _, cx| e.lb_zoom(1. / 1.15, cx)))
+            .child(tool("lb-out", "zoom-out", crate::settings::text("缩小"), lb.scale > 0.1 + 1e-4, |e, _, cx| e.lb_zoom(1. / 1.15, cx)))
             .child(label(format!("{}%", (lb.scale * 100.).round() as i32), 40.))
-            .child(tool("lb-in", "zoom-in", "放大", lb.scale < 5. - 1e-4, |e, _, cx| e.lb_zoom(1.15, cx)))
+            .child(tool("lb-in", "zoom-in", crate::settings::text("放大"), lb.scale < 5. - 1e-4, |e, _, cx| e.lb_zoom(1.15, cx)))
             .child(if fitted {
-                tool("lb-size", "fit-page", "适应页面", true, |e, _, cx| e.lb_toggle(cx))
+                tool("lb-size", "fit-page", crate::settings::text("适应页面"), true, |e, _, cx| e.lb_toggle(cx))
             } else {
-                tool("lb-size", "one-to-one", "原始尺寸", true, |e, _, cx| e.lb_toggle(cx))
+                tool("lb-size", "one-to-one", crate::settings::text("原始尺寸"), true, |e, _, cx| e.lb_toggle(cx))
             })
             .child(sep())
-            .child(tool("lb-rotate", "rotate-ccw-square", "旋转", true, |e, _, cx| e.lb_rotate(cx)))
-            .child(tool("lb-download", "download", "下载", true, |e, _, cx| e.lb_download(cx)));
+            .child(tool("lb-rotate", "rotate-ccw-square", crate::settings::text("旋转"), true, |e, _, cx| e.lb_rotate(cx)))
+            .child(tool("lb-download", "download", crate::settings::text("下载"), true, |e, _, cx| e.lb_download(cx)));
         let pill = div().absolute().bottom(px(20.)).left_0().w(px(vw)).flex().justify_center().opacity(chrome).child(pill);
 
         let layer = div()

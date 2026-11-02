@@ -166,7 +166,7 @@ fn none_swatch() -> Div {
 }
 
 fn color_title(t: &'static str) -> Div {
-    div().mt(px(7.)).mb(px(4.)).text_size(px(12.)).line_height(px(20.)).text_color(Theme::text()).child(t)
+    div().mt(px(7.)).mb(px(4.)).text_size(px(12.)).line_height(px(20.)).text_color(Theme::text()).child(crate::settings::text(t))
 }
 
 /// 在下方添加 ›: hovering opens the insert panel next to the handle menu.
@@ -564,7 +564,7 @@ impl Editor {
         if results.is_empty() {
             content_h += 32.;
             list = list.child(
-                div().flex_none().h(px(32.)).px(px(8.)).flex().items_center().text_size(px(14.)).text_color(Theme::text_caption()).child("未能找到相关结果"),
+                div().flex_none().h(px(32.)).px(px(8.)).flex().items_center().text_size(px(14.)).text_color(Theme::text_caption()).child(crate::settings::text("未能找到相关结果")),
             );
         }
         // An always-visible 8px thumb, rgba(31,35,41,.3), 3px in
@@ -619,7 +619,7 @@ impl Editor {
     /// a click inserts unless the pick is within the default counts.
     fn size_picker(&self, kind: menus::SlashKind, cx: &mut Context<Self>) -> Stateful<Div> {
         let table = kind == menus::SlashKind::Table;
-        let (title, rows, cols, def) = if table { ("插入支持富文本的表格", 9, 9, (0, 0)) } else { ("选择栏数", 1, 5, (1, 1)) };
+        let (title, rows, cols, def) = if table { (crate::settings::text("插入支持富文本的表格"), 9, 9, (0, 0)) } else { (crate::settings::text("选择栏数"), 1, 5, (1, 1)) };
         let (r, c) = self.size_pick;
         let disabled = r <= def.0 && c <= def.1;
         let cell_h = if rows == 1 { 80. } else { 24. };
@@ -767,21 +767,21 @@ impl Editor {
         // Grid: 2 rows of 24 + 12 gap + 4+4 padding, then a 9px separator.
         let indent_y = 8. + if turn.is_empty() { 0. } else { 4. + 24. * 2. + 12. + 4. + 9. };
         // Text blocks get 缩进和对齐 and 颜色; the rest only indent.
-        let (indent_icon, indent_label) = if shape == menus::MenuShape::Text { ("indent-align", "缩进和对齐") } else { ("indent-increase", "缩进") };
+        let (indent_icon, indent_label) = if shape == menus::MenuShape::Text { ("indent-align", crate::settings::text("缩进和对齐")) } else { ("indent-increase", crate::settings::text("缩进")) };
         m = m.child(
             row("bm-indent", indent_icon, indent_label, Some("›"), sub == Some(BlockSub::Indent))
                 .on_mouse_move(set_sub(Some(BlockSub::Indent))),
         );
         let colorable = shape == menus::MenuShape::Text;
         if colorable {
-            m = m.child(row("bm-color", "palette", "颜色", Some("›"), sub == Some(BlockSub::Color)).on_mouse_move(set_sub(Some(BlockSub::Color))));
+            m = m.child(row("bm-color", "palette", crate::settings::text("颜色"), Some("›"), sub == Some(BlockSub::Color)).on_mouse_move(set_sub(Some(BlockSub::Color))));
         }
         let adding = matches!(sub, Some(BlockSub::Add(_)));
         m = m
             .child(separator_h().on_mouse_move(set_sub(None)))
-            .child(row("bm-cut", "scissors", "剪切", None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Cut)))
-            .child(row("bm-copy", "copy", "复制", None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Copy)))
-            .child(row("bm-del", "trash-2", "删除", None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Delete)))
+            .child(row("bm-cut", "scissors", crate::settings::text("剪切"), None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Cut)))
+            .child(row("bm-copy", "copy", crate::settings::text("复制"), None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Copy)))
+            .child(row("bm-del", "trash-2", crate::settings::text("删除"), None, false).on_mouse_move(set_sub(None)).on_mouse_down(MouseButton::Left, act(BlockAct::Delete)))
             .child(separator_h().on_mouse_move(set_sub(None)))
             .child(add_below_row(adding, cx));
         let color_y = indent_y + 32.;
@@ -822,13 +822,13 @@ impl Editor {
                         .w(px(MENU_W))
                         .p(px(8.))
                         .when(shape == menus::MenuShape::Text, |d| {
-                            d.child(align_row("al-l", "align-left", "左对齐", crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
-                                .child(align_row("al-c", "align-center", "居中对齐", crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
-                                .child(align_row("al-r", "align-right", "右对齐", crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right))
+                            d.child(align_row("al-l", "align-left", crate::settings::text("左对齐"), crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
+                                .child(align_row("al-c", "align-center", crate::settings::text("居中对齐"), crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
+                                .child(align_row("al-r", "align-right", crate::settings::text("右对齐"), crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right))
                                 .child(separator_h())
                         })
-                        .child(indent_row("in-inc", "indent-increase", "增加缩进", None, can_in, BlockAct::Indent))
-                        .child(indent_row("in-dec", "indent-decrease", "减少缩进", Some("Shift + Tab"), can_out, BlockAct::Outdent))
+                        .child(indent_row("in-inc", "indent-increase", crate::settings::text("增加缩进"), None, can_in, BlockAct::Indent))
+                        .child(indent_row("in-dec", "indent-decrease", crate::settings::text("减少缩进"), Some("Shift + Tab"), can_out, BlockAct::Outdent))
                         .into_any_element(),
                 )
             }
@@ -918,9 +918,9 @@ impl Editor {
             .px(px(10.))
             .pb(px(12.))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(title("字体颜色"))
+            .child(title(crate::settings::text("字体颜色")))
             .child(fonts)
-            .child(title("背景颜色"))
+            .child(title(crate::settings::text("背景颜色")))
             .child(bgs)
             .child(
                 div()
@@ -936,7 +936,7 @@ impl Editor {
                     .text_size(px(12.))
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover()))
-                    .child("恢复默认")
+                    .child(crate::settings::text("恢复默认"))
                     .on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |e, _, window, cx| {
@@ -1127,7 +1127,7 @@ impl Editor {
                             );
                         }),
                     ))
-                    .child(button("callout-reset", "恢复默认").on_mouse_down(
+                    .child(button("callout-reset", crate::settings::text("恢复默认")).on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |e, _, window, cx| {
                             cx.stop_propagation();
@@ -1183,7 +1183,7 @@ impl Editor {
                     .text_size(px(12.))
                     .line_height(px(20.))
                     .text_color(Theme::text_placeholder())
-                    .child("按 ESC 完成输入"),
+                    .child(crate::settings::text("按 ESC 完成输入")),
             );
         Some(at(self.rel(point(b.left(), b.bottom() + px(4.))), Corner::TopLeft, el))
     }
@@ -1228,7 +1228,7 @@ impl Editor {
             );
         }
         if langs.is_empty() {
-            list = list.child(div().h(px(36.)).px(px(12.)).flex().items_center().text_size(px(14.)).text_color(Theme::text_caption()).child("无匹配结果"));
+            list = list.child(div().h(px(36.)).px(px(12.)).flex().items_center().text_size(px(14.)).text_color(Theme::text_caption()).child(crate::settings::text("无匹配结果")));
         }
         let el = popover()
             .id("lang-menu")
@@ -1392,14 +1392,14 @@ impl Editor {
                     .on_mouse_down(MouseButton::Left, open(Menu::Align)),
             )
             .child(sep())
-            .child(mark_btn("tb-b", "bold", "粗体", crate::shortcuts::hint("editor::Bold", "⌘ + B"), Some("**文本** 空格"), Mark::Bold, |m| m.bold))
-            .child(mark_btn("tb-s", "strikethrough", "删除线", crate::shortcuts::hint("editor::Strike", "⌘ + Shift + X"), Some("~~文本~~ 空格"), Mark::Strike, |m| m.strike))
-            .child(mark_btn("tb-i", "italic", "斜体", crate::shortcuts::hint("editor::Italic", "⌘ + I"), Some("*文本* 空格"), Mark::Italic, |m| m.italic))
-            .child(mark_btn("tb-u", "underline", "下划线", crate::shortcuts::hint("editor::Underline", "⌘ + U"), Some("~文本~ 空格"), Mark::Underline, |m| m.underline))
+            .child(mark_btn("tb-b", "bold", crate::settings::text("粗体"), crate::shortcuts::hint("editor::Bold", "⌘ + B"), Some(crate::settings::text("**文本** 空格")), Mark::Bold, |m| m.bold))
+            .child(mark_btn("tb-s", "strikethrough", crate::settings::text("删除线"), crate::shortcuts::hint("editor::Strike", "⌘ + Shift + X"), Some(crate::settings::text("~~文本~~ 空格")), Mark::Strike, |m| m.strike))
+            .child(mark_btn("tb-i", "italic", crate::settings::text("斜体"), crate::shortcuts::hint("editor::Italic", "⌘ + I"), Some(crate::settings::text("*文本* 空格")), Mark::Italic, |m| m.italic))
+            .child(mark_btn("tb-u", "underline", crate::settings::text("下划线"), crate::shortcuts::hint("editor::Underline", "⌘ + U"), Some(crate::settings::text("~文本~ 空格")), Mark::Underline, |m| m.underline))
             .child(
                 btn("tb-link")
                     .w(px(24.))
-                    .tip_above("链接", Some(crate::shortcuts::hint("editor::Link", "⌘ + K")))
+                    .tip_above(crate::settings::text("链接"), Some(crate::shortcuts::hint("editor::Link", "⌘ + K")))
                     .child(icon("link", 18., Theme::text_code()))
                     .on_mouse_down(
                         MouseButton::Left,
@@ -1409,7 +1409,7 @@ impl Editor {
                         }),
                     ),
             )
-            .child(mark_btn("tb-code", "code", "代码", crate::shortcuts::hint("editor::InlineCode", "⌘ + Control + C"), Some("`代码`"), Mark::Code, |m| m.code))
+            .child(mark_btn("tb-code", "code", crate::settings::text("代码"), crate::shortcuts::hint("editor::InlineCode", "⌘ + Control + C"), Some(crate::settings::text("`代码`")), Mark::Code, |m| m.code))
             .child(color_btn)
             .child(div().mx(px(4.)).w(px(1.)).h(px(40.)).bg(Theme::line_border()))
             .child(
@@ -1466,9 +1466,9 @@ impl Editor {
                     .occlude()
                     .w(px(180.))
                     .p(px(8.))
-                    .child(item("ta-l", "align-left", "左对齐", crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
-                    .child(item("ta-c", "align-center", "居中对齐", crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
-                    .child(item("ta-r", "align-right", "右对齐", crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right));
+                    .child(item("ta-l", "align-left", crate::settings::text("左对齐"), crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
+                    .child(item("ta-c", "align-center", crate::settings::text("居中对齐"), crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
+                    .child(item("ta-r", "align-right", crate::settings::text("右对齐"), crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right));
                 Some(drop(Menu::Align, x_align).child(list).into_any_element())
             }
             Some(Menu::Color) => Some(drop(Menu::Color, x_color).child(self.color_panel(None, cx)).into_any_element()),
@@ -1686,7 +1686,7 @@ impl Editor {
         let merge_btn = if merged {
             btn("ttb-merge")
                 .w(px(24.))
-                .tip_above("拆分单元格", None)
+                .tip_above(crate::settings::text("拆分单元格"), None)
                 .child(icon("split-cells", 18., Theme::text_code()))
                 .on_mouse_down(
                     MouseButton::Left,
@@ -1700,7 +1700,7 @@ impl Editor {
         } else if n_cells >= 2 {
             btn("ttb-merge")
                 .w(px(24.))
-                .tip_above("合并单元格", None)
+                .tip_above(crate::settings::text("合并单元格"), None)
                 .child(icon("merge-cells", 18., Theme::text_code()))
                 .on_mouse_down(
                     MouseButton::Left,
@@ -1737,7 +1737,7 @@ impl Editor {
                 btn("ttb-bg")
                     .w(px(24.))
                     .when(matches!(dropdown, Some(Menu::CellBg)), |d| d.bg(Theme::fill_hover_strong()))
-                    .when(!matches!(dropdown, Some(Menu::CellBg)), |d| d.tip_above("单元格背景颜色", None))
+                    .when(!matches!(dropdown, Some(Menu::CellBg)), |d| d.tip_above(crate::settings::text("单元格背景颜色"), None))
                     .child(icon("palette", 18., Theme::text_code()))
                     .on_mouse_down(MouseButton::Left, toggle(Menu::CellBg)),
             )
@@ -1764,14 +1764,14 @@ impl Editor {
                     .on_mouse_down(MouseButton::Left, open(Menu::Align)),
             )
             .child(sep())
-            .child(mark_btn("ttb-b", "bold", "粗体", crate::shortcuts::hint("editor::Bold", "⌘ + B"), Some("**文本** 空格"), Mark::Bold, |m| m.bold))
-            .child(mark_btn("ttb-s", "strikethrough", "删除线", crate::shortcuts::hint("editor::Strike", "⌘ + Shift + X"), Some("~~文本~~ 空格"), Mark::Strike, |m| m.strike))
-            .child(mark_btn("ttb-i", "italic", "斜体", crate::shortcuts::hint("editor::Italic", "⌘ + I"), Some("*文本* 空格"), Mark::Italic, |m| m.italic))
-            .child(mark_btn("ttb-u", "underline", "下划线", crate::shortcuts::hint("editor::Underline", "⌘ + U"), Some("~文本~ 空格"), Mark::Underline, |m| m.underline))
-            .child(mark_btn("ttb-code", "code", "代码", crate::shortcuts::hint("editor::InlineCode", "⌘ + Control + C"), Some("`代码`"), Mark::Code, |m| m.code))
+            .child(mark_btn("ttb-b", "bold", crate::settings::text("粗体"), crate::shortcuts::hint("editor::Bold", "⌘ + B"), Some(crate::settings::text("**文本** 空格")), Mark::Bold, |m| m.bold))
+            .child(mark_btn("ttb-s", "strikethrough", crate::settings::text("删除线"), crate::shortcuts::hint("editor::Strike", "⌘ + Shift + X"), Some(crate::settings::text("~~文本~~ 空格")), Mark::Strike, |m| m.strike))
+            .child(mark_btn("ttb-i", "italic", crate::settings::text("斜体"), crate::shortcuts::hint("editor::Italic", "⌘ + I"), Some(crate::settings::text("*文本* 空格")), Mark::Italic, |m| m.italic))
+            .child(mark_btn("ttb-u", "underline", crate::settings::text("下划线"), crate::shortcuts::hint("editor::Underline", "⌘ + U"), Some(crate::settings::text("~文本~ 空格")), Mark::Underline, |m| m.underline))
+            .child(mark_btn("ttb-code", "code", crate::settings::text("代码"), crate::shortcuts::hint("editor::InlineCode", "⌘ + Control + C"), Some(crate::settings::text("`代码`")), Mark::Code, |m| m.code))
             .child(self.color_split("ttb-color", matches!(dropdown, Some(Menu::Color)), cx));
         if whole {
-            let label = if s.kind == CellSelKind::Cols { "删除列" } else { "删除行" };
+            let label = if s.kind == CellSelKind::Cols { crate::settings::text("删除列") } else { crate::settings::text("删除行") };
             bar = bar.child(sep()).child(
                 btn("ttb-del")
                     .w(px(24.))
@@ -1859,13 +1859,13 @@ impl Editor {
                     .occlude()
                     .w(px(232.))
                     .p(px(8.))
-                    .child(h("tta-l", "align-left", "左对齐", crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
-                    .child(h("tta-c", "align-center", "居中对齐", crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
-                    .child(h("tta-r", "align-right", "右对齐", crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right))
+                    .child(h("tta-l", "align-left", crate::settings::text("左对齐"), crate::shortcuts::hint("editor::AlignLeft", "⌘ + Shift + L"), Align::Left))
+                    .child(h("tta-c", "align-center", crate::settings::text("居中对齐"), crate::shortcuts::hint("editor::AlignCenter", "⌘ + Shift + E"), Align::Center))
+                    .child(h("tta-r", "align-right", crate::settings::text("右对齐"), crate::shortcuts::hint("editor::AlignRight", "⌘ + Shift + R"), Align::Right))
                     .child(separator_h())
-                    .child(v("tta-t", "valign-top", "顶部对齐", None))
-                    .child(v("tta-m", "valign-middle", "垂直居中", Some("middle")))
-                    .child(v("tta-b", "valign-bottom", "底部对齐", Some("bottom")));
+                    .child(v("tta-t", "valign-top", crate::settings::text("顶部对齐"), None))
+                    .child(v("tta-m", "valign-middle", crate::settings::text("垂直居中"), Some("middle")))
+                    .child(v("tta-b", "valign-bottom", crate::settings::text("底部对齐"), Some("bottom")));
                 Some(drop(Menu::Align, x_align).child(list).into_any_element())
             }
             Some(Menu::Color) => Some(drop(Menu::Color, x_color).child(self.color_panel(None, cx)).into_any_element()),
@@ -1911,7 +1911,7 @@ impl Editor {
             .px(px(10.))
             .pb(px(12.))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(color_title("单元格背景颜色"))
+            .child(color_title(crate::settings::text("单元格背景颜色")))
             .child(grid)
             .child(
                 div()
@@ -1927,7 +1927,7 @@ impl Editor {
                     .text_size(px(12.))
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover()))
-                    .child("恢复默认")
+                    .child(crate::settings::text("恢复默认"))
                     .on_mouse_down(MouseButton::Left, set(None)),
             )
     }
@@ -1962,15 +1962,15 @@ impl Editor {
             .p(px(8.))
             .flex()
             .flex_col()
-            .child(row("bm-indent", "indent-align", "缩进", Some("›"), sub == Some(BlockSub::Indent)).on_mouse_move(set_sub(Some(BlockSub::Indent))))
+            .child(row("bm-indent", "indent-align", crate::settings::text("缩进"), Some("›"), sub == Some(BlockSub::Indent)).on_mouse_move(set_sub(Some(BlockSub::Indent))))
             .child(separator_h().on_mouse_move(set_sub(None)))
-            .child(plain("bm-cut", "scissors", "剪切", BlockAct::Cut))
-            .child(plain("bm-copy", "copy", "复制", BlockAct::Copy))
-            .child(plain("bm-del", "trash-2", "删除", BlockAct::Delete))
+            .child(plain("bm-cut", "scissors", crate::settings::text("剪切"), BlockAct::Cut))
+            .child(plain("bm-copy", "copy", crate::settings::text("复制"), BlockAct::Copy))
+            .child(plain("bm-del", "trash-2", crate::settings::text("删除"), BlockAct::Delete))
             .child(separator_h().on_mouse_move(set_sub(None)))
-            .child(toggle("bm-hrow", "header-row", "标题行", hrow, BlockAct::HeaderRow))
-            .child(toggle("bm-hcol", "header-col", "标题列", hcol, BlockAct::HeaderCol))
-            .child(plain("bm-dist", "distribute-cols", "均分列宽", BlockAct::DistributeCols))
+            .child(toggle("bm-hrow", "header-row", crate::settings::text("标题行"), hrow, BlockAct::HeaderRow))
+            .child(toggle("bm-hcol", "header-col", crate::settings::text("标题列"), hcol, BlockAct::HeaderCol))
+            .child(plain("bm-dist", "distribute-cols", crate::settings::text("均分列宽"), BlockAct::DistributeCols))
             .child(separator_h().on_mouse_move(set_sub(None)))
             .child(add_below_row(matches!(sub, Some(BlockSub::Add(_))), cx));
         let sub_el = (sub == Some(BlockSub::Indent)).then(|| {
@@ -1994,8 +1994,8 @@ impl Editor {
                 .top_0()
                 .w(px(MENU_W))
                 .p(px(8.))
-                .child(indent_row("in-inc", "indent-increase", "增加缩进", None, self.core.can_indent(block), BlockAct::Indent))
-                .child(indent_row("in-dec", "indent-decrease", "减少缩进", Some("Shift + Tab"), self.core.can_outdent(block), BlockAct::Outdent))
+                .child(indent_row("in-inc", "indent-increase", crate::settings::text("增加缩进"), None, self.core.can_indent(block), BlockAct::Indent))
+                .child(indent_row("in-dec", "indent-decrease", crate::settings::text("减少缩进"), Some("Shift + Tab"), self.core.can_outdent(block), BlockAct::Outdent))
                 .into_any_element()
         });
         let el = div()

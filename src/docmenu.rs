@@ -2,7 +2,7 @@
 //! duplicate, 下载为 PDF / Markdown, 打印, document info and delete.
 
 use crate::app::Workspace;
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::store::PageWidth;
 use crate::theme::{self, Theme, craft};
 use crate::ui::{icon, popover};
@@ -94,7 +94,7 @@ impl Workspace {
     /// Write "<标题> 副本" of `id` to the library; the caller refreshes the list.
     pub(crate) fn copy_doc(&mut self, id: &str, cx: &mut Context<Self>) -> Option<String> {
         let mut doc = self.doc_of(id, cx)?;
-        let title = format!("{} 副本", display_title(&doc.title.text));
+        let title = crate::localized_format!("{} 副本", "{} copy", display_title(&doc.title.text));
         doc.title = crate::model::RichText::plain(title);
         let width = self.entries.iter().find(|e| e.id == id).map(|e| e.meta.width).unwrap_or_default();
         match self.store.create_from(&doc) {
@@ -103,7 +103,7 @@ impl Workspace {
                 Some(new)
             }
             Err(e) => {
-                self.status = crate::app::SaveStatus::Failed(format!("创建副本失败：{e}"));
+                self.status = crate::app::SaveStatus::Failed(crate::localized_format!("创建副本失败：{}", "Could not duplicate document: {}", crate::settings::diagnostic(&e.to_string())));
                 None
             }
         }
@@ -152,18 +152,18 @@ impl Workspace {
                 }
             }))
             .child(
-                menu_item("dm-width", "page-width", "页宽设置", true, sub == Some(DocSub::Width))
+                menu_item("dm-width", "page-width", crate::settings::text("页宽设置"), true, sub == Some(DocSub::Width))
                     .on_hover(hover_sub(Some(DocSub::Width))),
             )
             .child(divider())
             .child(
-                menu_item("dm-find", "text-search", "查找和替换", false, false)
+                menu_item("dm-find", "text-search", crate::settings::text("查找和替换"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(|w, _, window, cx| w.find_in_doc(false, window, cx))),
             )
             .child(divider())
             .child(
-                menu_item("dm-move", "folder-input", "移动到", false, false)
+                menu_item("dm-move", "folder-input", crate::settings::text("移动到"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, window, cx| {
                         w.close_doc_menu(cx);
@@ -174,7 +174,7 @@ impl Workspace {
                 menu_item(
                     "dm-pin",
                     if pinned { "pin-off" } else { "pin" },
-                    if pinned { "从“置顶”移除" } else { "添加到“置顶”" },
+                    if pinned { crate::settings::text("从“置顶”移除") } else { crate::settings::text("添加到“置顶”") },
                     false,
                     false,
                 )
@@ -185,43 +185,43 @@ impl Workspace {
                 })),
             )
             .child(
-                menu_item("dm-star", if starred { "star-off" } else { "star" }, if starred { "取消收藏" } else { "添加到收藏" }, false, false)
+                menu_item("dm-star", if starred { "star-off" } else { "star" }, if starred { crate::settings::text("取消收藏") } else { crate::settings::text("添加到收藏") }, false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, _, cx| w.toggle_star(&star_id, cx))),
             )
             .child(divider())
             .child(
-                menu_item("dm-copy", "copy", "创建副本", false, false)
+                menu_item("dm-copy", "copy", crate::settings::text("创建副本"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, window, cx| w.duplicate_doc(&dup_id, window, cx))),
             )
             .child(
-                menu_item("dm-download", "export", "下载为", true, sub == Some(DocSub::Download))
+                menu_item("dm-download", "export", crate::settings::text("下载为"), true, sub == Some(DocSub::Download))
                     .on_hover(hover_sub(Some(DocSub::Download))),
             )
             .child(divider())
             .child(
-                menu_item("dm-print", "printer", "打印", false, false)
+                menu_item("dm-print", "printer", crate::settings::text("打印"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, window, cx| w.print_doc(&print_id, window, cx))),
             )
             .child(divider())
             .child(
-                menu_item("dm-info", "info", "文档信息", false, false)
+                menu_item("dm-info", "info", crate::settings::text("文档信息"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(|w, _, window, cx| w.open_doc_info(window, cx))),
             )
             .child(divider())
             // 更多 and 删除 share the last group.
-            .child(menu_item("dm-more", "ellipsis", "更多", true, sub == Some(DocSub::More)).on_hover(hover_sub(Some(DocSub::More))))
+            .child(menu_item("dm-more", "ellipsis", crate::settings::text("更多"), true, sub == Some(DocSub::More)).on_hover(hover_sub(Some(DocSub::More))))
             .child(
-                menu_item("dm-delete", "bin", "删除", false, false)
+                menu_item("dm-delete", "bin", crate::settings::text("删除"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, _, cx| w.ask_delete(&del_id, cx))),
             )
             .child(divider())
             .child(
-                menu_item("dm-shortcuts", "keyboard", "快捷键", false, false)
+                menu_item("dm-shortcuts", "keyboard", crate::settings::text("快捷键"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(|w, _, _, cx| {
                         w.close_doc_menu(cx);
@@ -276,7 +276,7 @@ impl Workspace {
                     .py(px(PAD))
                     .child(recorder())
                     .child(
-                        sub_item("dm-refs", "显示引用列表")
+                        sub_item("dm-refs", crate::settings::text("显示引用列表"))
                             .justify_between()
                             .child(
                                 div()
@@ -365,7 +365,7 @@ impl Workspace {
                     .text_size(px(12.))
                     .line_height(px(18.))
                     .text_color(Theme::text_caption())
-                    .child("为当前窗口选择合适页宽"),
+                    .child(crate::settings::text("为当前窗口选择合适页宽")),
             )
             .child(
                 div()
@@ -374,9 +374,9 @@ impl Workspace {
                     .top(px(47.))
                     .flex()
                     .gap(px(16.))
-                    .child(card("pw-standard", "默认", PageWidth::Standard, 20.))
-                    .child(card("pw-wide", "较宽", PageWidth::Wide, 28.))
-                    .child(card("pw-full", "全宽", PageWidth::Full, 38.)),
+                    .child(card("pw-standard", crate::settings::text("默认"), PageWidth::Standard, 20.))
+                    .child(card("pw-wide", crate::settings::text("较宽"), PageWidth::Wide, 28.))
+                    .child(card("pw-full", crate::settings::text("全宽"), PageWidth::Full, 38.)),
             )
     }
 }

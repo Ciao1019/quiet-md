@@ -132,3 +132,9 @@ Core 的不变量由 `crates/core/src/editor/fuzz_tests.rs` 在每一步随机�
 | `button.rs` / `countdown.rs` / `reminder.rs` / `subpages.rs` | 按钮、倒计时、日期提醒、子页面列表 |
 | `emoji.rs` / `emoji_picker.rs` | 表情数据与面板 |
 | `catalogue.rs` / `find.rs` / `reading.rs` / `scrollbar.rs` / `caption.rs` | 目录、查找替换、阅读模式与信息行、滚动条、代码块名和图片描述 |
+
+## 界面语言
+
+界面支持简体中文与英文，偏好保存在 `Preferences::english`。静态文案使用 `settings::text` / `label` 的统一映射，成对文案使用 `settings::tr`，带参数的文案使用 `localized_format!`。菜单表保留稳定的原始标签，在显示时翻译；搜索同时匹配英文标签与原有关键词。输入框保留原始 placeholder，在渲染时翻译，切换语言时刷新所有窗口。
+
+用户标题、正文、附件名和已保存的按钮文字不作为翻译键；只有空标题等界面默认值随语言变化。Core 的存储诊断在应用层用已知模板翻译，保留路径、文档 ID 和系统错误原文，文档引擎不依赖界面语言。语言回归检查覆盖界面翻译键、菜单表、日期提醒，以及用户内容和诊断参数的保留。

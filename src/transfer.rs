@@ -4,7 +4,7 @@
 //! 打印选项 only choose what happens to comments, so they are left out.
 
 use crate::app::Workspace;
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::model::{Block, BlockKind, Document, RichText};
 use crate::printing::{self, Job};
 use crate::theme::Theme;
@@ -43,7 +43,7 @@ fn save_path(name: &str, cx: &mut App) -> impl std::future::Future<Output = Opti
 fn open_paths(cx: &mut App) -> impl std::future::Future<Output = Option<Vec<PathBuf>>> + use<> {
     let picked = crate::devtools::take_pick();
     let extensions = Some(MARKDOWN_EXTS.iter().chain(&["xml"]).map(|e| SharedString::from(*e)).collect());
-    let prompt = picked.is_none().then(|| cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: true, prompt: Some("导入".into()), extensions }));
+    let prompt = picked.is_none().then(|| cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: true, prompt: Some(crate::settings::text("导入").into()), extensions }));
     async move {
         match prompt {
             Some(p) => p.await.ok().and_then(Result::ok).flatten(),
@@ -200,9 +200,9 @@ impl Workspace {
                 Ok(())
             });
             if written.is_err() {
-                let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Error, "导出失败，请重试", cx));
+                let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Error, crate::settings::text("导出失败，请重试"), cx));
             } else if missing > 0 {
-                let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Error, &format!("已导出，但有 {missing} 个图片或附件未能复制"), cx));
+                let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Error, &crate::localized_format!("已导出，但有 {missing} 个图片或附件未能复制", "Exported, but {missing} images or attachments could not be copied"), cx));
             }
         })
         .detach();
@@ -219,7 +219,7 @@ impl Workspace {
         let view = printing::ns_view_of(window);
         cx.spawn_in(window, async move |this, cx| {
             let Some(path) = path.await else { return };
-            let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Info, "正在导出文档", cx));
+            let _ = this.update(cx, |w, cx| w.show_toast_kind(ToastKind::Info, crate::settings::text("正在导出文档"), cx));
             let html = crate::html::to_html(&doc, &crate::html::Options { sub_pages: &subs });
             let _ = std::fs::remove_file(&path);
             let res = printing::run(html, name, Job::Pdf(path.clone()), view, cx).await;
@@ -229,7 +229,7 @@ impl Workspace {
                     w.toast = None;
                     cx.notify();
                 } else {
-                    w.show_toast_kind(ToastKind::Error, "导出失败，请重试", cx);
+                    w.show_toast_kind(ToastKind::Error, crate::settings::text("导出失败，请重试"), cx);
                 }
             });
         })
@@ -244,7 +244,7 @@ impl Workspace {
         let name = file_name(&doc);
         let html = crate::html::to_html(&doc, &crate::html::Options { sub_pages: &subs });
         let view = printing::ns_view_of(window);
-        self.show_toast_kind(ToastKind::Info, "文档打印中", cx);
+        self.show_toast_kind(ToastKind::Info, crate::settings::text("文档打印中"), cx);
         cx.spawn_in(window, async move |this, cx| {
             let res = printing::run(html, name, Job::Print, view, cx).await;
             let _ = this.update(cx, |w, cx| match res {
@@ -296,7 +296,7 @@ impl Workspace {
             self.open(&id, window, cx);
         }
         if failed {
-            self.show_toast_kind(ToastKind::Error, "导入失败，请检查文件格式", cx);
+            self.show_toast_kind(ToastKind::Error, crate::settings::text("导入失败，请检查文件格式"), cx);
         }
         cx.notify();
     }
@@ -335,7 +335,7 @@ impl Workspace {
                     .text_size(px(15.))
                     .line_height(px(24.))
                     .font_weight(FontWeight::SEMIBOLD)
-                    .child("导出 Markdown 设置"),
+                    .child(crate::settings::text("导出 Markdown 设置")),
             )
             .child(close_button("export-md-close").absolute().top(px(27.)).right(px(25.)).on_click(cx.listener(|w, _, _, cx| {
                 w.export_md = None;
@@ -348,13 +348,13 @@ impl Workspace {
                         .items_center()
                         .text_size(px(13.))
                         .line_height(px(20.))
-                        .child(div().mr(px(40.)).text_color(Theme::text_caption()).child("内容范围"))
+                        .child(div().mr(px(40.)).text_color(Theme::text_caption()).child(crate::settings::text("内容范围")))
                         .child(
                             div()
                                 .flex()
                                 .gap(px(24.))
-                                .child(option("export-md-text", !all, "仅文本（不含图片和附件）", false))
-                                .child(option("export-md-all", all, "所有内容", true)),
+                                .child(option("export-md-text", !all, crate::settings::text("仅文本（不含图片和附件）"), false))
+                                .child(option("export-md-all", all, crate::settings::text("所有内容"), true)),
                         ),
                 ),
             )
@@ -365,11 +365,11 @@ impl Workspace {
                     .flex()
                     .justify_end()
                     .gap(px(12.))
-                    .child(secondary_button("export-md-cancel", "取消").min_w(px(80.)).on_click(cx.listener(|w, _, _, cx| {
+                    .child(secondary_button("export-md-cancel", crate::settings::text("取消")).min_w(px(80.)).on_click(cx.listener(|w, _, _, cx| {
                         w.export_md = None;
                         cx.notify();
                     })))
-                    .child(primary_button("export-md-ok", "导出").min_w(px(80.)).on_click(cx.listener(|w, _, window, cx| w.export_markdown(window, cx)))),
+                    .child(primary_button("export-md-ok", crate::settings::text("导出")).min_w(px(80.)).on_click(cx.listener(|w, _, window, cx| w.export_markdown(window, cx)))),
             );
         Some(mask(
             "export-md-mask",

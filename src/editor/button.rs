@@ -185,9 +185,9 @@ impl BtnUi {
 
 fn text_error(t: &str) -> Option<&'static str> {
     if t.trim().is_empty() {
-        Some("按钮不能为空")
+        Some(crate::settings::text("按钮不能为空"))
     } else if t.chars().count() > MAX_TEXT {
-        Some("按钮文字不能超过 200 个字")
+        Some(crate::settings::text("按钮文字不能超过 200 个字"))
     } else {
         None
     }
@@ -254,11 +254,11 @@ impl Editor {
                 if is_link_input(src) {
                     cx.open_url(&normalize(src));
                 } else {
-                    self.toast_kind(ToastKind::Error, "超链接不合法，请重新输入", cx);
+                    self.toast_kind(ToastKind::Error, crate::settings::text("超链接不合法，请重新输入"), cx);
                 }
             }
             ButtonAction::DuplicatePage => cx.emit(EditorEvent::Duplicate),
-            ButtonAction::FollowPage => self.toast("当前位置暂不支持该功能", cx),
+            ButtonAction::FollowPage => self.toast(crate::settings::text("当前位置暂不支持该功能"), cx),
         }
     }
 
@@ -352,7 +352,7 @@ impl Editor {
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover_strong()))
                     .active(|s| s.bg(Theme::fill_pressed()))
-                    .tip_above("编辑", None)
+                    .tip_above(crate::settings::text("编辑"), None)
                     .child(icon("pen-line", 18., Theme::text_code()))
                     .on_click(cx.listener(move |e, _, window, cx| e.open_button_panel(at_, window, cx))),
             );
@@ -362,7 +362,9 @@ impl Editor {
     // ---- 按钮设置
 
     pub(super) fn insert_new_button(&mut self, action: ButtonAction, window: &mut Window, cx: &mut Context<Self>) {
-        if let Some(p) = self.core.insert_button(&InlineButton::new(action)) {
+        let mut button = InlineButton::new(action);
+        button.text = crate::settings::label(action.label());
+        if let Some(p) = self.core.insert_button(&button) {
             self.changed(window, cx);
             self.open_button_panel(p, window, cx);
         }
@@ -468,9 +470,9 @@ impl Editor {
             p.link_err = false;
             // The default text follows the type.
             let text = self.btn.text.read(cx).text.clone();
-            if text == old.label() {
-                p.preview.text = a.label().into();
-                self.btn.text.update(cx, |f, cx| f.set_text(a.label(), cx));
+            if text == old.label() || text == crate::settings::text(old.label()) {
+                p.preview.text = crate::settings::label(a.label());
+                self.btn.text.update(cx, |f, cx| f.set_text(crate::settings::text(a.label()), cx));
             }
             self.btn.url.update(cx, |f, cx| f.set_text("", cx));
         }
@@ -510,8 +512,8 @@ impl Editor {
                 .when(!err && !focused, |d| d.hover(|s| s.border_color(theme::ca(craft::N1000, 0.16))))
                 .child(field.clone())
         };
-        let label = |t: &'static str| div().pb(px(6.)).text_size(px(13.)).line_height(px(20.)).child(t);
-        let error = |t: &'static str| div().pt(px(4.)).text_size(px(12.)).line_height(px(18.)).text_color(red).child(t);
+        let label = |t: &'static str| div().pb(px(6.)).text_size(px(13.)).line_height(px(20.)).child(crate::settings::text(t));
+        let error = |t: &'static str| div().pt(px(4.)).text_size(px(12.)).line_height(px(18.)).text_color(red).child(crate::settings::text(t));
         let item = |last: bool| div().when(!last, |d| d.mb(px(16.)));
         let link = p.preview.action == ButtonAction::OpenLink;
 
@@ -561,7 +563,7 @@ impl Editor {
             .when(!p.drop, |d| d.hover(|s| s.border_color(theme::ca(craft::N1000, 0.16))))
             .cursor_pointer()
             .child(canvas(move |b, _, _| select_cell.set(Some(b)), |_, _, _, _| {}).absolute().inset_0())
-            .child(div().flex_1().text_size(px(13.)).line_height(px(20.)).child(p.preview.action.label()))
+            .child(div().flex_1().text_size(px(13.)).line_height(px(20.)).child(crate::settings::text(p.preview.action.label())))
             .child(div().ml(px(8.)).child(icon("chevron-down", 12., Theme::text_caption())))
             .on_mouse_down(
                 MouseButton::Left,
@@ -581,11 +583,11 @@ impl Editor {
             .overflow_y_scroll()
             .pt(px(12.))
             .px(px(12.))
-            .child(item(false).child(label("按钮文字")).child(input(&self.btn.text, p.text_err.is_some())).children(p.text_err.map(error)))
-            .child(item(false).child(label("按钮颜色")).child(swatches))
-            .child(item(!link).child(label("执行操作")).child(select))
+            .child(item(false).child(label(crate::settings::text("按钮文字"))).child(input(&self.btn.text, p.text_err.is_some())).children(p.text_err.map(error)))
+            .child(item(false).child(label(crate::settings::text("按钮颜色"))).child(swatches))
+            .child(item(!link).child(label(crate::settings::text("执行操作"))).child(select))
             .when(link, |d| {
-                d.child(item(true).child(label("超链接地址")).child(input(&self.btn.url, p.link_err)).when(p.link_err, |d| d.child(error("超链接不合法，请重新输入"))))
+                d.child(item(true).child(label(crate::settings::text("超链接地址"))).child(input(&self.btn.url, p.link_err)).when(p.link_err, |d| d.child(error(crate::settings::text("超链接不合法，请重新输入")))))
             });
         // Buttons: 30 tall, radius 9; primary the accent in white
         // semibold, secondary white with a hairline and a 1px drop.
@@ -614,7 +616,7 @@ impl Editor {
                 .when(!primary, |d| {
                     d.bg(Theme::bg_body()).border_color(Theme::button_border()).shadow(theme::shadow_button()).hover(|s| s.bg(c(craft::N100))).active(|s| s.bg(c(craft::N200)))
                 })
-                .child(t)
+                .child(crate::settings::text(t))
         };
         let footer = div()
             .flex_none()
@@ -679,7 +681,7 @@ impl Editor {
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover()))
                     .when(on, |d| d.text_color(Theme::primary()))
-                    .child(div().flex_1().child(act.label()))
+                    .child(div().flex_1().child(crate::settings::text(act.label())))
                     .when(on, |d| d.child(icon("check", 12., Theme::primary())))
                     .on_mouse_down(
                         MouseButton::Left,
@@ -712,7 +714,7 @@ impl Editor {
             .w(px(200.))
             .px(px(8.)).py(px(crate::editor_ui::MENU_PAD_Y))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(div().h(px(32.)).px(px(8.)).flex().items_center().text_size(px(12.)).text_color(Theme::text_caption()).child("选择按钮类型"));
+            .child(div().h(px(32.)).px(px(8.)).flex().items_center().text_size(px(12.)).text_color(Theme::text_caption()).child(crate::settings::text("选择按钮类型")));
         for (i, act) in ACTIONS.into_iter().enumerate() {
             el = el.child(
                 div()
@@ -726,7 +728,7 @@ impl Editor {
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover()))
                     .child(icon(action_icon(act), 16., Theme::text_code()))
-                    .child(div().text_size(px(13.)).line_height(px(20.)).child(act.label()))
+                    .child(div().text_size(px(13.)).line_height(px(20.)).child(crate::settings::text(act.label())))
                     .on_mouse_down(
                         MouseButton::Left,
                         cx.listener(move |e, _, window, cx| {

@@ -244,7 +244,7 @@ impl R<'_> {
                         .text_color(gpui::white())
                         .child(format!("{v:02}")),
                 )
-                .child(div().mt(px(4.)).text_size(px(13.)).line_height(px(20.)).text_color(color).child(UNITS[i])),
+                .child(div().mt(px(4.)).text_size(px(13.)).line_height(px(20.)).text_color(color).child(crate::settings::text(UNITS[i]))),
             );
         }
         for r in SEP_RIGHT {
@@ -353,7 +353,7 @@ impl R<'_> {
                 .pb(px(12.))
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                 .on_hover(cx.listener(move |e, h: &bool, _, cx| e.cd_palette_hover(id, 1, *h, cx)))
-                .child(div().text_size(px(12.)).line_height(px(20.)).text_color(Theme::text_caption()).child("颜色"))
+                .child(div().text_size(px(12.)).line_height(px(20.)).text_color(Theme::text_caption()).child(crate::settings::text("颜色")))
                 .child(row)
         });
 
@@ -450,7 +450,7 @@ impl Editor {
             }
         }
         if ended {
-            self.toast_kind(ToastKind::Success, "倒计时已结束", cx);
+            self.toast_kind(ToastKind::Success, crate::settings::text("倒计时已结束"), cx);
         }
         if dirty {
             cx.notify();
@@ -534,7 +534,7 @@ impl Editor {
         let duration = if d.by_date {
             let end = crate::time::local_to_unix(y, m, dd, h, mi) * 1000;
             if end < now as i64 {
-                self.toast_kind(ToastKind::Error, "设置的倒计时时间必须晚于当前 GMT+8 的时间", cx);
+                self.toast_kind(ToastKind::Error, crate::settings::text("设置的倒计时时间必须晚于当前 GMT+8 的时间"), cx);
                 return;
             }
             (end - now as i64) as f64 / 1000. + 1.
@@ -641,12 +641,12 @@ impl Editor {
                     .items_center()
                     .when(i > 0, |d| d.ml(px(16.)))
                     .child(picker)
-                    .child(div().ml(px(8.)).line_height(px(22.)).child(UNITS[i])),
+                    .child(div().ml(px(8.)).line_height(px(22.)).child(crate::settings::text(UNITS[i]))),
             );
         }
         let duration = option("cd-opt-dur", !by_date)
             .on_mouse_down(MouseButton::Left, cx.listener(|e, _, _, cx| e.cd_set_mode(false, cx)))
-            .child(title(!by_date, "输入倒计时时长"))
+            .child(title(!by_date, crate::settings::text("输入倒计时时长")))
             .child(items);
 
         // 选择具体日期
@@ -712,7 +712,7 @@ impl Editor {
         let stamp_opt = option("cd-opt-date", by_date)
             .mt(px(16.))
             .on_mouse_down(MouseButton::Left, cx.listener(|e, _, _, cx| e.cd_set_mode(true, cx)))
-            .child(title(by_date, "选择具体日期"))
+            .child(title(by_date, crate::settings::text("选择具体日期")))
             .child(div().mt(px(12.)).flex().child(stamp));
 
         // Footer
@@ -776,13 +776,13 @@ impl Editor {
                         }),
                     )
                     .child(check)
-                    .child(div().ml(px(8.)).line_height(px(22.)).child("倒计时结束时显示气泡提醒")),
+                    .child(div().ml(px(8.)).line_height(px(22.)).child(crate::settings::text("倒计时结束时显示气泡提醒"))),
             )
             .child(
                 div()
                     .flex()
-                    .child(button("cd-cancel", "取消", false).on_click(cx.listener(|e, _, window, cx| e.close_countdown(window, cx))))
-                    .child(button("cd-ok", "确定", true).on_click(cx.listener(|e, _, window, cx| e.confirm_countdown(window, cx)))),
+                    .child(button("cd-cancel", crate::settings::text("取消"), false).on_click(cx.listener(|e, _, window, cx| e.close_countdown(window, cx))))
+                    .child(button("cd-ok", crate::settings::text("确定"), true).on_click(cx.listener(|e, _, window, cx| e.confirm_countdown(window, cx)))),
             );
 
         let close = div()
@@ -821,7 +821,7 @@ impl Editor {
                 cx.notify();
             }))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(div().p(px(24.)).pr(px(56.)).text_size(px(15.)).line_height(px(24.)).font_weight(FontWeight::SEMIBOLD).child("倒计时设置"))
+            .child(div().p(px(24.)).pr(px(56.)).text_size(px(15.)).line_height(px(24.)).font_weight(FontWeight::SEMIBOLD).child(crate::settings::text("倒计时设置")))
             .child(close)
             .child(div().px(px(24.)).pb(px(24.)).child(duration).child(stamp_opt).child(footer));
         let layer = div()
@@ -979,10 +979,10 @@ impl Editor {
             .flex()
             .items_center()
             .justify_between()
-            .child(div().text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).child(format!("{vy}年 {vm}月")))
+            .child(div().text_size(px(13.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).child(crate::localized_format!("{vy}年 {vm}月", "{vy}-{vm:02}")))
             .child(div().flex().gap(px(4.)).child(nav("cd-prev", "chevron-left", -1)).child(nav("cd-next", "chevron-right", 1)));
         let mut weeks = div().mb(px(4.)).flex().justify_between();
-        for w in ["一", "二", "三", "四", "五", "六", "日"] {
+        for w in [crate::settings::text("一"), crate::settings::text("二"), crate::settings::text("三"), crate::settings::text("四"), crate::settings::text("五"), crate::settings::text("六"), crate::settings::text("日")] {
             weeks = weeks.child(div().w(px(32.)).h(px(32.)).flex().items_center().justify_center().text_size(px(12.)).text_color(Theme::text_placeholder()).child(w));
         }
         let mut body = div().flex().flex_col().gap(px(4.)).child(weeks);

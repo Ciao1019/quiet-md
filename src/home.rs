@@ -10,7 +10,7 @@ mod bs;
 mod text_preview;
 #[path = "home_scrollbar.rs"]
 mod scrollbar;
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::model::BlockKind;
 use crate::search::doc_icon;
 use crate::store::Entry;
@@ -177,7 +177,7 @@ fn thumb_block_in(b: &crate::model::Block, depth: usize, inherited: Hsla, quote:
         }
         BlockKind::Code { lang, caption, wrap } => {
             node = node.rounded(px(bs::RADIUS * s)).border(px(s)).border_color(Theme::line_border()).bg(bs::code_surface()).font_family(theme::MONO_FONT)
-                .child(div().h(px(bs::CODE_HEADER * s)).pl(px(28. * s)).pr(px(8. * s)).rounded_t(px((bs::RADIUS - 1.) * s)).bg(bs::code_header()).flex().items_center().font_family(theme::UI_FONT).text_size(px(13. * s)).text_color(Theme::text_caption()).child(caption.clone().unwrap_or_else(|| "代码块".into())));
+                .child(div().h(px(bs::CODE_HEADER * s)).pl(px(28. * s)).pr(px(8. * s)).rounded_t(px((bs::RADIUS - 1.) * s)).bg(bs::code_header()).flex().items_center().font_family(theme::UI_FONT).text_size(px(13. * s)).text_color(Theme::text_caption()).child(caption.clone().unwrap_or_else(|| crate::settings::text("代码块").into())));
             let spans = crate::highlight::spans(lang, &b.text.text);
             let mut body = div().pt(px(14. * s)).pb(px(18. * s)).pr(px(20. * s)).flex().flex_col();
             let mut off = 0;
@@ -228,17 +228,17 @@ fn thumb_block_in(b: &crate::model::Block, depth: usize, inherited: Hsla, quote:
             let mut row = div().flex().justify_center().gap(px(16. * s));
             for (i, value) in [left / 86400, left / 3600 % 24, left / 60 % 60, left % 60].into_iter().enumerate() {
                 row = row.child(div().flex().flex_col().items_center().child(div().size(px(52. * s)).rounded(px(8. * s)).bg(bs::highlight(color)).flex().items_center().justify_center().font_family(theme::MONO_FONT).font_weight(FontWeight::MEDIUM).text_size(px(26. * s)).text_color(ink).child(format!("{value:02}")))
-                    .child(div().mt(px(4. * s)).text_size(px(14. * s)).line_height(px(20. * s)).text_color(Theme::text_caption()).child(["天", "时", "分", "秒"][i])));
+                    .child(div().mt(px(4. * s)).text_size(px(14. * s)).line_height(px(20. * s)).text_color(Theme::text_caption()).child([crate::settings::text("天"), crate::settings::text("时"), crate::settings::text("分"), crate::settings::text("秒")][i])));
             }
             return node.py(px(18. * s)).rounded(px(bs::RADIUS * s)).border(px(s)).border_color(Theme::line_border()).bg(bs::code_surface()).child(row).into_any_element();
         }
         BlockKind::SubPageList => {
             node = node.p(px(8. * s)).rounded(px(bs::RADIUS * s)).border(px(s)).border_color(Theme::line_border()).bg(Theme::bg_overlay());
-            if b.children.is_empty() { return node.h(px(96. * s)).justify_center().text_center().text_color(Theme::text_caption()).child("目录下暂无子页面").into_any_element(); }
+            if b.children.is_empty() { return node.h(px(96. * s)).justify_center().text_center().text_color(Theme::text_caption()).child(crate::settings::text("目录下暂无子页面")).into_any_element(); }
             for child in &b.children { node = node.child(div().py(px(9. * s)).px(px(6. * s)).flex().items_start().gap(px(6. * s)).child(icon("doc", 16. * s, Theme::text_caption())).child(div().flex_1().min_w_0().font_weight(FontWeight::MEDIUM).child(child.text.text.clone()))); }
             return node.into_any_element();
         }
-        BlockKind::Raw { tag, .. } => return node.p(px(8. * s)).rounded(px(8. * s)).bg(Theme::bg_overlay()).text_color(Theme::text_caption()).child(format!("<{tag}> 已保留的内容")).into_any_element(),
+        BlockKind::Raw { tag, .. } => return node.p(px(8. * s)).rounded(px(8. * s)).bg(Theme::bg_overlay()).text_color(Theme::text_caption()).child(crate::localized_format!("<{tag}> 已保留的内容", "<{tag}> Preserved content")).into_any_element(),
         _ => {}
     }
     if b.kind.has_text() {
@@ -491,7 +491,7 @@ impl Workspace {
         // Too narrow for the search box: a search icon beside +, in the same style.
         let search = self.header_search(window, cx);
         let narrow = search.is_none();
-        let header = page_header(self, "主页", 26., cx).relative().children(search)
+        let header = page_header(self, crate::settings::text("主页"), 26., cx).relative().children(search)
             .when(narrow, |d| d.child(crate::ui::header_icon("home-search", "search").mr(px(4.))
                 .tip(crate::settings::tr("搜索文档", "Search documents"), Some(crate::shortcuts::hint("workspace::FocusSearch", "⌘ + J")))
                 .on_click(cx.listener(|w, _, window, cx| w.open_search(window, cx)))))
@@ -551,8 +551,8 @@ impl Workspace {
             .pr(px(24.))
             .flex()
             .items_center()
-            .child(tab("home-tab-recent", "我的文档", HomeTab::Recent))
-            .child(tab("home-tab-star", "收藏", HomeTab::Starred))
+            .child(tab("home-tab-recent", crate::settings::text("我的文档"), HomeTab::Recent))
+            .child(tab("home-tab-star", crate::settings::text("收藏"), HomeTab::Starred))
             .child(div().flex_1())
             .child(
                 div().id("home-sort").relative().h(px(28.)).px(px(10.)).flex().items_center().gap(px(6.))
@@ -570,13 +570,13 @@ impl Workspace {
                     .flex()
                     .gap(px(2.))
                     .rounded(px(9.))
-                    .child(toggle("home-grid", "view-grid", self.home.grid, "切换为宫格视图", true))
-                    .child(toggle("home-list", "view-list", !self.home.grid, "切换为列表视图", false)),
+                    .child(toggle("home-grid", "view-grid", self.home.grid, crate::settings::text("切换为宫格视图"), true))
+                    .child(toggle("home-list", "view-list", !self.home.grid, crate::settings::text("切换为列表视图"), false)),
             );
 
         let entries = self.home_entries();
         let body = if entries.is_empty() && (self.home.grid || self.home.tab == HomeTab::Recent) {
-            empty_state("illus/empty-list.svg", "当前列表暂无内容").into_any_element()
+            empty_state("illus/empty-list.svg", crate::settings::text("当前列表暂无内容")).into_any_element()
         } else if self.home.grid {
             self.render_home_grid(&entries, window, cx)
         } else {
@@ -612,7 +612,7 @@ impl Workspace {
             .border_color(list_line())
             .child(
                 weight3(title_cell()).pl(px(20.)).child(
-                    div().id("home-col-title").px(px(4.)).text_size(px(13.)).line_height(px(24.)).text_color(list_header_text()).child("标题"),
+                    div().id("home-col-title").px(px(4.)).text_size(px(13.)).line_height(px(24.)).text_color(list_header_text()).child(crate::settings::text("标题")),
                 ),
             );
         for c in &cols {
@@ -648,7 +648,7 @@ impl Workspace {
         header = header.child(div().w(px(60.)).flex_none());
         let mut rows = div().id("home-rows").flex_1().min_h_0().overflow_y_scroll().track_scroll(&self.home.list_scroll).px(px(24.)).pb(px(24.));
         if entries.is_empty() {
-            rows = rows.child(div().pt(px(72.)).child(empty_state("illus/empty-list.svg", "当前列表暂无内容")));
+            rows = rows.child(div().pt(px(72.)).child(empty_state("illus/empty-list.svg", crate::settings::text("当前列表暂无内容"))));
         }
         for (i, e) in entries.iter().enumerate() {
             let (id, id2) = (e.id.clone(), e.id.clone());
@@ -727,7 +727,7 @@ impl Workspace {
                     .items_center()
                     .justify_center()
                     .child(img("illus/blank-doc.svg").size(px(64.)))
-                    .child(div().mt(px(4.)).text_size(px(14.)).line_height(px(22.)).text_color(Theme::text_placeholder()).child("空白文档"))
+                    .child(div().mt(px(4.)).text_size(px(14.)).line_height(px(22.)).text_color(Theme::text_placeholder()).child(crate::settings::text("空白文档")))
             } else {
                 let mut p = div().size_full().p(px(18.)).overflow_hidden().flex().flex_col();
                 p = p.child(div().flex_none().flex().items_start().gap(px(6.)).mb(px(8.))

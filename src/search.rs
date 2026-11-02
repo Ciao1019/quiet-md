@@ -4,7 +4,7 @@
 //! times. Radius 16, quiet row fills, monochrome page glyphs.
 
 use crate::app::Workspace;
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::store::Entry;
 use crate::theme::{self, Theme};
 use crate::trash::scrim;
@@ -390,7 +390,7 @@ impl Workspace {
                     .text_size(px(12.))
                     .line_height(px(18.))
                     .text_color(Theme::text_caption())
-                    .child("没有找到匹配的结果，尝试其他关键词进行搜索"),
+                    .child(crate::settings::text("没有找到匹配的结果，尝试其他关键词进行搜索")),
             );
         }
         for (i, e) in results.iter().enumerate() {

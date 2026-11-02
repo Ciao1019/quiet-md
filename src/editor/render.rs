@@ -379,7 +379,7 @@ impl R<'_> {
                             .line_height(px(24.))
                             .cursor_pointer()
                             .hover(|s| s.bg(Theme::fill_hover()))
-                            .tip_above("点击更换图标", None)
+                            .tip_above(crate::settings::text("点击更换图标"), None)
                             .child(emoji.clone())
                             .on_mouse_down(
                                 MouseButton::Left,
@@ -443,7 +443,7 @@ impl R<'_> {
                 .text_size(px(13.))
                 .line_height(px(20.))
                 .text_color(Theme::text_caption())
-                .child(format!("<{tag}> 本地版暂不支持编辑，已原样保留"))
+                .child(crate::localized_format!("<{tag}> 本地版暂不支持编辑，已原样保留", "<{tag}> Editing is not supported; original content is preserved"))
                 .into_any_element(),
         };
         let atomic_sel = !self.ghost
@@ -554,7 +554,7 @@ impl R<'_> {
                         .group_hover("fold-handler", |s| s.text_color(Theme::text()))
                         .with_transformation(Transformation::rotate(radians(-std::f32::consts::FRAC_PI_2 * turn))),
                 )
-                .tip_above(if b.folded { "展开" } else { "收起" }, None)
+                .tip_above(if b.folded { crate::settings::text("展开") } else { crate::settings::text("收起") }, None)
                 .on_mouse_down(
                     MouseButton::Left,
                     cx.listener(move |e, _, window, cx| {
@@ -577,7 +577,7 @@ impl R<'_> {
         let placeholder = match b.kind {
             // Table cells never show the hint (only the caret does).
             BlockKind::Text if !env.cell && (self.caret_in_empty(b) || self.only_empty_block(b)) && self.ed.slash.is_none() => {
-                Some(TEXT_PLACEHOLDER.into())
+                Some(crate::settings::text(TEXT_PLACEHOLDER).into())
             }
             // Empty headings always show "H1"…"H9", focused or not.
             BlockKind::Heading { level, .. } if b.text.is_empty() => Some(format!("H{level}").into()),
@@ -949,7 +949,7 @@ impl R<'_> {
                                 d.child(
                                     header_btn("code-wrap")
                                         .child(icon("wrap-text", 14., Theme::text_caption()))
-                                        .child(if wrap { "取消换行" } else { "自动换行" })
+                                        .child(if wrap { crate::settings::text("取消换行") } else { crate::settings::text("自动换行") })
                                         .child(sep(-3.))
                                         .on_mouse_down(
                                             MouseButton::Left,
@@ -1163,7 +1163,7 @@ impl Editor {
                             .flex()
                             .items_start()
                             .children(self.doc_icon_el(cx))
-                            .child(div().flex_1().min_w_0().child(r.text_el(TITLE, &self.core.doc.title, spec, Align::Left, Some("请输入标题".into())))),
+                            .child(div().flex_1().min_w_0().child(r.text_el(TITLE, &self.core.doc.title, spec, Align::Left, Some(crate::settings::text("请输入标题").into())))),
                     )
                     .into_any_element()
             }
@@ -1726,7 +1726,7 @@ pub(super) fn block_feishu(&self, b: &Block, siblings: &[Block], idx: usize, env
                             .line_height(px(24.))
                             .cursor_pointer()
                             .hover(|s| s.bg(Theme::fill_hover()))
-                            .tip_above("点击更换图标", None)
+                            .tip_above(crate::settings::text("点击更换图标"), None)
                             .child(SharedString::from(emoji.clone()))
                             .on_mouse_down(
                                 MouseButton::Left,
@@ -1761,7 +1761,7 @@ pub(super) fn block_feishu(&self, b: &Block, siblings: &[Block], idx: usize, env
                 .text_size(px(14.))
                 .line_height(px(22.))
                 .text_color(Theme::text_caption())
-                .child(format!("<{tag}> 本地版暂不支持编辑，已原样保留"))
+                .child(crate::localized_format!("<{tag}> 本地版暂不支持编辑，已原样保留", "<{tag}> Editing is not supported; original content is preserved"))
                 .into_any_element(),
         };
         let atomic_sel = !self.ghost
@@ -1838,7 +1838,7 @@ fn text_block_feishu(&self, b: &Block, env: Env, cx: &mut Context<Editor>) -> An
         let placeholder = match b.kind {
             // Table cells never show the hint (only the caret does).
             BlockKind::Text if !env.cell && (self.caret_in_empty(b) || self.only_empty_block(b)) && self.ed.slash.is_none() => {
-                Some(TEXT_PLACEHOLDER.into())
+                Some(crate::settings::text(TEXT_PLACEHOLDER).into())
             }
             // Empty headings always show "H1"…"H9", focused or not.
             BlockKind::Heading { level, .. } if b.text.is_empty() => Some(format!("H{level}").into()),
@@ -2178,7 +2178,7 @@ fn code_block_feishu(&self, b: &Block, lang: &str, wrap: bool, cx: &mut Context<
                                 d.child(
                                     header_btn("code-wrap")
                                         .child(icon("wrap-text", 16., Theme::text_caption()))
-                                        .child(if wrap { "取消换行" } else { "自动换行" })
+                                        .child(if wrap { crate::settings::text("取消换行") } else { crate::settings::text("自动换行") })
                                         .child(sep(-9.))
                                         .on_mouse_down(
                                             MouseButton::Left,

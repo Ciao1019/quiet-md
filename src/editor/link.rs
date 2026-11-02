@@ -217,7 +217,7 @@ impl Editor {
         }
         let url = normalize(&link);
         if !contains_url(&url) {
-            return self.toast("请输入有效的链接。", cx);
+            return self.toast(crate::settings::text("请输入有效的链接。"), cx);
         }
         self.core.sel = Selection { anchor: Pos::new(block, range.start), head: Pos::new(block, range.end) };
         self.core.checkpoint(EditKind::Other);
@@ -296,13 +296,13 @@ impl Editor {
                     .on_click(cx.listener(|e, _, window, cx| e.submit_link(window, cx)))
             })
             .when(!ok, |d| d.cursor(CursorStyle::OperationNotAllowed))
-            .child("确认");
+            .child(crate::settings::text("确认"));
         let rows = if only_link {
             div().child(input(&self.link_field))
         } else {
             div()
                 .flex()
-                .child(div().flex().flex_col().gap(px(10.)).child(label("文本")).child(label("链接")))
+                .child(div().flex().flex_col().gap(px(10.)).child(label(crate::settings::text("文本"))).child(label(crate::settings::text("链接"))))
                 .child(div().flex().flex_col().gap(px(10.)).child(input(&self.link_text_field)).child(input(&self.link_field)))
         };
         let el = panel()
@@ -479,10 +479,10 @@ impl Editor {
                 .py(px(crate::editor_ui::MENU_PAD_Y))
                 .on_hover(cx.listener(|e, h: &bool, _, cx| e.card_over(2, *h, cx)))
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-                .child(menu_item("lc-copy", "globe", "复制原始网页链接").on_click(cx.listener(move |e, _, _, cx| {
+                .child(menu_item("lc-copy", "globe", crate::settings::text("复制原始网页链接")).on_click(cx.listener(move |e, _, _, cx| {
                     cx.write_to_clipboard(ClipboardItem::new_string(u.clone()));
                     e.link_ui.more = false;
-                    e.toast_kind(ToastKind::Success, "链接已复制到剪贴板", cx);
+                    e.toast_kind(ToastKind::Success, crate::settings::text("链接已复制到剪贴板"), cx);
                 })))
         });
         let el = popover()
@@ -508,7 +508,7 @@ impl Editor {
             )
             .child(
                 btn("lc-edit")
-                    .tip_above("编辑链接", None)
+                    .tip_above(crate::settings::text("编辑链接"), None)
                     .child(icon("pen-line", 18., Theme::text_code()))
                     .on_click(cx.listener(move |e, _, window, cx| {
                         let (b, r) = edit.clone();
@@ -517,7 +517,7 @@ impl Editor {
             )
             .child(
                 btn("lc-remove")
-                    .tip_above("移除链接", None)
+                    .tip_above(crate::settings::text("移除链接"), None)
                     .child(icon("unlink", 18., Theme::text_code()))
                     .on_click(cx.listener(move |e, _, window, cx| e.remove_link(remove.clone(), window, cx))),
             )
@@ -577,12 +577,12 @@ impl Editor {
             .w(px(SUBMENU_W))
             .py(px(crate::editor_ui::MENU_PAD_Y))
             .on_hover(cx.listener(|e, h: &bool, _, cx| e.tb_drop_over(Menu::TbMore, 1, *h, cx)))
-            .child(menu_item("tm-search", "search", "文档库内搜索").on_click(cx.listener(|e, _, _, cx| {
+            .child(menu_item("tm-search", "search", crate::settings::text("文档库内搜索")).on_click(cx.listener(|e, _, _, cx| {
                 e.menu = None;
                 let q = e.core.selected_text();
                 cx.emit(super::view::EditorEvent::Search(q));
             })))
-            .child(menu_item("tm-web", "globe", "网页搜索").on_click(cx.listener(|e, _, _, cx| {
+            .child(menu_item("tm-web", "globe", crate::settings::text("网页搜索")).on_click(cx.listener(|e, _, _, cx| {
                 e.menu = None;
                 let q = e.core.selected_text();
                 cx.open_url(&format!("https://www.baidu.com/s?wd={}", encode_query(&q)));

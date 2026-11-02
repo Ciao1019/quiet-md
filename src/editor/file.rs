@@ -381,10 +381,10 @@ impl R<'_> {
                     .flex()
                     .items_center()
                     .child(div().flex_1().min_w_0().text_size(px(13.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::text()).text_ellipsis().whitespace_nowrap().overflow_hidden().child(f.name.clone()))
-                    .child(div().ml(px(8.)).flex_none().text_size(px(12.)).text_color(Theme::text_caption()).child(if ok { format!("{} / {}", clock(t), clock(d)) } else { "无法播放".into() }));
+                    .child(div().ml(px(8.)).flex_none().text_size(px(12.)).text_color(Theme::text_caption()).child(if ok { format!("{} / {}", clock(t), clock(d)) } else { crate::settings::text("无法播放").into() }));
                 let icon_c = if ok { Theme::text_code() } else { Theme::text_disabled() };
                 let play = shell_btn((if playing { "file-pause" } else { "file-play" }, id.0))
-                    .tip_above(if playing { "暂停" } else { "播放" }, None)
+                    .tip_above(if playing { crate::settings::text("暂停") } else { crate::settings::text("播放") }, None)
                     .child(icon(if playing { "pause-filled" } else { "play-filled" }, 18., icon_c))
                     .on_mouse_down(
                         MouseButton::Left,
@@ -396,7 +396,7 @@ impl R<'_> {
                     );
                 let muted = ed.file.muted;
                 let volume = shell_btn((if muted { "file-unmute" } else { "file-mute" }, id.0))
-                    .tip_above(if muted { "取消静音" } else { "静音" }, None)
+                    .tip_above(if muted { crate::settings::text("取消静音") } else { crate::settings::text("静音") }, None)
                     .child(icon(if muted { "volume-x" } else { "volume-2" }, 18., icon_c))
                     .on_mouse_down(
                         MouseButton::Left,
@@ -491,7 +491,7 @@ impl R<'_> {
                                             .bg(theme::rgbaf(0, 0, 0, 0.5))
                                             .cursor_pointer()
                                             .hover(|s| s.bg(theme::rgbaf(0, 0, 0, 0.65)))
-                                            .tip_above("播放", None)
+                                            .tip_above(crate::settings::text("播放"), None)
                                             .child(icon("play-filled", 24., gpui::white()))
                                             .on_mouse_down(MouseButton::Left, l),
                                     ),
@@ -543,7 +543,7 @@ impl R<'_> {
                 let missing = size.is_none();
                 let desc = match size {
                     Some(n) => format_size(n),
-                    None => "文件不存在".into(),
+                    None => crate::settings::text("文件不存在").into(),
                 };
                 let av = matches!(kind, Kind::Video | Kind::Audio);
                 let l = open_listener(path.clone(), cx);
@@ -557,7 +557,7 @@ impl R<'_> {
                     .rounded(px(RADIUS))
                     .cursor_pointer()
                     .hover(|s| s.bg(Theme::fill_hover()))
-                    .tip_above(if av { "播放" } else { "预览" }, None)
+                    .tip_above(if av { crate::settings::text("播放") } else { crate::settings::text("预览") }, None)
                     .child(icon(if av { "circle-play" } else { "eye-open" }, 20., if missing { Theme::text_disabled() } else { Theme::text_caption() }))
                     .on_mouse_down(MouseButton::Left, l);
                 // The file card: white, hairline, crisp radius 5, the button drop.
@@ -632,13 +632,13 @@ impl Editor {
     pub(super) fn open_file(&mut self, p: Option<&Path>, cx: &mut Context<Self>) {
         match p.filter(|p| p.is_file()) {
             Some(p) => quick_look(p),
-            None => self.toast("文件不存在", cx),
+            None => self.toast(crate::settings::text("文件不存在"), cx),
         }
     }
 
     /// 下载: a copy where the save panel says (Downloads first).
     pub(super) fn download_file(&mut self, f: &FileBlock, cx: &mut Context<Self>) {
-        let Some(src) = local_path(f).filter(|p| p.is_file()) else { return self.toast("文件不存在", cx) };
+        let Some(src) = local_path(f).filter(|p| p.is_file()) else { return self.toast(crate::settings::text("文件不存在"), cx) };
         let picked = crate::devtools::take_pick().and_then(|p| p.into_iter().next());
         let dir = dirs::download_dir().or_else(dirs::home_dir).unwrap_or_default();
         let rx = picked.is_none().then(|| cx.prompt_for_new_path(&dir, Some(&f.name)));
@@ -665,7 +665,7 @@ impl Editor {
     }
 
     fn toggle_audio(&mut self, id: BlockId, cx: &mut Context<Self>) {
-        let Some(pl) = self.audio_player(id) else { return self.toast("无法播放该音频", cx) };
+        let Some(pl) = self.audio_player(id) else { return self.toast(crate::settings::text("无法播放该音频"), cx) };
         if pl.playing() {
             pl.pause();
         } else {
@@ -774,7 +774,7 @@ impl Editor {
         if preview.is_some_and(|k| k != Kind::Audio) {
             let p = path.clone();
             bar = bar.child(
-                shell_btn("ftb-full").tip_above("全屏", None).child(icon("maximize", 18., Theme::text_code())).on_mouse_down(
+                shell_btn("ftb-full").tip_above(crate::settings::text("全屏"), None).child(icon("maximize", 18., Theme::text_code())).on_mouse_down(
                     MouseButton::Left,
                     cx.listener(move |e, _, window, cx| {
                         cx.stop_propagation();
@@ -787,7 +787,7 @@ impl Editor {
             n += 1;
         }
         bar = bar
-            .child(shell_btn("ftb-download").tip_above("下载", None).child(icon("download", 18., Theme::text_code())).on_mouse_down(
+            .child(shell_btn("ftb-download").tip_above(crate::settings::text("下载"), None).child(icon("download", 18., Theme::text_code())).on_mouse_down(
                 MouseButton::Left,
                 act(|e, id, _, cx| {
                     if let Some(BlockKind::File(f)) = e.core.kind_of(id).cloned() {
@@ -796,7 +796,7 @@ impl Editor {
                 }),
             ))
             .child(sep())
-            .child(shell_btn("ftb-text").tip_above("文本视图", None).child(icon("view-text", 18., Theme::text_code())).on_mouse_down(
+            .child(shell_btn("ftb-text").tip_above(crate::settings::text("文本视图"), None).child(icon("view-text", 18., Theme::text_code())).on_mouse_down(
                 MouseButton::Left,
                 act(|e, id, window, cx| {
                     e.core.file_to_inline(id);
@@ -861,7 +861,7 @@ impl Editor {
             .flex()
             .items_center()
             .gap(px(8.))
-            .child(shell_btn("fcard-download").tip_above("下载", None).child(icon("download", 18., Theme::text_code())).on_mouse_down(
+            .child(shell_btn("fcard-download").tip_above(crate::settings::text("下载"), None).child(icon("download", 18., Theme::text_code())).on_mouse_down(
                 MouseButton::Left,
                 cx.listener(move |e, _, window, cx| {
                     cx.stop_propagation();
@@ -871,7 +871,7 @@ impl Editor {
                 }),
             ))
             .child(sep)
-            .child(shell_btn("fcard-text").bg(Theme::fill_turninto_active()).tip_above("文本视图", None).child(icon("view-text", 18., Theme::primary())));
+            .child(shell_btn("fcard-text").bg(Theme::fill_turninto_active()).tip_above(crate::settings::text("文本视图"), None).child(icon("view-text", 18., Theme::primary())));
         let views: &[(&'static str, &'static str, &'static str, FileView)] = if preview {
             &[("fcard-card", "view-card", "卡片视图", FileView::Card), ("fcard-preview", "view-preview", "预览视图", FileView::Preview)]
         } else {
@@ -911,7 +911,7 @@ impl Editor {
     /// 视频或文件: the picked files become attachments at the caret.
     pub(super) fn pick_files(&mut self, window: &mut Window, cx: &mut Context<Self>) {
         let picked = crate::devtools::take_pick();
-        let rx = picked.is_none().then(|| cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: true, prompt: Some("插入视频或文件".into()), extensions: None }));
+        let rx = picked.is_none().then(|| cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: true, prompt: Some(crate::settings::text("插入视频或文件").into()), extensions: None }));
         cx.spawn_in(window, async move |this, cx| {
             let paths = match rx {
                 Some(rx) => rx.await.ok().and_then(Result::ok).flatten(),
@@ -933,7 +933,7 @@ impl Editor {
                 let failed = blocks.iter().any(Option::is_none);
                 let blocks: Vec<Block> = blocks.into_iter().flatten().collect();
                 if failed {
-                    e.toast("文件读取失败", cx);
+                    e.toast(crate::settings::text("文件读取失败"), cx);
                 }
                 let Some(last) = blocks.last().map(|b| b.id) else { return };
                 e.core.clear_block_sel();

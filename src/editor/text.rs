@@ -302,8 +302,8 @@ fn doc_geom(ix: usize, l: &crate::model::InlineDocLink, spec: &TextSpec, row_w: 
     let live = DOC_TITLES.with(|t| t.borrow().get(&l.id).cloned());
     let deleted = live.is_none();
     let (title, emoji) = match live {
-        Some((t, e)) => (crate::model::display_title(&t).to_string(), e),
-        None => ("此文档已被删除".to_string(), None),
+        Some((t, e)) => (crate::settings::display_title(&t).to_string(), e),
+        None => (crate::settings::text("此文档已被删除").to_string(), None),
     };
     let font = Font {
         family: theme::UI_FONT.into(),
@@ -448,7 +448,7 @@ fn eq_geom(ix: usize, src: &str, fs: f32, row_w: f32, color: Hsla, eqno: u32, wi
         // `.equation-block-placeholder` / `-error-placeholder`: 14px/20px,
         // padding 3px 8px; the error text has margin-left 4 after the icon.
         let error = parsed.is_some();
-        let (label, tc) = if error { ("无效公式", Theme::text()) } else { ("添加 LaTeX 公式", Theme::text_caption()) };
+        let (label, tc) = if error { (crate::settings::text("无效公式"), Theme::text()) } else { (crate::settings::text("添加 LaTeX 公式"), Theme::text_caption()) };
         let font = Font {
             family: theme::UI_FONT.into(),
             features: FontFeatures::default(),

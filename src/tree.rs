@@ -3,7 +3,7 @@
 //! the ancestor chain used by the header breadcrumbs.
 
 use crate::app::Workspace;
-use crate::model::display_title;
+use crate::settings::display_title;
 use crate::editor::view::SubPage;
 use crate::input::{TextField, TextFieldEvent};
 use crate::store::Entry;
@@ -153,7 +153,7 @@ impl Workspace {
                 self.expanded.insert(parent.to_string());
                 self.open(&id, window, cx);
             }
-            Err(e) => self.status = crate::app::SaveStatus::Failed(format!("新建失败：{e}")),
+            Err(e) => self.status = crate::app::SaveStatus::Failed(crate::localized_format!("新建失败：{}", "Could not create document: {}", crate::settings::diagnostic(&e.to_string()))),
         }
         cx.notify();
     }
@@ -198,7 +198,7 @@ impl Workspace {
                         e.meta = meta;
                     }
                 }
-                Err(e) => self.status = crate::app::SaveStatus::Failed(format!("移动失败：{e}")),
+                Err(e) => self.status = crate::app::SaveStatus::Failed(crate::localized_format!("移动失败：{}", "Could not move document: {}", crate::settings::diagnostic(&e.to_string()))),
             }
         }
         if let Some(t) = &target {
@@ -206,7 +206,7 @@ impl Workspace {
             self.reveal_in_tree(&t.clone());
         }
         self.sync_sub_pages(cx);
-        self.show_toast("移动成功", cx);
+        self.show_toast(crate::settings::text("移动成功"), cx);
         cx.notify();
     }
 
@@ -283,7 +283,7 @@ impl Workspace {
                 row("move-root".into(), dlg.target == Some(None))
                     .pl(px(16.))
                     .child(icon("library", 16., Theme::text_caption()))
-                    .child(title("我的文档".into()))
+                    .child(title(crate::settings::text("我的文档").into()))
                     .on_click(cx.listener(|w, _, _, cx| {
                         if let Some(d) = w.move_dlg.as_mut() {
                             d.target = Some(None);
@@ -335,7 +335,7 @@ impl Workspace {
         } else {
             let hits: Vec<&Entry> = self.entries.iter().filter(|e| !hidden.contains(&e.id) && display_title(&e.title).to_lowercase().contains(&q)).collect();
             if hits.is_empty() {
-                list = list.child(div().pt(px(80.)).flex().justify_center().text_size(px(13.)).text_color(Theme::text_caption()).child("无搜索结果"));
+                list = list.child(div().pt(px(80.)).flex().justify_center().text_size(px(13.)).text_color(Theme::text_caption()).child(crate::settings::text("无搜索结果")));
             }
             for e in hits {
                 let pick = e.id.clone();
@@ -356,7 +356,7 @@ impl Workspace {
 
         let ready = dlg.target.is_some();
         // 确定 waits for a target: the accent, faded, until one is picked.
-        let ok = primary_button("move-ok", "确定");
+        let ok = primary_button("move-ok", crate::settings::text("确定"));
         let ok = if ready {
             ok
         } else {
@@ -369,7 +369,7 @@ impl Workspace {
             .flex()
             .flex_col()
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(div().pt(px(24.)).pr(px(56.)).pl(px(24.)).text_size(px(15.)).line_height(px(24.)).font_weight(FontWeight::SEMIBOLD).child("从 我的文档 移动到"))
+            .child(div().pt(px(24.)).pr(px(56.)).pl(px(24.)).text_size(px(15.)).line_height(px(24.)).font_weight(FontWeight::SEMIBOLD).child(crate::settings::text("从 我的文档 移动到")))
             .child(close_button("move-close").absolute().top(px(27.)).right(px(25.)).on_click(cx.listener(|w, _, window, cx| w.close_move(window, cx))))
             .child(
                 div().px(px(24.)).mt(px(16.)).mb(px(24.)).child(
@@ -391,7 +391,7 @@ impl Workspace {
                     .flex()
                     .justify_end()
                     .gap(px(12.))
-                    .child(secondary_button("move-cancel", "取消").on_click(cx.listener(|w, _, window, cx| w.close_move(window, cx))))
+                    .child(secondary_button("move-cancel", crate::settings::text("取消")).on_click(cx.listener(|w, _, window, cx| w.close_move(window, cx))))
                     .child(ok.on_click(cx.listener(|w, _, window, cx| {
                         let Some(d) = w.move_dlg.as_ref() else { return };
                         let Some(target) = d.target.clone() else { return };

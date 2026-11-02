@@ -910,7 +910,7 @@ impl Editor {
             files: true,
             directories: false,
             multiple: false,
-            prompt: Some("插入图片".into()),
+            prompt: Some(crate::settings::text("插入图片").into()),
             extensions: None,
         });
         cx.spawn_in(window, async move |this, cx| {

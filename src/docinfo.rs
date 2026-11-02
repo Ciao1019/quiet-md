@@ -177,7 +177,7 @@ impl Workspace {
                                 .line_height(px(20.))
                                 .text_color(Theme::text())
                                 .child(icon("list", 15., Theme::text_code()))
-                                .child("信息与数据"),
+                                .child(crate::settings::text("信息与数据")),
                         ),
                     )
                     .child(
@@ -186,16 +186,16 @@ impl Workspace {
                             .p(px(24.))
                             .flex()
                             .flex_col()
-                            .child(section("概览"))
+                            .child(section(crate::settings::text("概览")))
                             .child(grid(vec![
-                                tile("创建时间", format_date(info.created), false),
-                                tile("最近修改", format_relative(info.modified), false),
+                                tile(crate::settings::text("创建时间"), format_date(info.created), false),
+                                tile(crate::settings::text("最近修改"), format_relative(info.modified), false),
                             ]))
-                            .child(div().mt(px(24.)).child(section("文档统计")))
+                            .child(div().mt(px(24.)).child(section(crate::settings::text("文档统计"))))
                             .child(grid(vec![
-                                tile("总字数", info.words.to_string(), true),
-                                tile("总字符数", info.chars.to_string(), true),
-                                tile("大小", format_size(info.size), true),
+                                tile(crate::settings::text("总字数"), info.words.to_string(), true),
+                                tile(crate::settings::text("总字符数"), info.chars.to_string(), true),
+                                tile(crate::settings::text("大小"), format_size(info.size), true),
                             ])),
                     ),
             );

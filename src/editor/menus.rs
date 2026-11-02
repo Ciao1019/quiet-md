@@ -227,7 +227,7 @@ pub fn filter_slash(query: &str) -> Vec<usize> {
     let contains = |words: &[&str]| words.iter().any(|w| w.to_lowercase().contains(&q));
     let mut ranked: Vec<(u8, usize)> = vec![];
     for (i, it) in SLASH_ITEMS.iter().enumerate() {
-        let item_words: Vec<&str> = std::iter::once(it.label).chain(it.keywords.iter().copied()).collect();
+        let item_words: Vec<&str> = [it.label, crate::settings::localize(it.label, true)].into_iter().chain(it.keywords.iter().copied()).collect();
         let group_words = GROUPS[it.group].keywords;
         let rank = if prefix(&item_words) {
             0

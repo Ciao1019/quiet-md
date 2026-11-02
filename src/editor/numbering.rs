@@ -27,17 +27,17 @@ impl Editor {
         if edit {
             let valid = parse_number(&self.number_field.read(cx).text, depth).is_some();
             panel = panel.w(px(240.)).flex().flex_col().gap(px(8.))
-                .child(div().text_size(px(14.)).child("新编号为"))
+                .child(div().text_size(px(14.)).child(crate::settings::text("新编号为")))
                 .child(div().h(px(32.)).px(px(8.)).flex().items_center().border_1().border_color(Theme::primary()).rounded(px(4.)).child(self.number_field.clone()))
                 .child(div().id("ordered-number-confirm").h(px(32.)).flex().items_center().justify_center().rounded(px(4.))
                     .bg(if valid { Theme::primary() } else { Theme::fill_hover() })
-                    .text_color(if valid { gpui::white() } else { Theme::text_disabled() }).text_size(px(14.)).child("确定")
+                    .text_color(if valid { gpui::white() } else { Theme::text_disabled() }).text_size(px(14.)).child(crate::settings::text("确定"))
                     .when(valid, |d| d.cursor_pointer().on_mouse_down(MouseButton::Left, cx.listener(|e, _, w, cx| {
                         cx.stop_propagation(); e.submit_ordered_number(w, cx);
                     }))));
         } else {
             panel = panel.w(px(184.));
-            for (i, label) in ["继续之前的编号", "开始新列表", "修改编号值"].into_iter().enumerate() {
+            for (i, label) in [crate::settings::text("继续之前的编号"), crate::settings::text("开始新列表"), crate::settings::text("修改编号值")].into_iter().enumerate() {
                 let enabled = match i { 0 => previous.is_some_and(|n| n != number), 1 => number != 1, _ => true };
                 panel = panel.child(div().id(("ordered-number-action", i)).h(px(32.)).px(px(12.)).flex().items_center().rounded(px(4.)).text_size(px(14.))
                     .text_color(if enabled { Theme::text() } else { Theme::text_disabled() }).child(label)

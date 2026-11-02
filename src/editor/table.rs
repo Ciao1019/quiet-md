@@ -360,7 +360,7 @@ fn move_snapshot(cols: bool, n: usize) -> Div {
         .border_r_1()
         .border_b_1()
         .rounded_br(px(2.))
-        .child(format!("共 {n} {}", if cols { "列" } else { "行" }));
+        .child(crate::localized_format!("共 {n} {}", "{n} {}", if cols { crate::settings::text("列") } else { crate::settings::text("行") }));
     let bar = div().bg(Theme::primary()).rounded_tl(px(2.));
     if cols {
         div()
@@ -651,7 +651,7 @@ impl R<'_> {
                         zone.left(px(dl - 6.)).top(px(-14.)).w(px(15.)).h(px(16.)).child(dot().left(px(6.)).top(px(6.6)))
                     };
                     seg = seg.child(
-                        zone.tip_above("插入列", None)
+                        zone.tip_above(crate::settings::text("插入列"), None)
                             .on_hover(cx.listener(set_insert(true, k)))
                             .on_mouse_down(MouseButton::Left, cx.listener(do_insert(true, k))),
                     );
@@ -690,7 +690,7 @@ impl R<'_> {
                         place(zone.left(px(-15.5)).w(px(19.)), -8., 15., below).child(dot().left(px(8.)).top(px(6.)))
                     };
                     seg = seg.child(
-                        zone.tip_above("插入行", None)
+                        zone.tip_above(crate::settings::text("插入行"), None)
                             .on_hover(cx.listener(set_insert(false, k)))
                             .on_mouse_down(MouseButton::Left, cx.listener(do_insert(false, k))),
                     );

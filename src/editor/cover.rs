@@ -219,7 +219,7 @@ impl Editor {
     }
 
     fn upload_cover(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        let rx = cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: false, prompt: Some("上传图片".into()), extensions: None });
+        let rx = cx.prompt_for_paths(PathPromptOptions { files: true, directories: false, multiple: false, prompt: Some(crate::settings::text("上传图片").into()), extensions: None });
         cx.spawn_in(window, async move |this, cx| {
             if let Ok(Ok(Some(paths))) = rx.await
                 && let Some(p) = paths.into_iter().next()
@@ -302,12 +302,12 @@ impl Editor {
                 .h(px(28.))
                 .flex()
                 .when(doc.icon.is_none(), |d| {
-                    d.child(meta_entry("add-doc-icon", "smile-plus", "添加图标").on_click(cx.listener(|e, _, window, cx| e.add_doc_icon(window, cx))))
+                    d.child(meta_entry("add-doc-icon", "smile-plus", crate::settings::text("添加图标")).on_click(cx.listener(|e, _, window, cx| e.add_doc_icon(window, cx))))
                 })
-                .when(doc.cover.is_none(), |d| d.child(meta_entry("add-doc-cover", "image", "添加封面").relative()
+                .when(doc.cover.is_none(), |d| d.child(meta_entry("add-doc-cover", "image", crate::settings::text("添加封面")).relative()
                     .child({ let bounds = self.cover_ui.edit_bounds.clone(); canvas(move |b, _, _| bounds.set(Some(b)), |_, _, _, _| {}).absolute().inset_0() })
                     .on_click(cx.listener(|e, _, _, cx| e.add_cover(cx)))))
-                .when(self.info.hidden, |d| d.child(meta_entry("show-doc-info", "doc-info", "展示文档信息").on_click(cx.listener(|e, _, _, cx| e.show_info(cx)))))
+                .when(self.info.hidden, |d| d.child(meta_entry("show-doc-info", "doc-info", crate::settings::text("展示文档信息")).on_click(cx.listener(|e, _, _, cx| e.show_info(cx)))))
                 .into_any_element(),
         )
     }
@@ -339,7 +339,7 @@ impl Editor {
                     d.cursor_pointer()
                         .when(open, |d| d.bg(Theme::fill_hover()))
                         .hover(|s| s.bg(Theme::fill_hover()))
-                        .when(!open, |d| d.tip("更换图标", None))
+                        .when(!open, |d| d.tip(crate::settings::text("更换图标"), None))
                         .on_mouse_down(
                             MouseButton::Left,
                             cx.listener(|e, _, window, cx| {
@@ -377,10 +377,10 @@ impl Editor {
             .when(drag.is_none() && !menu_open, |d| d.opacity(0.).group_hover("doc-cover", |s| s.opacity(1.)))
             .map(|d| match drag {
                 Some(_) => d
-                    .child(toolbar_button("cover-cancel", "取消", false).on_click(cx.listener(|e, _, _, cx| e.finish_cover_drag(false, cx))))
-                    .child(toolbar_button("cover-confirm", "确认", true).on_click(cx.listener(|e, _, _, cx| e.finish_cover_drag(true, cx)))),
+                    .child(toolbar_button("cover-cancel", crate::settings::text("取消"), false).on_click(cx.listener(|e, _, _, cx| e.finish_cover_drag(false, cx))))
+                    .child(toolbar_button("cover-confirm", crate::settings::text("确认"), true).on_click(cx.listener(|e, _, _, cx| e.finish_cover_drag(true, cx)))),
                 None => d.child(
-                    toolbar_button("cover-edit", "编辑封面", false)
+                    toolbar_button("cover-edit", crate::settings::text("编辑封面"), false)
                         .child(canvas(move |b, _, _| record.set(Some(b)), |_, _, _, _| {}).absolute().inset_0())
                         .on_click(cx.listener(move |e, _, _, cx| e.open_cover_menu((!menu_open).then_some(Menu::CoverEdit), cx))),
                 ),
@@ -396,7 +396,7 @@ impl Editor {
                     .text_size(px(12.))
                     .line_height(px(18.))
                     .text_color(gpui::white())
-                    .child("拖拽以调整图片的位置"),
+                    .child(crate::settings::text("拖拽以调整图片的位置")),
             )
         });
         Some(
@@ -456,9 +456,9 @@ impl Editor {
             .occlude()
             .py(px(crate::editor_ui::MENU_PAD_Y))
             .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
-            .child(item("cover-pick", "image", "选择图片").on_click(cx.listener(|e, _, _, cx| e.open_cover_menu(Some(Menu::CoverPick { upload: false }), cx))))
-            .when(loaded, |d| d.child(item("cover-move", "move", "调整图片位置").on_click(cx.listener(|e, _, _, cx| e.start_cover_drag(cx)))))
-            .child(item("cover-remove", "trash-2", "移除封面").on_click(cx.listener(|e, _, _, cx| {
+            .child(item("cover-pick", "image", crate::settings::text("选择图片")).on_click(cx.listener(|e, _, _, cx| e.open_cover_menu(Some(Menu::CoverPick { upload: false }), cx))))
+            .when(loaded, |d| d.child(item("cover-move", "move", crate::settings::text("调整图片位置")).on_click(cx.listener(|e, _, _, cx| e.start_cover_drag(cx)))))
+            .child(item("cover-remove", "trash-2", crate::settings::text("移除封面")).on_click(cx.listener(|e, _, _, cx| {
                 e.menu = None;
                 e.set_cover(None, cx);
             })));
@@ -510,7 +510,7 @@ impl Editor {
             .border_color(Theme::line_divider())
             .text_size(px(13.))
             .text_color(Theme::text())
-            .child(div().h_full().flex().child(tab("cover-tab-gallery", "官方图库", !upload, false)).child(tab("cover-tab-upload", "本地上传", upload, true)))
+            .child(div().h_full().flex().child(tab("cover-tab-gallery", crate::settings::text("官方图库"), !upload, false)).child(tab("cover-tab-upload", crate::settings::text("本地上传"), upload, true)))
             .child(
                 div()
                     .h_full()
@@ -521,12 +521,12 @@ impl Editor {
                         d.child(
                             action("cover-random")
                                 .child(div().mr(px(4.)).child(icon("shuffle", 16., Theme::text_caption())))
-                                .child("随机")
+                                .child(crate::settings::text("随机"))
                                 .on_click(cx.listener(|e, _, _, cx| e.random_cover(cx))),
                         )
                         .child(div().mx(px(10.)).w(px(1.)).h(px(16.)).bg(Theme::line_divider()))
                     })
-                    .child(action("cover-panel-remove").child("移除").on_click(cx.listener(|e, _, _, cx| {
+                    .child(action("cover-panel-remove").child(crate::settings::text("移除")).on_click(cx.listener(|e, _, _, cx| {
                         e.menu = None;
                         e.set_cover(None, cx);
                     }))),
@@ -556,7 +556,7 @@ impl Editor {
                         .active(|s| s.bg(theme::c(craft::B700)))
                         .text_color(gpui::white())
                         .cursor_pointer()
-                        .child("上传图片")
+                        .child(crate::settings::text("上传图片"))
                         .on_click(cx.listener(|e, _, window, cx| {
                             e.menu = None;
                             e.upload_cover(window, cx);
@@ -569,7 +569,7 @@ impl Editor {
                         .text_size(px(12.))
                         .line_height(px(20.))
                         .text_color(Theme::text_caption())
-                        .child("推荐使用尺寸为 2,000 × 400 的图片，显示效果最佳"),
+                        .child(crate::settings::text("推荐使用尺寸为 2,000 × 400 的图片，显示效果最佳")),
                 )
                 .into_any_element()
         } else {
@@ -604,7 +604,7 @@ impl Editor {
                     );
                 }
                 list = list
-                    .child(div().mt(px(2.)).mb(px(8.)).pl(px(16.)).h(px(22.)).text_size(px(12.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::text_caption()).child(*title))
+                    .child(div().mt(px(2.)).mb(px(8.)).pl(px(16.)).h(px(22.)).text_size(px(12.)).line_height(px(22.)).font_weight(FontWeight::SEMIBOLD).text_color(Theme::text_caption()).child(crate::settings::text(title)))
                     .child(thumbs);
             }
             div()

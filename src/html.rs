@@ -78,7 +78,7 @@ a { color: #0f5492; text-decoration: underline; text-underline-offset: 2px; }
 "#;
 
 pub fn to_html(doc: &Document, opts: &Options) -> String {
-    let title = crate::model::display_title(&doc.title.text);
+    let title = crate::settings::display_title(&doc.title.text);
     let mut out = String::new();
     let _ = write!(out, "<!DOCTYPE html>\n<html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>{}</title><style>{CSS}</style></head><body>", esc(&title));
     if let Some(c) = &doc.cover
@@ -235,7 +235,7 @@ impl Writer<'_> {
             BlockKind::Countdown(c) => {
                 // The add-on's face as of the export.
                 let left = c.remaining(crate::time::now_ms());
-                let parts = [(left / 86_400, "天"), (left / 3600 % 24, "时"), (left / 60 % 60, "分"), (left % 60, "秒")];
+                let parts = [(left / 86_400, crate::settings::text("天")), (left / 3600 % 24, crate::settings::text("时")), (left / 60 % 60, crate::settings::text("分")), (left % 60, crate::settings::text("秒"))];
                 let _ = write!(out, "<div class=\"countdown\" style=\"--cd:{}\">", esc(&c.color));
                 for (i, (v, unit)) in parts.iter().enumerate() {
                     if i > 0 {
@@ -248,7 +248,7 @@ impl Writer<'_> {
             BlockKind::SubPageList => {
                 out.push_str("<div class=\"subpages\">");
                 for t in self.opts.sub_pages {
-                    let _ = write!(out, "<div>📄 {}</div>", esc(&crate::model::display_title(t)));
+                    let _ = write!(out, "<div>📄 {}</div>", esc(&crate::settings::display_title(t)));
                 }
                 out.push_str("</div>");
             }

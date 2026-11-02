@@ -305,10 +305,10 @@ impl Editor {
                 .when(!enabled, |d| d.cursor(CursorStyle::OperationNotAllowed))
                 .child(text)
         };
-        let prev = button("find-prev", "上一处", false)
+        let prev = button("find-prev", crate::settings::text("上一处"), false)
             .tip_label("Shift + Enter".into(), TipSide::Above)
             .on_click(cx.listener(|e, _, window, cx| e.step_find(false, window, cx)));
-        let next = button("find-next", "下一处", false)
+        let next = button("find-next", crate::settings::text("下一处"), false)
             .tip_label("Enter".into(), TipSide::Above)
             .on_click(cx.listener(|e, _, window, cx| e.step_find(true, window, cx)));
         let body = div()
@@ -321,7 +321,7 @@ impl Editor {
                     .mt(px(16.))
                     .flex()
                     .flex_col()
-                    .when(replace, |d| d.child(label("查找")))
+                    .when(replace, |d| d.child(label(crate::settings::text("查找"))))
                     .child(div().when(replace, |d| d.mt(px(6.))).child(input(&self.find_field, Some(counter)))),
             )
             .when(replace, |d| {
@@ -330,7 +330,7 @@ impl Editor {
                         .mt(px(14.))
                         .flex()
                         .flex_col()
-                        .child(label("替换为"))
+                        .child(label(crate::settings::text("替换为")))
                         .child(div().mt(px(6.)).child(input(&self.replace_field, None))),
                 )
             })
@@ -342,11 +342,11 @@ impl Editor {
                     .gap(px(8.))
                     .when(replace, |d| {
                         d.child(
-                            button("find-replace-all", "全部替换", true)
+                            button("find-replace-all", crate::settings::text("全部替换"), true)
                                 .on_click(cx.listener(|e, _, window, cx| e.replace_all(window, cx))),
                         )
                         .child(
-                            button("find-replace", "替换", false)
+                            button("find-replace", crate::settings::text("替换"), false)
                                 .on_click(cx.listener(|e, _, window, cx| e.replace_one(window, cx))),
                         )
                     })
@@ -374,8 +374,8 @@ impl Editor {
                     .gap(px(24.))
                     .border_b_1()
                     .border_color(Theme::line_divider())
-                    .child(tab("find-tab", "查找", !replace, false))
-                    .child(tab("replace-tab", "替换", replace, true))
+                    .child(tab("find-tab", crate::settings::text("查找"), !replace, false))
+                    .child(tab("replace-tab", crate::settings::text("替换"), replace, true))
                     .child(
                         div()
                             .id("find-close")

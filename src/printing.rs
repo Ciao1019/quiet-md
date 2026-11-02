@@ -23,7 +23,7 @@ pub async fn run(html: String, title: String, job: Job, ns_view: usize, cx: &mut
     #[cfg(not(target_os = "macos"))]
     {
         let _ = (html, title, job, ns_view, cx);
-        Err("当前系统不支持".into())
+        Err(crate::settings::text("当前系统不支持").into())
     }
 }
 
@@ -129,7 +129,7 @@ mod native {
             }
             if started.elapsed() > LOAD_TIMEOUT {
                 cleanup();
-                return Err("打印超时，请稍后重试".into());
+                return Err(crate::settings::text("打印超时，请稍后重试").into());
             }
         }
         // Let images decode and the page settle before it is paginated.

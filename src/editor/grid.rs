@@ -318,7 +318,7 @@ impl R<'_> {
                         e.add_column(gid, i + 1, window, cx);
                     }),
                 )
-                .tip_above("新增分栏", None)
+                .tip_above(crate::settings::text("新增分栏"), None)
                 .when(!circle_hover, |d| d.child(div().size(px(3.)).rounded_full().bg(theme::c(craft::N400))))
                 .when(circle_hover, |d| {
                     // The pin grows from its centre (scale 0 → 1, 0.15s).
