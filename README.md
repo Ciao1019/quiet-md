@@ -1,12 +1,8 @@
 <p align="center">
-  <img src="assets/readme/hero.svg" width="100%" alt="quiet.md：macOS 上的本地笔记应用。笔记就是硬盘上的一个文件，文档库是一个普通文件夹。">
+  <img src="docs/images/home.jpg" width="100%" alt="quiet.md 的主页：左侧是文档树，右侧按网格排列所有笔记。">
 </p>
 
 quiet.md 是一个本地富文本笔记应用，用 Rust 和 GPUI 写成，没有 WebView。每篇笔记是一个 XML 文件，文档库就是一个普通文件夹。没有账号，没有云端，默认不联网。
-
-<p align="center">
-  <img src="docs/images/editor.jpg" width="100%" alt="quiet.md 的编辑界面：左侧是文档树，右侧是一篇带表格的笔记。">
-</p>
 
 ## 安装
 
