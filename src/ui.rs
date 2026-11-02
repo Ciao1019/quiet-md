@@ -476,7 +476,7 @@ pub fn format_time(secs: u64) -> String {
     } else if y == ny {
         format!("{mo}月{d}日")
     } else {
-        format!("{y}年{mo}月{d}日")
+        if crate::settings::english() { format!("{y}-{mo:02}-{d:02}") } else { format!("{y}年{mo}月{d}日") }
     }
 }
 
@@ -495,7 +495,7 @@ pub fn format_ago(secs: u64) -> String {
 /// Full date ("2025年12月2日"), as in 文档信息.
 pub fn format_date(secs: u64) -> String {
     let (y, mo, d, _, _) = civil(secs);
-    format!("{y}年{mo}月{d}日")
+    if crate::settings::english() { format!("{y}-{mo:02}-{d:02}") } else { format!("{y}年{mo}月{d}日") }
 }
 
 /// Relative time for 文档信息 ("几秒前", "3 分钟前", "2 小时前", then the date).
@@ -515,23 +515,23 @@ pub fn format_visit(secs: u64) -> String {
     let now = crate::time::now();
     let ago = now.saturating_sub(secs);
     if ago < 60 {
-        return "刚刚".into();
+        return crate::settings::tr("刚刚", "just now").into();
     }
     if ago < 3600 {
-        return format!("{} 分钟前", ago / 60);
+        return if crate::settings::english() { format!("{} min ago", ago / 60) } else { format!("{} 分钟前", ago / 60) };
     }
     let (y, mo, d, h, mi) = civil(secs);
     let day = |back: u64| {
         let (y, mo, d, _, _) = civil(now.saturating_sub(back * 86_400));
         (y, mo, d)
     };
-    let names = ["今天", "昨天", "前天"];
+    let names = if crate::settings::english() { ["Today", "Yesterday", "Two days ago"] } else { ["今天", "昨天", "前天"] };
     if let Some(name) = (0..3).find(|&b| day(b) == (y, mo, d)).map(|b| names[b as usize]) {
         format!("{name} {h:02}:{mi:02}")
     } else if y == civil(now).0 {
-        format!("{mo}月{d}日 {h:02}:{mi:02}")
+        if crate::settings::english() { format!("{mo:02}-{d:02} {h:02}:{mi:02}") } else { format!("{mo}月{d}日 {h:02}:{mi:02}") }
     } else {
-        format!("{y}年{mo}月{d}日")
+        if crate::settings::english() { format!("{y}-{mo:02}-{d:02}") } else { format!("{y}年{mo}月{d}日") }
     }
 }
 

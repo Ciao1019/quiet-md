@@ -211,7 +211,7 @@ fn group_title(t: &str) -> Div {
         .items_center()
         .text_size(px(14.))
         .text_color(Theme::text_caption())
-        .child(t.to_string())
+        .child(crate::settings::label(t))
 }
 
 /// A layout lookup an overlay depends on; re-checked after paint so an
@@ -551,7 +551,7 @@ impl Editor {
                     .cursor_pointer()
                     .when(n == selected, |d| d.bg(Theme::fill_hover()))
                     .child(div().size(px(24.)).flex().items_center().justify_center().child(icon(it.icon, 18., crate::feishu_theme::c(it.color))))
-                    .child(div().ml(px(16.)).flex_1().text_size(px(14.)).line_height(px(22.)).child(it.label))
+                    .child(div().ml(px(16.)).flex_1().text_size(px(14.)).line_height(px(22.)).child(crate::settings::label(it.label)))
                     .when(sub, |d| d.child(icon("chevron-right", 16., Theme::text_caption())))
                     .on_mouse_move(hover_sel(n))
                     .when(!sub, |d| d.on_mouse_down(MouseButton::Left, run(kind)))

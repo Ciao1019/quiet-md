@@ -14,7 +14,7 @@ use std::sync::{Arc, LazyLock, Mutex, RwLock};
 // ---- preferences
 
 static FEISHU: AtomicBool = AtomicBool::new(false);
-static ENGLISH: AtomicBool = AtomicBool::new(false);
+static ENGLISH: AtomicBool = AtomicBool::new(true);
 static PREFS: RwLock<Option<Preferences>> = RwLock::new(None);
 
 /// The active document theme draws blocks the 飞书 way (else Craft's).
@@ -38,7 +38,7 @@ pub struct Preferences {
 }
 
 impl Default for Preferences {
-    fn default() -> Self { Preferences { theme: String::new(), feishu: false, english: false, remote_images: true, quick_hotkey: true } }
+    fn default() -> Self { Preferences { theme: String::new(), feishu: false, english: true, remote_images: true, quick_hotkey: true } }
 }
 
 impl Preferences {
@@ -425,7 +425,7 @@ impl Workspace {
         let current = prefs().theme_id();
         let list = themes::themes();
         let shown = list.iter().find(|t| t.id == previewed).or_else(|| list.first())?;
-        let about = match (shown.description.clone().filter(|d| !d.is_empty()), shown.author.clone().filter(|a| !a.is_empty() && shown.bundled.is_none())) {
+        let about = match (shown.description.clone().filter(|d| !d.is_empty()).map(label), shown.author.clone().filter(|a| !a.is_empty() && shown.bundled.is_none())) {
             (Some(d), Some(a)) => Some(format!("{d} — {a}")),
             (d, a) => d.or(a),
         };
@@ -840,6 +840,22 @@ pub fn label(text: impl AsRef<str>) -> String {
         "向下插入" => "Insert below".to_string(),
         "保存" => "Save".to_string(),
         "关闭" => "Close".to_string(),
+        "缩进和对齐" => "Indent and align".to_string(),
+        "缩进" => "Indent".to_string(),
+        "颜色" => "Color".to_string(),
+        "在下方添加" => "Add below".to_string(),
+        "分隔线" => "Divider".to_string(),
+        "团队协作" => "Collaboration".to_string(),
+        "小应用" => "Widgets".to_string(),
+        "按钮" => "Button".to_string(),
+        "子页面列表" => "Child pages".to_string(),
+        "日期提醒" => "Date reminder".to_string(),
+        "倒计时" => "Countdown".to_string(),
+        "公式" => "Equation".to_string(),
+        "Craft for macOS 的文档样式：SF Pro 15 / 22，虚点分隔线，蓝色强调。" => "Craft-style typography: SF Pro 15 / 22, dotted dividers and blue accents.".to_string(),
+        "飞书文档的正文样式：16 / 26，标题 Medium，蓝色链接。" => "Feishu-style typography: 16 / 26 body text, medium headings and blue links.".to_string(),
+        "Notion 的默认浅色页面：暖灰正文、紧凑的块、灰底红字的行内代码、深色引用竖线。" => "Warm gray text, compact blocks, red inline code and dark quote borders.".to_string(),
+        "Obsidian 默认主题的浅色模式：紫色强调、浅灰列表符号、更大的标题与段落间距。" => "Purple accents, subtle list markers and generous heading and paragraph spacing.".to_string(),
         _ => text.to_string(),
     }
 }
