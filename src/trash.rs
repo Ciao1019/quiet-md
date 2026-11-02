@@ -32,9 +32,10 @@ pub(crate) fn page_header(ws: &Workspace, title: &'static str, left: f32, cx: &m
         .items_center()
         // Clear of the traffic lights, like the document header.
         .pl(if ws.sidebar_open { px(left) } else { px(theme::TRAFFIC_LIGHTS_W) })
-        .pr(px((crate::app::HEADER_H - crate::app::HEADER_ACTIONS_H) / 2.))
+        .pr(px(crate::ui::header_right_inset()))
         .title_bar()
-        .when(!ws.sidebar_open, |d| {
+        .when(!ws.sidebar_open && cfg!(target_os = "windows"), |d| d.child(div().mr(px(12.)).child(ws.header_navigation(cx))))
+        .when(!ws.sidebar_open && !cfg!(target_os = "windows"), |d| {
             d.child(
                 div()
                     .id("open-sidebar")

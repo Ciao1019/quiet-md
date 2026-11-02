@@ -112,7 +112,8 @@ impl Workspace {
             .pl(px(theme::TRAFFIC_LIGHTS_W))
             .pr(px(12.))
             .title_bar()
-            .child(
+            .when(cfg!(target_os = "windows"), |d| d.child(self.header_navigation(cx)))
+            .when(!cfg!(target_os = "windows"), |d| d.child(
                 div()
                     .id("collapse-sidebar")
                     .no_drag()
@@ -131,7 +132,7 @@ impl Workspace {
                         w.sidebar_open = false;
                         cx.notify();
                     })),
-            );
+            ));
 
         // The nav is just 主页: 36px items, a blue tint when selected. Its
         // icon column (x 17) is shared with 搜索 and the doc rows.

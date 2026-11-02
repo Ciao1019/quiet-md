@@ -557,7 +557,7 @@ impl Workspace {
                 .on_click(cx.listener(move |w, _, _, cx| match page { Some(p) => w.open_settings(p, cx), None => w.show_view(View::Trash, cx) }))
         };
         div().w(px(self.sidebar_w(window))).h_full().flex_none().flex().flex_col().text_color(Theme::text()).font_family(theme::UI_FONT)
-            .child(div().h(px(crate::app::HEADER_H)).flex_none().flex().items_center().pl(px(theme::TRAFFIC_LIGHTS_W)).title_bar().child(self.settings_navigation(cx)))
+            .child(div().h(px(crate::app::HEADER_H)).flex_none().flex().items_center().pl(px(theme::TRAFFIC_LIGHTS_W)).title_bar().child(self.header_navigation(cx)))
             // The document sidebar's rhythm: 主页 sits 8 under the bar, a section
             // header like 我的文档's, rows on a 31 pitch. 设置's line sits on
             // 主页's, not a section header's: the 34pt box keeps the rows below.
@@ -576,7 +576,7 @@ impl Workspace {
     /// 收起 / 展开侧栏 and 主页, in the very box the document sidebar's
     /// 收起侧栏 uses (28pt, 4pt past the traffic lights, glyph 17), so the
     /// buttons don't move when switching between the document list and 设置.
-    fn settings_navigation(&self, cx: &mut Context<Self>) -> AnyElement {
+    pub(crate) fn header_navigation(&self, cx: &mut Context<Self>) -> AnyElement {
         let open = self.sidebar_open;
         let bar_button = |id: &'static str, glyph: &'static str| {
             div().id(id).no_drag().flex_none().size(px(28.)).flex().items_center().justify_center().rounded(px(8.)).cursor_pointer()
@@ -610,7 +610,7 @@ impl Workspace {
         div().flex_1().min_w_0().h_full().flex().flex_col().bg(Theme::bg_body()).text_color(Theme::text()).font_family(theme::UI_FONT)
             // The bar only drags the window; the page title heads the centred column.
             .child(div().h(px(crate::app::HEADER_H)).flex_none().flex().items_center().title_bar()
-                .when(!self.sidebar_open, |d| d.pl(px(theme::TRAFFIC_LIGHTS_W)).child(self.settings_navigation(cx))))
+                .when(!self.sidebar_open, |d| d.pl(px(theme::TRAFFIC_LIGHTS_W)).child(self.header_navigation(cx))))
             .child(div().id("settings-content").flex_1().min_h_0().overflow_y_scroll().track_scroll(&self.settings_scroll)
                 .child(div().w_full().flex().flex_col().items_center().px(px(32.)).pb(px(64.))
                     .child(div().w_full().max_w(px(if page == Page::Shortcuts { 760. } else { COLUMN_W })).flex().flex_col().gap(px(28.))

@@ -353,7 +353,7 @@ pub const SIDEBAR_MAX: f32 = 800.0;
 /// The editor keeps at least this much room when the sidebar is dragged wider.
 pub const SIDEBAR_MIN_CONTENT: f32 = 540.0;
 /// Left inset of the header controls that sit beside the macOS traffic lights.
-pub const TRAFFIC_LIGHTS_W: f32 = 92.0;
+pub const TRAFFIC_LIGHTS_W: f32 = if cfg!(target_os = "macos") { 92.0 } else { 16.0 };
 
 /// (font size, line height, margin top, margin bottom) per block.
 pub struct BlockMetrics {
