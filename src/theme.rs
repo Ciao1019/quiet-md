@@ -145,7 +145,10 @@ pub fn shadow_button() -> Vec<BoxShadow> {
 
 pub const UI_FONT: &str = ".SystemUIFont";
 /// SF Mono.
+#[cfg(target_os = "macos")]
 pub const MONO_FONT: &str = ".AppleSystemUIFontMonospaced";
+#[cfg(not(target_os = "macos"))]
+pub const MONO_FONT: &str = "Consolas";
 
 pub struct Theme;
 

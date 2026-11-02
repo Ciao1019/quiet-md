@@ -4,9 +4,11 @@
 
 use gpui::*;
 use std::path::PathBuf;
+#[cfg(target_os = "macos")]
 use std::time::Duration;
 
 pub enum Job {
+    #[cfg_attr(not(target_os = "macos"), allow(dead_code))] // The native PDF backend is macOS-only.
     Pdf(PathBuf),
     Print,
 }

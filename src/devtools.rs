@@ -57,6 +57,7 @@ pub fn start(window: &mut Window, cx: &mut App) {
         return;
     };
     let handle = window.window_handle();
+    #[cfg(target_os = "macos")]
     let Some(ns_view) = ns_view_of(window) else { return };
     #[cfg(target_os = "macos")]
     native::no_app_nap();
@@ -213,7 +214,11 @@ pub fn start(window: &mut Window, cx: &mut App) {
                 cx.background_executor().timer(Duration::from_millis(120)).await;
                 continue;
             }
-            if !mouse_step(ns_view, cmd, &nums(rest)) {
+            #[cfg(target_os = "macos")]
+            let handled = mouse_step(ns_view, cmd, &nums(rest));
+            #[cfg(not(target_os = "macos"))]
+            let handled = false;
+            if !handled {
                 let _ = handle.update(cx, |_, window, cx| run(cmd, rest, window, cx));
             }
             if quit {

@@ -1,4 +1,5 @@
 #![recursion_limit = "512"]
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
 mod app;
 mod shared_store;
@@ -15,6 +16,10 @@ mod home;
 mod html;
 mod input;
 mod modes;
+#[cfg(target_os = "macos")]
+mod native_header;
+#[cfg(not(target_os = "macos"))]
+#[path = "native_header_fallback.rs"]
 mod native_header;
 mod printing;
 mod search;
@@ -88,7 +93,7 @@ fn main() {
                 window_background: WindowBackgroundAppearance::Blurred,
                 titlebar: Some(TitlebarOptions {
                     title: Some("quiet.md".into()),
-                    appears_transparent: true,
+                    appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
                     traffic_light_position: Some(point(px(20.), px(app::HEADER_H / 2. - 7.))),
                 }),
                 window_min_size: Some(size(px(480.), px(480.))),
@@ -102,7 +107,7 @@ fn main() {
         )
         .expect("open window");
         cx.on_window_closed(move |cx| {
-            if !quick_enabled && cx.windows().is_empty() {
+            if (!quick_enabled || !cfg!(target_os = "macos")) && cx.windows().is_empty() {
                 cx.quit();
             }
         })

@@ -8,10 +8,16 @@ impl Global for QuickWindows {}
 
 pub fn open(cx: &mut App) { open_document(None, cx); }
 
+#[cfg(target_os = "macos")]
 #[derive(Default)]
 struct LastDocument(Option<String>);
+#[cfg(target_os = "macos")]
 impl Global for LastDocument {}
+#[cfg(target_os = "macos")]
 pub fn used(id: &str, cx: &mut App) { cx.set_global(LastDocument(Some(id.into()))); }
+#[cfg(not(target_os = "macos"))]
+pub fn used(_: &str, _: &mut App) {}
+#[cfg(target_os = "macos")]
 pub fn open_last(cx: &mut App) {
     let Some(mut store) = cx.try_global::<crate::shared_store::SharedStore>().cloned() else { return };
     let entries = store.list();
@@ -60,7 +66,7 @@ pub fn open_document(document: Option<String>, cx: &mut App) {
         window_background: WindowBackgroundAppearance::Blurred,
         titlebar: Some(TitlebarOptions {
             title: Some("quiet.md · 快速笔记".into()),
-            appears_transparent: true,
+            appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
             traffic_light_position: Some(point(px(20.), px(crate::app::HEADER_H / 2. - 7.))),
         }),
         window_min_size: Some(size(px(480.), px(480.))),
@@ -171,6 +177,7 @@ pub fn main_window_size(cx: &App) -> gpui::Size<Pixels> {
     size(px(s[0].max(480.)), px(s[1].max(480.)))
 }
 
+#[cfg(target_os = "macos")]
 pub fn set_hotkey(combo: &str, cx: &mut App) -> anyhow::Result<()> {
     let key = Keystroke::parse(combo)?;
     let keys = [("a",0),("s",1),("d",2),("f",3),("h",4),("g",5),("z",6),("x",7),("c",8),("v",9),("b",11),("q",12),("w",13),("e",14),("r",15),("y",16),("t",17),("1",18),("2",19),("3",20),("4",21),("6",22),("5",23),("9",25),("7",26),("8",28),("0",29),("o",31),("u",32),("i",34),("p",35),("l",37),("j",38),("k",40),("n",45),("m",46),("space",49)];
@@ -184,3 +191,10 @@ pub fn set_hotkey(combo: &str, cx: &mut App) -> anyhow::Result<()> {
 }
 
 pub fn suspend_hotkey() { #[cfg(target_os = "macos")] hotkey::suspend(); *HOTKEY_ERROR.lock().unwrap() = None; }
+
+#[cfg(not(target_os = "macos"))]
+pub fn set_hotkey(_: &str, _: &mut App) -> anyhow::Result<()> {
+    let error = crate::settings::tr("当前系统暂不支持全局快捷键", "Global shortcuts are not supported on this platform yet");
+    *HOTKEY_ERROR.lock().unwrap() = Some(error.into());
+    Err(anyhow::anyhow!(error))
+}
