@@ -254,10 +254,12 @@ fn paint_line(
     window: &mut Window,
     cx: &mut App,
 ) -> Result<()> {
+    // quiet.md: Include the aligned glyph positions in scene ordering, including text
+    // wider than its alignment box. Otherwise later popovers can paint below it.
     let line_bounds = Bounds::new(
-        origin,
+        point(aligned_origin_x(origin, align_width.unwrap_or(layout.width), px(0.), &align, layout, None).min(origin.x), origin.y),
         size(
-            layout.width,
+            layout.width.max(align_width.unwrap_or(layout.width)),
             match row_tops.last() {
                 Some(t) => *t + line_height,
                 None => line_height * (wrap_boundaries.len() as f32 + 1.),
@@ -497,10 +499,11 @@ fn paint_line_background(
     window: &mut Window,
     cx: &mut App,
 ) -> Result<()> {
+    // quiet.md: Background decorations use the same aligned layer as the glyphs.
     let line_bounds = Bounds::new(
-        origin,
+        point(aligned_origin_x(origin, align_width.unwrap_or(layout.width), px(0.), &align, layout, None).min(origin.x), origin.y),
         size(
-            layout.width,
+            layout.width.max(align_width.unwrap_or(layout.width)),
             match row_tops.last() {
                 Some(t) => *t + line_height,
                 None => line_height * (wrap_boundaries.len() as f32 + 1.),
