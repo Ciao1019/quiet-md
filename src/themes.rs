@@ -266,7 +266,10 @@ pub struct Theme {
     pub id: String,
     pub name: String,
     pub name_en: Option<String>,
+    // Keep stylesheet metadata even though the picker only shows theme names.
+    #[allow(dead_code)]
     pub author: Option<String>,
+    #[allow(dead_code)]
     pub description: Option<String>,
     /// The file it was read from (`None`: the bundled copy).
     pub path: Option<PathBuf>,
@@ -664,6 +667,7 @@ pub fn load(selected: &str, all: bool, font_source: impl FnOnce() -> Vec<String>
             Err(e) => errors.push(format!("{file}: {e}")),
         }
     }
+    list.sort_by_key(|t| t.id != "feishu");
     if list.is_empty() {
         let (id, css) = BUNDLED[0];
         if let Ok(p) = parse(css, &[]) { list.push(theme_of(id.into(), css, None, Some(css), p)); }

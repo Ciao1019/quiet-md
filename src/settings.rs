@@ -38,7 +38,7 @@ pub struct Preferences {
 }
 
 impl Default for Preferences {
-    fn default() -> Self { Preferences { theme: String::new(), feishu: false, english: true, remote_images: true, quick_hotkey: true } }
+    fn default() -> Self { Preferences { theme: String::new(), feishu: true, english: true, remote_images: true, quick_hotkey: true } }
 }
 
 impl Preferences {
@@ -230,62 +230,11 @@ pub(crate) fn button(id: impl Into<ElementId>, label: &'static str) -> Stateful<
         .text_size(px(13.)).line_height(px(18.)).text_color(Theme::text()).child(label)
 }
 
-// ---- theme previews: a small page drawn with the theme's own values
+// ---- theme preview
 
-const CARD_W: f32 = 312.;
-const CARD_H: f32 = 206.;
-/// Preview scale against the real document: the dropdown's small one, the page's larger one.
-/// Its frame clips to a rectangle (GPUI masks have no radius), so the page is
-/// rounded itself: 7 inside the frame's 8 and 1pt border.
-const S: f32 = 0.62;
+/// Preview scale against the real document. Its frame clips to a rectangle
+/// (GPUI masks have no radius), so the page is rounded inside the frame.
 const PAGE_S: f32 = 0.78;
-
-fn preview(t: &themes::Theme, s: f32) -> Div {
-    let st = t.style;
-    let sc = |v: f32| px((v * s).max(0.5));
-    let text = st.color("page.color").unwrap_or_else(|| st.token("text"));
-    let (body, line) = (st.num("page.size"), st.num("page.line"));
-    let (font, mono): (SharedString, SharedString) = (st.font("page.font").into(), st.font("pre.font").into());
-    let link = st.color("a.color").unwrap_or(text);
-    let small = |s: &'static str| div().text_size(sc(body)).line_height(sc(line)).child(s);
-    let para = div().flex().flex_wrap().text_size(sc(body)).line_height(sc(line))
-        .child(tr("好的设计会让人", "Good design is "))
-        .child(div().font_weight(FontWeight(st.num("strong.weight"))).text_color(st.color("strong.color").unwrap_or(text)).child(tr("忘记它的存在", "invisible")))
-        .child(tr("，", ", "))
-        .child(div().text_color(link).when(st.flag("a.underline"), |d| d.underline()).child(tr("读原文", "read on")))
-        .child(div().ml(px(4.)).px(sc(st.num("code.pad")).max(px(2.))).rounded(sc(st.num("code.radius"))).bg(st.token("code_chip"))
-            .border_1().border_color(st.token("code_chip_border")).font_family(mono.clone()).text_color(st.color("code.color").unwrap_or(text)).child("css"));
-    let bullet_c = st.color("bullet.color").unwrap_or(text);
-    let bullet = |s: &'static str| div().flex().items_center().gap(px(6.)).child(div().size(sc(5.).max(px(3.))).rounded_full().bg(bullet_c)).child(small(s));
-    let task_size = st.num("task.size");
-    let task = div().flex().items_center().gap(px(5.))
-        .child(div().size(sc(task_size)).rounded(sc(st.num("task.radius"))).bg(st.color("task.checked").unwrap_or_else(|| st.token("primary"))).flex().items_center().justify_center()
-            .child(ui::icon("todo-check", (task_size * s * 0.75).round(), st.color("task.check").unwrap_or_else(gpui::white))))
-        .child(small(tr("整理读书卡片", "Sort the cards")).text_color(st.token("todo_done")).when(st.flag("done.strike"), |d| d.line_through()));
-    let quote = div().flex().gap(sc((st.num("quote.indent") - st.num("quote.bar")).max(4.)))
-        .child(div().w(sc(st.num("quote.bar")).max(px(1.))).rounded(px(1.)).bg(st.token("quote_bar")))
-        .child(small(tr("少即是多。", "Less is more.")).text_color(st.color("quote.color").unwrap_or(text)).when(st.flag("quote.italic"), |d| d.italic()));
-    let (hr_c, hr_w) = (st.token("separator_dots"), (st.num("hr.width") * s).max(0.6));
-    let hr = match st.line("hr.style") {
-        themes::LineStyle::Solid => div().w_full().h(px(hr_w)).bg(hr_c),
-        themes::LineStyle::Dashed => div().w_full().flex().gap(px(4.)).overflow_hidden().children((0..40).map(move |_| div().flex_none().w(px(4.)).h(px(hr_w)).bg(hr_c))),
-        themes::LineStyle::Dotted => div().w_full().flex().gap(px(2.5)).overflow_hidden().children((0..90).map(move |_| div().flex_none().size(px(hr_w)).rounded_full().bg(hr_c))),
-    };
-    let code = div().w_full().px(px(8.)).py(px(5.)).rounded(sc(st.num("pre.radius"))).bg(st.token("code_bg")).border_1().border_color(st.token("code_border"))
-        .font_family(mono).text_size(sc(st.num("pre.size"))).line_height(sc(st.num("pre.line"))).text_color(st.token("code_text"))
-        .child("let theme = \"css\";");
-    // Block spacing keeps its proportions up to a point, so every theme fits the card.
-    div().size_full().px(px(18.)).pt(px(14.)).flex().flex_col().gap(sc(st.num("p.gap")).clamp(px(3.), px(7.))).bg(st.color("page.bg").unwrap_or_else(|| st.token("bg_body")))
-        .font_family(font).text_color(text).overflow_hidden()
-        .child(div().text_size(sc(st.num("title.size"))).line_height(sc(st.num("title.size") * 1.25)).font_weight(FontWeight(st.num("title.weight"))).text_color(st.color("title.color").unwrap_or(text)).child(tr("读书笔记", "Reading notes")))
-        .child(div().text_size(sc(st.num("h2.size"))).line_height(sc(st.num("h2.line"))).font_weight(FontWeight(st.num("h2.weight"))).text_color(st.color("h2.color").unwrap_or(text)).child(tr("摘录", "Highlights")))
-        .child(para)
-        .child(div().flex().gap(px(18.)).child(bullet(tr("先观察", "Look first"))).child(bullet(tr("再动手", "Then build"))))
-        .child(task)
-        .child(quote)
-        .child(div().py(px(2.)).child(hr))
-        .child(code)
-}
 
 /// 外观's sample page: a short document with most of what a theme styles
 /// (headings, inline styles, lists, a task, quote, callout, table, divider,
@@ -415,31 +364,18 @@ fn apply_theme(w: &mut Workspace, id: String, cx: &mut Context<Workspace>) {
 }
 
 impl Workspace {
-    /// 外观's theme dropdown: the themes in a list under the button, the one
-    /// being looked at drawn beside it. Hovering a theme previews it (it stays
-    /// previewed until another is hovered); clicking applies it.
+    /// A compact theme list; applying a choice updates the page preview below.
     pub(crate) fn render_theme_menu(&self, cx: &mut Context<Self>) -> Option<AnyElement> {
-        let previewed = self.theme_menu.clone()?;
+        let focused = self.theme_menu.as_ref()?;
         if self.view != View::Settings || self.settings_page != Page::Appearance { return None }
         let b = self.theme_anchor.get()?;
         let current = prefs().theme_id();
         let list = themes::themes();
-        let shown = list.iter().find(|t| t.id == previewed).or_else(|| list.first())?;
-        let about = match (shown.description.clone().filter(|d| !d.is_empty()).map(label), shown.author.clone().filter(|a| !a.is_empty() && shown.bundled.is_none())) {
-            (Some(d), Some(a)) => Some(format!("{d} — {a}")),
-            (d, a) => d.or(a),
-        };
-        let pane = div().flex_none().p(px(12.)).flex().flex_col().gap(px(10.))
-            .child(div().w(px(CARD_W)).h(px(CARD_H)).rounded(px(8.)).overflow_hidden().border_1().border_color(Theme::line_border()).child(preview(shown, S).rounded(px(7.))))
-            .child(div().w(px(CARD_W)).px(px(2.)).flex().flex_col().gap(px(2.))
-                .child(div().text_size(px(13.)).line_height(px(18.)).font_weight(FontWeight::SEMIBOLD).child(shown.name().to_string()))
-                .children(about.map(|a| div().text_size(px(12.)).line_height(px(17.)).text_color(Theme::text_caption()).child(a))));
         let rows: Vec<AnyElement> = list.iter().map(|t| {
             let g = SharedString::from(format!("theme-opt-{}", t.id));
             let (id, hover_id) = (t.id.clone(), t.id.clone());
             ui::menu_row(g.clone(), g.clone())
-                // The one in the preview keeps a quiet fill once the pointer moves on.
-                .when(t.id == shown.id, |d| d.bg(Theme::fill_hover()))
+                .when(&t.id == focused, |d| d.bg(Theme::fill_hover()))
                 .child(div().flex_1().min_w_0().overflow_hidden().child(ui::menu_label(t.name().to_string(), g.clone(), gpui::white())))
                 .children(badge(t).map(|b| div().flex_none().text_size(px(11.)).text_color(Theme::text_caption()).child(ui::menu_label(b, g.clone(), gpui::white()))))
                 .child(div().flex_none().w(px(14.)).when(t.id == current, |d| d.child(ui::menu_glyph("check", 14., g.clone()))))
@@ -456,8 +392,7 @@ impl Workspace {
                 w.theme_menu = None;
                 cx.notify();
             }))
-            .child(pane)
-            .child(div().id("theme-menu-list").w(px(200.)).max_h(px(CARD_H + 96.)).overflow_y_scroll().py(px(ui::MENU_PAD_Y)).border_l_1().border_color(Theme::line_divider()).flex().flex_col().children(rows));
+            .child(div().id("theme-menu-list").w(px(200.)).max_h(px(302.)).overflow_y_scroll().py(px(ui::MENU_PAD_Y)).flex().flex_col().children(rows));
         Some(deferred(anchored().anchor(Corner::TopRight).position(point(b.right(), b.bottom() + px(4.))).snap_to_window_with_margin(px(8.)).child(menu)).with_priority(2).into_any_element())
     }
 
@@ -1268,5 +1203,28 @@ mod localization_tests {
     #[test]
     fn user_titles_are_never_translation_keys() {
         for title in ["主页", "收藏", "未命名文档", "My notes", "我的中文笔记"] { assert_eq!(display_title(title), title); }
+    }
+}
+
+#[cfg(test)]
+mod preference_tests {
+    use super::Preferences;
+
+    #[test]
+    fn new_preferences_use_feishu_without_overriding_saved_themes() {
+        assert_eq!(Preferences::default().theme_id(), "feishu");
+        for (json, expected) in [
+            (r#"{}"#, "feishu"),
+            (r#"{"feishu":false}"#, "craft"),
+            (r#"{"feishu":true}"#, "feishu"),
+            (r#"{"theme":"notion","feishu":false}"#, "notion"),
+            (r#"{"theme":"craft","feishu":true}"#, "craft"),
+            (r#"{"theme":"my-theme"}"#, "my-theme"),
+        ] {
+            let saved: Preferences = serde_json::from_str(json).unwrap();
+            assert_eq!(saved.theme_id(), expected);
+            let round_trip: Preferences = serde_json::from_str(&serde_json::to_string(&saved).unwrap()).unwrap();
+            assert_eq!(round_trip.theme_id(), expected);
+        }
     }
 }
