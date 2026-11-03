@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey" alt="支持 macOS 和 Windows">
   <img src="https://img.shields.io/badge/built%20with-Rust%20%2B%20GPUI-dea584?logo=rust" alt="使用 Rust 和 GPUI 构建">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/s1dashu/quiet-md?color=green" alt="MIT 许可"></a>
+  <img src="https://img.shields.io/badge/status-beta-orange" alt="Beta">
 </p>
 
 <p align="center">
@@ -20,6 +21,7 @@
 </p>
 
 <p align="center">
+  <a href="https://quiet.md"><b>官网</b></a> ·
   <a href="#下载"><b>下载</b></a> ·
   <a href="#性能">性能</a> ·
   <a href="#功能">功能</a> ·
@@ -29,6 +31,9 @@
 <p align="center">
   <img src="docs/images/home.png" width="100%" alt="quiet.md 的主页：左侧是文档树，右侧按网格排列所有笔记。">
 </p>
+
+> [!NOTE]
+> quiet.md 目前是 **Beta 版本**，还在快速迭代。遇到 bug 或有想法，欢迎[提 issue](https://github.com/s1dashu/quiet-md/issues)，更欢迎直接提 PR，一起把它打磨好。
 
 ## 为什么是 quiet.md
 
@@ -51,10 +56,10 @@
 | **macOS**（Apple Silicon） | macOS 13 及以上 |
 | **Windows**（x64） | Windows 10 2004 及以上 |
 
-- **macOS**：解压后把 `quiet.md.app` 拖进「应用程序」。安装包已签名并通过 Apple 公证；最低系统声明为 macOS 13，尚未在 macOS 13 实机验证。
-- **Windows**：运行安装程序，默认只装到当前用户目录，卸载不会删除笔记。安装包暂未签名。Windows 版暂不支持全局快捷键、PDF 导出和打印。
+- **macOS**：解压后把 `quiet.md.app` 拖进「应用程序」。安装包已签名并通过 Apple 公证。
+- **Windows**：运行安装程序，默认只装到当前用户目录，卸载不会删除笔记。如果首次运行出现 SmartScreen 提示，点「更多信息 → 仍要运行」即可。
 
-所有版本和 SHA-256 校验值见 [GitHub Releases](https://github.com/s1dashu/quiet-md/releases)。Intel Mac 暂无安装包，可以[从源码构建](CONTRIBUTING.md#从源码构建)。
+也可以在官网 [quiet.md](https://quiet.md) 下载。所有版本和 SHA-256 校验值见 [GitHub Releases](https://github.com/s1dashu/quiet-md/releases)。Intel Mac 暂无安装包，可以[从源码构建](CONTRIBUTING.md#从源码构建)。
 
 首次启动会在空文档库里放一套「开始指南」，十分钟带你过一遍主要功能；已有的笔记不会被覆盖。
 
@@ -76,7 +81,7 @@
 | Windows 安装包 | 约 14 MB |
 | 运行时 | 无 WebView、无 Electron、无后台服务 |
 
-<sub>Apple M5 Pro / 48 GiB，macOS 26.5，Release 构建。统计应用内同步帧处理耗时，不含屏幕呈现延迟；单机实测，不代表所有设备。测试方法和复现脚本见 [docs/PERFORMANCE.md](docs/PERFORMANCE.md)。</sub>
+<sub>Apple M5 Pro / 48 GiB，macOS 26.5，Release 构建。测试方法和复现脚本见 [docs/PERFORMANCE.md](docs/PERFORMANCE.md)。</sub>
 
 ## 功能
 
@@ -93,6 +98,8 @@
 目录结构和格式细节见 [docs/FORMAT.md](docs/FORMAT.md)。
 
 ## 参与开发
+
+quiet.md 还在 Beta，有很多可以一起做的事：修 bug、补功能、适配更多平台。欢迎提 issue 和 PR。
 
 从源码构建、测试和打包见 [CONTRIBUTING.md](CONTRIBUTING.md)，代码结构见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
