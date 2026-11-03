@@ -75,9 +75,9 @@ fn hm(t: i64) -> (i64, i64) {
     (tod / HOUR, tod % HOUR / MINUTE)
 }
 
-/// The week number (weeks start on Monday east of UTC).
+/// The local week number (weeks start on Monday).
 fn weeks(t: i64) -> i64 {
-    ((day_start(t) as f64 / DAY as f64 + 4.) / 7.).ceil() as i64
+    (day_of(t) + 3).div_euclid(7)
 }
 
 /// The chip text (`getTimeString`): 今天 / 明天 / 昨天 / 本周X / 下周X,
