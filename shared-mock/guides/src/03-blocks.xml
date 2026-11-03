@@ -1,7 +1,7 @@
 <title>Blocks: lists, quotes and callouts</title>
 <p>A document is made of blocks. Paragraphs, headings, list items, images and tables are all blocks you can insert, transform or move. Learn these few operations and the rest of the editor will feel familiar.</p>
 <h1>Three ways to work with blocks</h1><h2>The slash menu</h2><p>Type <code>/</code> on an empty line. Keep typing to narrow the list, use the arrow keys to choose an item, and press Enter to insert it.</p>
-<img src="assets/guides/slash.jpg" width="690" caption="Type a slash, search for a block, then press Enter" align="center"/>
+<img src="assets/guides/slash.jpg" caption="Type a slash, search for a block, then press Enter" align="center"/>
 <p>The menu includes text, headings, lists, tasks, code, quotes, callouts, dividers, links, images, files, tables, columns, equations, buttons, child-page lists, reminders and countdowns. Try <code>/table</code>, <code>/code</code>, <code>/callout</code> or <code>/countdown</code>.</p>
 <h2>The block handle</h2><p>Hover to the left of a block to reveal its handle. Click it to open the block menu.</p>
 

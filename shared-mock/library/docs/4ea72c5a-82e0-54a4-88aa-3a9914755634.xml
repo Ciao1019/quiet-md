@@ -3,7 +3,7 @@
 <p>These guides will help you find your way around in about ten minutes. They were written in quiet.md, so every layout you see is something you can make yourself. <b>Feel free to edit them.</b> They are working examples, not a read-only manual.</p>
 <callout emoji="💡" background-color="light-blue" border-color="blue"><p>The best way to learn is to try things as you read. For a blank space to experiment, open <cite type="doc" doc-id="33f7e56d-02b5-58f6-a842-e9f96c39a86a" file-type="docx">Playground</cite>.</p></callout>
 <h1>A look around</h1>
-<img src="assets/guides/home.jpg" width="690" caption="Home: your documents at a glance" align="center"/>
+<img src="assets/guides/home.jpg" caption="Home: your documents at a glance" align="center"/>
 <p>The window has two main areas.</p>
 <ol><li><b>The sidebar</b> contains Home, Pinned, My documents and Settings. Press <code>⌘ ]</code> to hide or show it.</li><li><b>The document</b> is the white writing surface. Its header contains the page path and title, with More, Search and New controls on the right.</li></ol>
 <p>Documents with headings also have an <b>outline</b> near the top left of the page. Click a heading to jump to it; the current section is highlighted as you scroll.</p>

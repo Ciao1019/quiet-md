@@ -1,6 +1,6 @@
 [package]
 name = "quiet_md"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A local-first rich text notes app for macOS, drawn with GPUI"
 license = "MIT"

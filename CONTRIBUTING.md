@@ -41,6 +41,10 @@ FDL_FUZZ_SEEDS=2000 cargo test --release random_edits   # 更多随机编辑，�
 
 ## 构建分发包
 
+当前源码准备 v0.1.1，公开下载仍为 v0.1.0。发布前需完成 `scripts/check.sh`，并确认对应提交的 CI 通过；打包后验证签名、公证（macOS）和下载文件的 SHA-256。Windows 构建 CI 不替代安装、卸载及真实编辑验收。
+
+macOS 最低系统声明为 13，尚未完成该版本实机验证。Windows 和 Intel Mac 暂无公开安装包。
+
 ### macOS
 
 `scripts/release.sh` 在本机架构上构建，生成应用图标，使用 Developer ID Application 证书签名，提交 Apple 公证，装订票据并执行 Gatekeeper 校验，最后输出 ZIP 和 SHA-256。它不会上传 GitHub，也不会启动应用。
