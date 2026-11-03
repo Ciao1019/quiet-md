@@ -8,4 +8,4 @@
 !/shared-mock/guides/
 
 /dist-release.*
-/.wrangler/
+.wrangler/
