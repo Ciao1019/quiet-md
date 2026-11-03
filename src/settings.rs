@@ -313,7 +313,7 @@ fn sample_page(t: &themes::Theme, s: f32) -> Div {
     let code = div().w_full().overflow_hidden().px(px(10.)).py(px(7.)).rounded(sc(st.num("pre.radius"))).bg(st.color("pre.bg").unwrap_or_else(|| st.token("code_bg")))
         .border_1().border_color(st.color("pre.border").unwrap_or_else(|| st.token("code_border")))
         .font_family(mono.clone()).text_size(sc(st.num("pre.size"))).line_height(sc(st.num("pre.line"))).text_color(st.color("pre.color").unwrap_or_else(|| st.token("code_text")))
-        .child(code_line("1", vec![tok("# ", syn("comment")), tok(tr("备份文档库", "back up the library"), syn("comment"))]))
+        .child(code_line("1", vec![tok("# ", syn("comment")), tok(tr("备份文档库", "back up your documents"), syn("comment"))]))
         .child(code_line("2", vec![tok("cd ", syn("function")), tok("~/Documents ", text), tok("&& ", syn("keyword")), tok("tar ", syn("function")), tok("-czf ", syn("attr")), tok("\"Quiet.tar.gz\" ", syn("string")), tok("Quiet.md", text)]))
         .child(code_line("3", vec![tok("echo ", syn("function")), tok("\"done\"", syn("string"))]));
     // One column, like a page: a centred text column (the theme's width, scaled,
@@ -1100,7 +1100,7 @@ pub(crate) fn localize(text: &str, english: bool) -> &str {
         "刚刚" => "just now",
         "文档不存在" => "Document not found",
         "文档已被另一个实例修改，未覆盖磁盘内容。请先将当前内容导出，再重新打开文档" => "Another instance modified this document. The file was not overwritten. Export your changes, then reopen the document.",
-        "这个文档库由更新版本的 quiet.md 创建，部分内容可能无法正确显示，请升级后再编辑" => "This library was created by a newer version of quiet.md. Update the app before editing it.",
+        "这个文档库由更新版本的 quiet.md 创建，部分内容可能无法正确显示，请升级后再编辑" => "These documents were created by a newer version of quiet.md. Update the app before editing them.",
         _ => text,
     }
 }
@@ -1132,12 +1132,12 @@ fn diagnostic_for(message: &str, english: bool) -> String {
         ("文档索引已损坏且没有可用备份，部分文档的置顶、层级等信息已重置（原文件保留为 {}）", "Document index was damaged with no usable backup. Some pins and document hierarchy were reset (original retained as {})."),
         ("回收站索引已损坏且没有可用备份，部分文档的置顶、层级等信息已重置（原文件保留为 {}）", "Trash index was damaged with no usable backup. Some metadata was reset (original retained as {})."),
         ("回收站已存在同名文档，未覆盖：{}", "A document with this ID already exists in Trash and was not overwritten: {}"),
-        ("文档库已存在同名文档，未覆盖：{}", "A document with this ID already exists in the library and was not overwritten: {}"),
+        ("文档库已存在同名文档，未覆盖：{}", "A document with this ID already exists in Documents and was not overwritten: {}"),
         ("文档已移入回收站，文档索引清理失败：{}", "Document moved to Trash, but the document index could not be cleaned up: {}"),
         ("回收站目录读取不完整：{}", "Could not fully read the Trash directory: {}"),
         ("无法清理过期回收站文档 {}：{}", "Could not remove expired Trash document {}: {}"),
         ("回收站索引保存失败：{}", "Could not save Trash index: {}"),
-        ("恢复文档 {} 失败，已恢复的文档保留在文档库", "Could not restore document {}. Documents already restored remain in the library."),
+        ("恢复文档 {} 失败，已恢复的文档保留在文档库", "Could not restore document {}. Documents already restored remain in Documents."),
         ("文档已恢复，回收站索引清理失败：{}", "Document restored, but the Trash index could not be cleaned up: {}"),
     ];
     for (source, target) in TEMPLATES {

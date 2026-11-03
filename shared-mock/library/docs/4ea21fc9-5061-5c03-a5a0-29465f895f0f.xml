@@ -47,7 +47,7 @@ ORDER  BY 1;</code></pre>
   "window_size": [1280, 800],
   "quick_note_size": [640, 800]
 }</code></pre>
-<pre lang="bash" caption="Back up your library"><code># Create a dated archive of the library.
+<pre lang="bash" caption="Back up your documents"><code># Create a dated archive of your documents.
 cd ~/Documents
 tar -czf "Quiet-$(date +%F).tar.gz" Quiet.md</code></pre>
 <h2>Names and wrapping</h2><p>Click the caption above a code block to give it a filename or a useful description. Long lines scroll horizontally by default. Enable wrapping in the block's controls when you would rather read them without scrolling.</p>

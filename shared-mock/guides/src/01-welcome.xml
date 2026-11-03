@@ -3,7 +3,7 @@
 <p>These guides will help you find your way around in about ten minutes. They were written in quiet.md, so every layout you see is something you can make yourself. <b>Feel free to edit them.</b> They are working examples, not a read-only manual.</p>
 <callout emoji="💡" background-color="light-blue" border-color="blue"><p>The best way to learn is to try things as you read. For a blank space to experiment, open {{doc:practice}}.</p></callout>
 <h1>A look around</h1>
-<img src="assets/guides/home.jpg" width="690" caption="Home: your library at a glance" align="center"/>
+<img src="assets/guides/home.jpg" width="690" caption="Home: your documents at a glance" align="center"/>
 <p>The window has two main areas.</p>
 <ol><li><b>The sidebar</b> contains Home, Pinned, My documents and Settings. Press <code>⌘ ]</code> to hide or show it.</li><li><b>The document</b> is the white writing surface. Its header contains the page path and title, with More, Search and New controls on the right.</li></ol>
 <p>Documents with headings also have an <b>outline</b> near the top left of the page. Click a heading to jump to it; the current section is highlighted as you scroll.</p>
@@ -28,12 +28,12 @@
 <tr><td><p>{{doc:code}}</p></td><td><p>Syntax highlighting, code captions, wrapping and LaTeX equations</p></td></tr>
 <tr><td><p>{{doc:media}}</p></td><td><p>Images, cropping, attachments, document icons and covers</p></td></tr>
 <tr><td><p>{{doc:organize}}</p></td><td><p>The document tree, pins, favorites, backlinks, search, reading mode and trash</p></td></tr>
-<tr><td><p>{{doc:data}}</p></td><td><p>Importing, exporting, printing, backups and moving your library</p></td></tr>
+<tr><td><p>{{doc:data}}</p></td><td><p>Importing, exporting, printing, backups and moving your documents</p></td></tr>
 <tr><td><p>{{doc:personalize}}</p></td><td><p>Themes, custom CSS, shortcuts, quick notes and interface language</p></td></tr>
 </tbody></table>
 <h1>Shortcuts worth remembering</h1>
 <table><colgroup><col width="210"/><col width="480"/></colgroup><tbody>
-<tr><td><p><code>⌘ N</code> / <code>⌘ J</code></p></td><td><p>Create a document / Search your library</p></td></tr>
+<tr><td><p><code>⌘ N</code> / <code>⌘ J</code></p></td><td><p>Create a document / Search your documents</p></td></tr>
 <tr><td><p><code>/</code> / <code>⌘ F</code></p></td><td><p>Insert a block / Find in the current document</p></td></tr>
 <tr><td><p><code>⌘ B</code> / <code>⌘ I</code> / <code>⌘ U</code></p></td><td><p>Bold / Italic / Underline</p></td></tr>
 <tr><td><p><code>⌘ K</code></p></td><td><p>Add or edit a link</p></td></tr>
@@ -42,7 +42,7 @@
 <tr><td><p><code>⌘ ]</code> / <code>⌘ /</code></p></td><td><p>Toggle the sidebar / View shortcuts</p></td></tr>
 </tbody></table>
 <h1>Your notes belong to you</h1>
-<p>Your library lives in <code>~/Documents/Quiet.md</code>. Each document is an XML file in <code>docs</code>; images and attachments are stored in <code>assets</code>. Back up the whole folder with Time Machine or copy it to another Mac.</p>
+<p>Your documents are stored in <code>~/Documents/Quiet.md</code>. Each document is an XML file in <code>docs</code>; images and attachments are stored in <code>assets</code>. Back up the whole folder with Time Machine or copy it to another Mac.</p>
 <blockquote><p>Writing and reading local notes do not require a network connection. Remote images can access the network when loaded; you can control automatic downloading in Settings.</p></blockquote>
 <p>For backup and migration details, see {{doc:data}}.</p>
 <hr/><p align="center">Ready to start? Open {{doc:writing}}.</p>
