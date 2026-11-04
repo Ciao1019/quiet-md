@@ -60,6 +60,20 @@ fn set_app_icon() {
     }
 }
 
+/// Stay in light (Aqua) appearance even when macOS is in dark mode: the editor styles have no dark variant
+/// yet, so the sidebar glass, menus and dialogs must not turn dark around a white page.
+#[cfg(target_os = "macos")]
+fn force_light_appearance() {
+    use objc::{class, msg_send, sel, sel_impl};
+    use objc::runtime::Object;
+    unsafe {
+        let name: *mut Object = msg_send![class!(NSString), stringWithUTF8String: c"NSAppearanceNameAqua".as_ptr()];
+        let aqua: *mut Object = msg_send![class!(NSAppearance), appearanceNamed: name];
+        let app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+        if !aqua.is_null() { let _: () = msg_send![app, setAppearance: aqua]; }
+    }
+}
+
 /// The main window, centred at the remembered size.
 fn open_main_window(scripted: bool, cx: &mut App) {
     // Scripted dev runs must not steal keyboard focus from whatever the
@@ -102,6 +116,8 @@ fn main() {
     app.run(move |cx: &mut App| {
         #[cfg(target_os = "macos")]
         set_app_icon();
+        #[cfg(target_os = "macos")]
+        force_light_appearance();
         editor::math::load_fonts(cx);
         input::bind_keys(cx);
         editor::keymap::bind_keys(cx);
