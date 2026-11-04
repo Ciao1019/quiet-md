@@ -17,7 +17,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-actions!(workspace, [NewDoc, ImportDoc, ToggleSidebar, FocusSearch, FindInDoc, ReplaceInDoc, OpenSettings, OpenAbout, GoHome, CloseWindow, Quit,
+actions!(workspace, [NewDoc, ImportDoc, ToggleSidebar, FocusSearch, FindInDoc, ReplaceInDoc, OpenSettings, OpenAbout, CheckForUpdates, GoHome, CloseWindow, Quit,
     HideApp, HideOthers, ShowAll, Minimize, Zoom, ToggleFullScreen]);
 
 /// The menu bar, in the interface language.
@@ -28,6 +28,7 @@ pub fn set_menus(cx: &mut App) {
             name: "quiet.md".into(),
             items: vec![
                 MenuItem::action(tr("关于 quiet.md", "About quiet.md"), OpenAbout),
+                MenuItem::action(tr("检查更新…", "Check for Updates…"), CheckForUpdates),
                 MenuItem::separator(),
                 MenuItem::action(tr("设置…", "Settings…"), OpenSettings),
                 MenuItem::separator(),
@@ -122,19 +123,22 @@ pub fn bind_keys(cx: &mut App) {
             });
         }
     });
-    cx.on_action(|_: &Quit, cx| {
-        // The open document is saved first; when that fails its dialog asks
-        // (重试 / 放弃修改) and quits afterwards.
-        let ready = cx
-            .windows()
-            .into_iter()
-            .filter_map(|w| w.downcast::<Workspace>())
-            .all(|w| w.update(cx, |ws, _, cx| ws.save_before(cx, |_, _, cx| cx.quit())).unwrap_or(true));
-        if ready {
-            cx.quit();
-        }
-    });
+    cx.on_action(|_: &Quit, cx| quit(cx));
     crate::modes::bind_keys(cx);
+}
+
+/// 退出: the open document is saved first; when that fails its dialog asks
+/// (重试 / 放弃修改) and quits afterwards. Call it outside any window update
+/// (`cx.defer`): a window on the update stack cannot be asked to save.
+pub fn quit(cx: &mut App) {
+    let ready = cx
+        .windows()
+        .into_iter()
+        .filter_map(|w| w.downcast::<Workspace>())
+        .all(|w| w.update(cx, |ws, _, cx| ws.save_before(cx, |_, _, cx| cx.quit())).unwrap_or(true));
+    if ready {
+        cx.quit();
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1279,6 +1283,7 @@ impl Render for Workspace {
             .on_action(|_: &ToggleFullScreen, window, _| window.toggle_fullscreen())
             .on_action(cx.listener(|w, _: &OpenSettings, _, cx| w.show_view(View::Settings, cx)))
             .on_action(cx.listener(|w, _: &OpenAbout, _, cx| w.open_settings(crate::settings::Page::About, cx)))
+            .on_action(cx.listener(|w, _: &CheckForUpdates, _, cx| { w.open_settings(crate::settings::Page::About, cx); crate::update::check(true, cx); }))
             .on_action(cx.listener(|w, _: &GoHome, _, cx| w.show_view(View::Home, cx)))
             .on_action(cx.listener(|w, _: &NewDoc, window, cx| w.new_doc(window, cx)))
             .on_action(cx.listener(|w, _: &ImportDoc, window, cx| w.open_import(window, cx)))

@@ -1,0 +1,1 @@
+untrusted comment: no update key yet: run `minisign -G -f -p packaging/update-key.pub -s ~/.minisign/quiet-md.key`, keep the secret key out of the repo
