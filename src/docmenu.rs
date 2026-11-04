@@ -200,12 +200,11 @@ impl Workspace {
                     .on_hover(hover_sub(Some(DocSub::Download))),
             )
             .child(divider())
-            .child(
+            .when(crate::printing::SUPPORTED, |d| d.child(
                 menu_item("dm-print", "printer", crate::settings::text("打印"), false, false)
                     .on_hover(hover_sub(None))
                     .on_click(cx.listener(move |w, _, window, cx| w.print_doc(&print_id, window, cx))),
-            )
-            .child(divider())
+            ).child(divider()))
             .child(
                 menu_item("dm-info", "info", crate::settings::text("文档信息"), false, false)
                     .on_hover(hover_sub(None))
@@ -261,13 +260,13 @@ impl Workspace {
                         .px(px(5.))
                         .py(px(PAD))
                         .child(recorder())
-                        .child(sub_item("dm-pdf", "PDF").on_click(cx.listener(move |w, _, window, cx| w.export_pdf(&pdf, window, cx))))
+                        .when(crate::printing::SUPPORTED, |d| d.child(sub_item("dm-pdf", "PDF").on_click(cx.listener(move |w, _, window, cx| w.export_pdf(&pdf, window, cx)))))
                         .child(sub_item("dm-md", "Markdown").on_click(cx.listener(move |w, _, _, cx| w.open_export_md(&id, cx))))
                         .into_any_element()
                 },
             )),
             Some(DocSub::More) => Some((
-                item_top(9, 6) - 1. - PAD,
+                if crate::printing::SUPPORTED { item_top(9, 6) } else { item_top(8, 5) } - 1. - PAD,
                 popover()
                     .id("dm-more-menu")
                     .occlude()

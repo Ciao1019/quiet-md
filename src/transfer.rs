@@ -211,6 +211,10 @@ impl Workspace {
     /// 下载为 → PDF: the page laid out on A4 by WebKit, saved where the user picks.
     pub fn export_pdf(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         self.close_menus();
+        if !printing::SUPPORTED {
+            self.show_toast_kind(ToastKind::Error, crate::settings::text("当前系统不支持"), cx);
+            return;
+        }
         cx.notify();
         let Some(doc) = self.doc_of(id, cx) else { return };
         let subs = self.sub_page_titles(id);
@@ -239,6 +243,10 @@ impl Workspace {
     /// 打印: the system print panel over the same A4 layout as PDF.
     pub fn print_doc(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         self.close_menus();
+        if !printing::SUPPORTED {
+            self.show_toast_kind(ToastKind::Error, crate::settings::text("当前系统不支持"), cx);
+            return;
+        }
         let Some(doc) = self.doc_of(id, cx) else { return };
         let subs = self.sub_page_titles(id);
         let name = file_name(&doc);
