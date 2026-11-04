@@ -571,7 +571,7 @@ impl R<'_> {
                     .rounded(px(RADIUS))
                     .border_1()
                     .border_color(border)
-                    .bg(Theme::bg_body())
+                    .bg(crate::theme::raised(Theme::bg_body()))
                     .shadow(theme::shadow_button())
                     .cursor_pointer()
                     .when(menu_on, |d| d.child(ring().rounded(px(RADIUS + 2.))))

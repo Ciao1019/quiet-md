@@ -3,25 +3,150 @@
 //! and a full-bleed white note plane instead of floating panels.
 
 use gpui::{BoxShadow, Hsla, Rgba, point, px, rgb};
+use std::sync::atomic::{AtomicBool, Ordering};
 
-pub fn c(hex: u32) -> Hsla {
-    rgb(hex).into()
+// ---- dark mode
+//
+// Every colour here is designed for the light look. In dark mode the
+// palette helpers (`c`, `ca`, `mix`, `ta`) and the theme files' colours
+// pass through `adapt`, which mirrors lightness: the white page turns dark
+// gray, near-black text near-white, tints dark tints, while vivid colours
+// (the accent, coloured text) keep their hue and stay readable. Text
+// highlights keep their light colours instead (`mark`, `on_mark`).
+// `rgbaf` stays literal for shadows, scrims and controls drawn over images.
+
+static DARK: AtomicBool = AtomicBool::new(false);
+thread_local! {
+    /// Exports and printing draw light whatever the window shows.
+    static FORCE_LIGHT: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+    static ADAPTED: std::cell::RefCell<std::collections::HashMap<[u32; 4], Hsla>> = std::cell::RefCell::new(std::collections::HashMap::new());
 }
 
+pub fn dark() -> bool { DARK.load(Ordering::Relaxed) && !FORCE_LIGHT.with(|f| f.get()) }
+/// Switch the look; true when it changed.
+pub fn set_dark(on: bool) -> bool { DARK.swap(on, Ordering::Relaxed) != on }
+/// Run `f` with the light colours (HTML export, printing, copy as rich text).
+pub fn light<R>(f: impl FnOnce() -> R) -> R {
+    let was = FORCE_LIGHT.with(|l| l.replace(true));
+    let r = f();
+    FORCE_LIGHT.with(|l| l.set(was));
+    r
+}
+
+/// The colour to draw for light-look colour `c`: itself, or in dark mode its dark counterpart.
+pub fn adapt(c: Hsla) -> Hsla {
+    if !dark() { return c }
+    let key = [c.h.to_bits(), c.s.to_bits(), c.l.to_bits(), c.a.to_bits()];
+    if let Some(d) = ADAPTED.with(|m| m.borrow().get(&key).copied()) { return d }
+    let d = to_dark(c);
+    ADAPTED.with(|m| m.borrow_mut().insert(key, d));
+    d
+}
+
+/// Lightness mirrored in OKLab: white → L 0.23 (the page, #1c1c1c), the
+/// text (L 0.25) → L 0.91, black → white. Chroma and hue are kept; vivid
+/// colours (chroma ≥ 0.14) keep their own lightness within 0.62–0.86, pale
+/// ones follow the mirror, with a smooth blend between.
+fn to_dark(c: Hsla) -> Hsla {
+    let Rgba { r, g, b, a } = Rgba::from(c);
+    let [ll, oa, ob] = oklab(r, g, b);
+    let chroma = (oa * oa + ob * ob).sqrt();
+    let mirror = (1.137 - 0.907 * ll).clamp(0., 1.);
+    let t = ((chroma - 0.04) / 0.10).clamp(0., 1.);
+    let t = t * t * (3. - 2. * t);
+    let l2 = mirror + (ll.clamp(0.62, 0.86) - mirror) * t;
+    srgb(l2, oa, ob, a)
+}
+
+/// The text highlight to draw for light-look highlight `c`: in dark mode
+/// the same colour the light page shows (`c` over white, made opaque). Kept
+/// translucent it lets the dark page through and turns muddy. Text on it
+/// takes the light page's ink, see `on_mark`.
+pub fn mark(c: Hsla) -> Hsla {
+    if !dark() { return c }
+    let Rgba { r, g, b, a } = Rgba::from(c);
+    let w = |v: f32| v * a + 1. - a;
+    Rgba { r: w(r), g: w(g), b: w(b), a: 1. }.into()
+}
+
+/// Text drawn on a highlight (`color`, already adapted). In dark mode it
+/// gets back its light-page ink: the mirror undone (the near-white text →
+/// L 0.25), at most L 0.55 so coloured text (red on light red) reads as it
+/// does on the light page.
+pub fn on_mark(c: Hsla) -> Hsla {
+    if !dark() { return c }
+    let Rgba { r, g, b, a } = Rgba::from(c);
+    let [l, oa, ob] = oklab(r, g, b);
+    let l2 = ((1.137 - l) / 0.907).clamp(0., 0.55);
+    let chroma = (oa * oa + ob * ob).sqrt();
+    let (sin, cos) = if chroma > 1e-4 { (ob / chroma, oa / chroma) } else { (0., 1.) };
+    let k = in_gamut(l2, chroma, cos, sin);
+    srgb(l2, k * cos, k * sin, a)
+}
+
+/// The largest chroma ≤ `max` at lightness `l` and hue (`cos`, `sin`) inside sRGB.
+fn in_gamut(l: f32, max: f32, cos: f32, sin: f32) -> f32 {
+    let fits = |k: f32| lrgb(l, k * cos, k * sin).iter().all(|v| (-1e-4..=1. + 1e-4).contains(v));
+    if fits(max) { return max }
+    let (mut lo, mut hi) = (0., max);
+    for _ in 0..16 { let m = (lo + hi) / 2.; if fits(m) { lo = m } else { hi = m } }
+    lo
+}
+
+// sRGB ⇄ OKLab with Björn Ottosson's matrices, kept digit for digit.
+#[allow(clippy::excessive_precision)]
+fn oklab(r: f32, g: f32, b: f32) -> [f32; 3] {
+    let lin = |v: f32| if v <= 0.04045 { v / 12.92 } else { ((v + 0.055) / 1.055).powf(2.4) };
+    let (r, g, b) = (lin(r), lin(g), lin(b));
+    let l = (0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b).cbrt();
+    let m = (0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b).cbrt();
+    let s = (0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b).cbrt();
+    [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s, 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s, 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]
+}
+/// OKLab → linear sRGB (unclamped: out of [0, 1] means out of gamut).
+#[allow(clippy::excessive_precision)]
+fn lrgb(l: f32, oa: f32, ob: f32) -> [f32; 3] {
+    let l_ = l + 0.3963377774 * oa + 0.2158037573 * ob;
+    let m_ = l - 0.1055613458 * oa - 0.0638541728 * ob;
+    let s_ = l - 0.0894841775 * oa - 1.2914855480 * ob;
+    let (l_, m_, s_) = (l_ * l_ * l_, m_ * m_ * m_, s_ * s_ * s_);
+    [4.0767416621 * l_ - 3.3077115913 * m_ + 0.2309699292 * s_, -1.2684380046 * l_ + 2.6097574011 * m_ - 0.3413193965 * s_, -0.0041960863 * l_ - 0.7034186147 * m_ + 1.7076147010 * s_]
+}
+fn srgb(l: f32, oa: f32, ob: f32, a: f32) -> Hsla {
+    let [r, g, b] = lrgb(l, oa, ob);
+    let enc = |v: f32| { let v = v.clamp(0., 1.); if v <= 0.0031308 { v * 12.92 } else { 1.055 * v.powf(1. / 2.4) - 0.055 } };
+    Rgba { r: enc(r), g: enc(g), b: enc(b), a }.into()
+}
+
+pub fn c(hex: u32) -> Hsla {
+    adapt(rgb(hex).into())
+}
+
+/// A surface above the page (menus, dialogs, toasts, buttons, the picked
+/// segment): `light` in the light look; in dark mode a step lighter than the
+/// page, as raised surfaces are.
+pub fn raised(light: Hsla) -> Hsla { if dark() { rgbaf(0x2c, 0x2c, 0x2e, 1.) } else { light } }
+
+/// A literal colour, never adapted (shadows, scrims, glyphs over images).
 pub fn rgbaf(r: u8, g: u8, b: u8, a: f32) -> Hsla {
     Rgba { r: r as f32 / 255., g: g as f32 / 255., b: b as f32 / 255., a }.into()
 }
 
+/// `rgbaf` for the page and chrome: adapted in dark mode.
+pub fn ta(r: u8, g: u8, b: u8, a: f32) -> Hsla {
+    adapt(rgbaf(r, g, b, a))
+}
+
 /// `hex` at opacity `a`.
 pub fn ca(hex: u32, a: f32) -> Hsla {
-    rgbaf((hex >> 16) as u8, (hex >> 8) as u8, hex as u8, a)
+    ta((hex >> 16) as u8, (hex >> 8) as u8, hex as u8, a)
 }
 
 /// Colour blend: `a` moved `t` of the way to `b` (opaque result).
 pub fn mix(a: u32, b: u32, t: f32) -> Hsla {
     let ch = |s: u32| -> (f32, f32) { (((a >> s) & 0xff) as f32, ((b >> s) & 0xff) as f32) };
     let m = |(x, y): (f32, f32)| (x + (y - x) * t).round() as u8;
-    rgbaf(m(ch(16)), m(ch(8)), m(ch(0)), 1.)
+    ta(m(ch(16)), m(ch(8)), m(ch(0)), 1.)
 }
 
 /// The palette on the ramp names the code was written against
@@ -114,7 +239,9 @@ pub mod craft {
     pub const CHROME: u32 = 0xe6e7e8;
 }
 
+/// Shadows stay black; on the dark page they need more weight to show.
 fn shadow(a: f32, y: f32, blur: f32, spread: f32) -> BoxShadow {
+    let a = if dark() { (a * 3.).min(0.6) } else { a };
     BoxShadow { color: rgbaf(0, 0, 0, a), offset: point(px(0.), px(y)), blur_radius: px(blur), spread_radius: px(spread) }
 }
 
@@ -308,7 +435,8 @@ pub fn text_color(name: &str) -> Option<Hsla> {
 pub fn bg_color(name: &str) -> Option<Hsla> {
     let (h, strong) = split(name)?;
     let m = hue::of(h)?;
-    Some(if strong { ca(m.1, 0.65) } else { ca(m.1, 0.35) })
+    let (r, g, b) = ((m.1 >> 16) as u8, (m.1 >> 8) as u8, m.1 as u8);
+    Some(mark(rgbaf(r, g, b, if strong { 0.65 } else { 0.35 })))
 }
 
 /// Block background (blocks, table cells): the block decoration, the

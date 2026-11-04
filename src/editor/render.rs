@@ -682,7 +682,7 @@ impl R<'_> {
                     .mr(px(8.))
                     .rounded(px(st.num("task.radius")))
                     .border_1()
-                    .when(!done, |d| d.border_color(Theme::todo_box()).bg(Theme::bg_body()).hover(|s| s.border_color(Theme::primary())))
+                    .when(!done, |d| d.border_color(Theme::todo_box()).bg(crate::theme::raised(Theme::bg_body())).hover(|s| s.border_color(Theme::primary())))
                     .when(done, |d| d.border_color(fill).bg(fill))
                     .flex()
                     .items_center()
@@ -799,7 +799,7 @@ impl R<'_> {
                 .text_color(Theme::text_caption())
                 .cursor_pointer()
                 .hover(|s| s.bg(Theme::fill_hover_strong()))
-                .active(|s| s.bg(rgba(0x1f232933)))
+                .active(|s| s.bg(crate::theme::adapt(rgba(0x1f232933).into())))
         };
         // 1px divider centred in the 17px gap after a toolbar item.
         let sep = |right: f32| div().absolute().top(px(3.)).right(px(right)).w(px(1.)).h(px(16.)).bg(Theme::line_divider());
@@ -1627,7 +1627,7 @@ impl Editor {
                 .h(px(24.))
                 .px(px(9.))
                 .rounded(px(8.))
-                .bg(Theme::bg_body())
+                .bg(crate::theme::raised(Theme::bg_body()))
                 .border_1()
                 .border_color(Theme::button_border())
                 .shadow(theme::shadow_button())
@@ -1930,7 +1930,7 @@ fn list_item_feishu(&self, b: &Block, siblings: &[Block], idx: usize, env: Env, 
                     .border_1()
                     .border_color(Theme::text())
                     .hover(|s| s.border_color(Theme::primary()))
-                    .bg(Theme::bg_body())
+                    .bg(crate::theme::raised(Theme::bg_body()))
                     .flex()
                     .items_center()
                     .justify_center()
@@ -2043,7 +2043,7 @@ fn code_block_feishu(&self, b: &Block, lang: &str, wrap: bool, cx: &mut Context<
                 .text_color(Theme::text_caption())
                 .cursor_pointer()
                 .hover(|s| s.bg(Theme::fill_hover_strong()))
-                .active(|s| s.bg(rgba(0x1f232933)))
+                .active(|s| s.bg(crate::theme::adapt(rgba(0x1f232933).into())))
         };
         // 1px divider centred in the 17px gap after a toolbar item.
         let sep = |right: f32| div().absolute().top(px(3.)).right(px(right)).w(px(1.)).h(px(16.)).bg(Theme::line_divider());

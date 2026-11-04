@@ -162,7 +162,7 @@ fn font_swatch(hex: u32) -> Div {
 
 /// White square crossed by a grey diagonal: "no color".
 fn none_swatch() -> Div {
-    div().flex().items_center().justify_center().bg(Theme::bg_body()).child(icon("swatch-none", 20., Theme::block_placeholder()))
+    div().flex().items_center().justify_center().bg(crate::theme::raised(Theme::bg_body())).child(icon("swatch-none", 20., Theme::block_placeholder()))
 }
 
 fn color_title(t: &'static str) -> Div {
@@ -682,7 +682,7 @@ impl Editor {
             .id("size-picker")
             .occlude()
             .w(px(picker_width(cols)))
-            .bg(Theme::bg_body())
+            .bg(crate::theme::raised(Theme::bg_body()))
             .border_1()
             .border_color(Theme::line_border())
             .rounded(px(6.))
@@ -1168,7 +1168,7 @@ impl Editor {
                     .id("equation-input")
                     .rounded(px(6.))
                     .border_1()
-                    .border_color(if focused { primary } else { theme::rgbaf(0xd0, 0xd3, 0xd6, 1.) })
+                    .border_color(if focused { primary } else { theme::ta(0xd0, 0xd3, 0xd6, 1.) })
                     .hover(move |s| s.border_color(primary))
                     .py(px(8.))
                     .px(px(12.))
@@ -1503,7 +1503,7 @@ fn switch(on: bool) -> Div {
         .flex()
         .when(on, |d| d.justify_end())
         .bg(if on { Theme::primary_500() } else { Theme::block_placeholder() })
-        .child(div().size(px(12.)).rounded_full().bg(Theme::bg_body()))
+        .child(div().size(px(12.)).rounded_full().bg(crate::theme::raised(Theme::bg_body())))
 }
 
 impl Editor {
@@ -1512,7 +1512,7 @@ impl Editor {
     /// hover. Each half darkens over the button's own hover fill.
     fn color_split(&self, id: &'static str, open: bool, cx: &Context<Self>) -> Stateful<Div> {
         let (lt, lb) = self.last_color.clone();
-        let fill = || rgba(0x1f23290d);
+        let fill = || crate::theme::adapt(rgba(0x1f23290d).into());
         div()
             .id(id)
             .h(px(24.))
@@ -1538,7 +1538,10 @@ impl Editor {
                             .items_center()
                             .justify_center()
                             .text_size(px(16.))
-                            .text_color(lt.as_ref().and_then(|c| theme::text_color(&c.0)).unwrap_or(Theme::text()))
+                            .text_color({
+                                let c = lt.as_ref().and_then(|c| theme::text_color(&c.0)).unwrap_or(Theme::text());
+                                if lb.is_some() { crate::theme::on_mark(c) } else { c }
+                            })
                             .child("A"),
                     )
                     .on_mouse_down(

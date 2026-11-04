@@ -294,7 +294,7 @@ impl Editor {
             .cursor_pointer()
             .group("cat-pin")
             .hover(|s| s.bg(Theme::fill_hover_strong()))
-            .active(|s| s.bg(theme::rgbaf(31, 35, 41, 0.2)))
+            .active(|s| s.bg(theme::ta(31, 35, 41, 0.2)))
             .child(
                 icon(if pinned { "catalogue-collapse" } else { "catalogue-list" }, 18., Theme::text_caption())
                     .group_hover("cat-pin", |s| s.text_color(theme::c(craft::old::B500))),
@@ -325,7 +325,7 @@ impl Editor {
                 .block_mouse_except_scroll()
                 .cursor(CursorStyle::Arrow)
                 .when(list_w.is_none(), |d| d.w(px(42.)).h(px(PIN_H)).pt_0())
-                .when(floating, |d| d.bg(theme::rgbaf(255, 255, 255, 0.96)).rounded(px(8.)))
+                .when(floating, |d| d.bg(theme::ta(255, 255, 255, 0.96)).rounded(px(8.)))
                 .on_mouse_down(MouseButton::Left, |_, _, cx| cx.stop_propagation())
                 .child(pin)
                 .children(body)
