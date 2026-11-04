@@ -4,10 +4,12 @@
 #   scripts/publish-downloads.sh dist-release.XXXX/quiet-md-0.1.2-macos-arm64.zip dist/windows/signed/quiet-md-0.1.2-windows-x64-setup.exe
 # Each package is signed with minisign (MINISIGN_KEY, default ~/.minisign/quiet-md.key) and checked against
 # packaging/update-key.pub; latest/update-<platform>.json, written last, is what the app's updater reads.
+# The key's password comes from the login keychain when stored there once, else minisign asks:
+#   security add-generic-password -U -s quiet-md-minisign -a "$USER" -w
 # DRY_RUN=1 prints the uploads without signing or sending them. WRANGLER overrides the wrangler command.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-[ $# -ge 1 ] || { sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+[ $# -ge 1 ] || { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 bucket=quiet-md-downloads
 host=https://download.quiet.md
 wrangler=${WRANGLER:-npx -y wrangler@4}
@@ -26,6 +28,7 @@ if [ -z "${DRY_RUN:-}" ]; then
   command -v minisign >/dev/null || { echo "minisign is not installed (brew install minisign)" >&2; exit 1; }
   grep -q '^RW' "$pub" || { echo "$pub has no public key yet; see the comment in it" >&2; exit 1; }
   [ -f "$key" ] || { echo "Missing signing key $key (set MINISIGN_KEY)" >&2; exit 1; }
+  password=$(security find-generic-password -s quiet-md-minisign -a "$USER" -w 2>/dev/null || true)
 fi
 
 for file in "$@"; do
@@ -45,7 +48,8 @@ for file in "$@"; do
   # The trusted comment is the file name: the app accepts the signature only for the version the manifest names.
   sig="$work/$name.minisig"
   if [ -z "${DRY_RUN:-}" ]; then
-    minisign -S -s "$key" -m "$file" -x "$sig" -t "$name"
+    if [ -n "$password" ]; then printf '%s\n' "$password" | minisign -S -s "$key" -m "$file" -x "$sig" -t "$name" >/dev/null
+    else minisign -S -s "$key" -m "$file" -x "$sig" -t "$name"; fi
     minisign -V -q -p "$pub" -m "$file" -x "$sig" || { echo "$name: signature does not match $pub" >&2; exit 1; }
   else
     echo "minisign -S -s $key -m $file -x $sig -t $name"; : > "$sig"
