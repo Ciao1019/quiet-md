@@ -63,7 +63,10 @@ struct MacTextSystemState {
     system_source: SystemSource,
     fonts: Vec<FontKitFont>,
     font_selections: HashMap<Font, FontId>,
-    font_ids_by_postscript_name: HashMap<String, FontId>,
+    /// quiet.md: several faces can share a PostScript name with different
+    /// glyph tables (CoreText's fallback copy of PingFang SC vs. the family
+    /// in PingFang.ttc), so keep them all and tell them apart by glyph count.
+    font_ids_by_postscript_name: HashMap<String, SmallVec<[FontId; 2]>>,
     font_ids_by_font_key: HashMap<FontKey, SmallVec<[FontId; 4]>>,
     postscript_names_by_font_id: HashMap<FontId, String>,
     /// UTF-16 indices of ZWNJS
@@ -300,7 +303,9 @@ impl MacTextSystemState {
             font_ids.push(font_id);
             let postscript_name = font.postscript_name().unwrap();
             self.font_ids_by_postscript_name
-                .insert(postscript_name.clone(), font_id);
+                .entry(postscript_name.clone())
+                .or_default()
+                .push(font_id);
             self.postscript_names_by_font_id
                 .insert(font_id, postscript_name);
             self.fonts.push(font);
@@ -318,12 +323,19 @@ impl MacTextSystemState {
 
     fn id_for_native_font(&mut self, requested_font: CTFont) -> FontId {
         let postscript_name = requested_font.postscript_name();
-        if let Some(font_id) = self.font_ids_by_postscript_name.get(&postscript_name) {
+        let glyph_count = requested_font.glyph_count() as u32;
+        if let Some(font_id) = self
+            .font_ids_by_postscript_name
+            .get(&postscript_name)
+            .and_then(|ids| ids.iter().find(|id| self.fonts[id.0].glyph_count() == glyph_count))
+        {
             *font_id
         } else {
             let font_id = FontId(self.fonts.len());
             self.font_ids_by_postscript_name
-                .insert(postscript_name.clone(), font_id);
+                .entry(postscript_name.clone())
+                .or_default()
+                .push(font_id);
             self.postscript_names_by_font_id
                 .insert(font_id, postscript_name);
             self.fonts
@@ -776,6 +788,33 @@ mod lenient_font_attributes {
             TCFType::wrap_under_create_rule(reference)
         }
     }
+}
+
+/// quiet.md: CoreText's fallback copy of PingFang SC shares its PostScript
+/// name with the PingFang SC family but not its glyph table. Shapes `text` in
+/// the system font (PingFang SC fallback) before and after loading that
+/// family, and checks every glyph against the face it is drawn with.
+#[doc(hidden)]
+pub fn check_fallback_glyphs(text: &str) -> std::result::Result<(), String> {
+    let fonts = MacTextSystem::new();
+    let mut ui = crate::font(".SystemUIFont");
+    ui.fallbacks = Some(FontFallbacks::from_fonts(vec!["PingFang SC".into()]));
+    let font_id = fonts.font_id(&ui).map_err(|e| e.to_string())?;
+    for pass in 0..2 {
+        if pass == 1 {
+            fonts.font_id(&crate::font("PingFang SC")).map_err(|e| e.to_string())?;
+        }
+        let layout = fonts.layout_line(text, px(16.), &[FontRun { font_id, len: text.len() }]);
+        for run in &layout.runs {
+            for g in &run.glyphs {
+                let ch = text[g.index..].chars().next().unwrap_or_default();
+                if fonts.glyph_for_char(run.font_id, ch) != Some(g.id) {
+                    return Err(format!("{ch:?} drawn from the wrong face (pass {pass})"));
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

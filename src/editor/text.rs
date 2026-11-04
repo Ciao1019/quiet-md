@@ -1395,3 +1395,14 @@ pub fn hit_test(cache: &LayoutCache, p: Point<Pixels>, candidates: &[BlockId]) -
     let l = cache.get(&id)?;
     Some(Pos::new(id, l.index_for(p)))
 }
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    /// Editor text shapes CJK through CoreText's PingFang fallback, while CJK
+    /// punctuation loads the PingFang SC family (`CJK_PUNCT_FONT`): both must
+    /// keep drawing the right glyphs.
+    #[test]
+    fn cjk_fallback_glyphs() {
+        gpui::check_fallback_glyphs("周末规划一背景本季度目标").unwrap();
+    }
+}
