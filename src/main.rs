@@ -38,6 +38,7 @@ mod transfer;
 mod trash;
 mod tree;
 mod ui;
+mod update;
 
 use fdl_core::{docxml, lang, markdown, model, palette, paste, store, time};
 
@@ -116,6 +117,7 @@ fn main() {
         let quick_enabled = !scripted;
         if quick_enabled { quick_note::install(cx); }
         app::set_menus(cx);
+        update::init(cx);
         open_main_window(scripted, cx);
         cx.on_window_closed(move |cx| {
             if (!quick_enabled || !cfg!(target_os = "macos")) && cx.windows().is_empty() {

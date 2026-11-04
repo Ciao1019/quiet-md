@@ -77,4 +77,18 @@ SIGNING_IDENTITY="Developer ID Application: …" NOTARY_PROFILE="quiet-md" scrip
 
 无论哪个平台，凭据、证书私钥和证书文件都不要提交到仓库。
 
+### 上传和自动更新
+
+`scripts/publish-downloads.sh <包>…` 把包上传到 `download.quiet.md` 的 `v<版本>/` 和 `latest/`，用 minisign 签名，最后写 `latest/update-<平台>.json`（`macos-arm64`、`windows-x64`）。应用读的就是这份清单：启动 10 秒后和之后每 12 小时检查一次（设置 › 通用 可关），菜单「检查更新…」立即检查；下载要用户点，校验 minisign 签名（trusted comment 必须是包的文件名），macOS 还要求新包的签名团队和当前应用一致，然后退出、换包、重新打开。实现见 `src/update.rs`。
+
+更新签名密钥只生成一次（`brew install minisign`），私钥放在仓库外，公钥提交：
+
+```sh
+minisign -G -f -p packaging/update-key.pub -s ~/.minisign/quiet-md.key
+```
+
+脚本会用 `packaging/update-key.pub` 校验刚签的包，公钥和私钥对不上就停止。私钥丢了只能换公钥，已安装的旧版本就收不到之后的更新了，请备份。
+
+本地试更新流程：用 `QUIET_MD_UPDATE_URL=http://127.0.0.1:<端口>` 指向一个放着清单和包的目录，再用 `QUIET_MD_UPDATE_PUBKEY=<测试公钥>` 编译；设了这个变量时，未签名的构建也会检查更新。
+
 发布新版本时，两个 `Cargo.toml` 的版本号一起更新。

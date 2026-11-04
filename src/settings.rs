@@ -35,12 +35,14 @@ pub struct Preferences {
     pub remote_images: bool,
     /// The system-wide quick note hotkey is registered.
     pub quick_hotkey: bool,
+    /// Look for a new version now and then (update.rs).
+    pub auto_update: bool,
     /// Light or dark look: "light", "dark", or empty to follow the system.
     pub appearance: String,
 }
 
 impl Default for Preferences {
-    fn default() -> Self { Preferences { theme: String::new(), feishu: true, english: true, remote_images: true, quick_hotkey: true, appearance: String::new() } }
+    fn default() -> Self { Preferences { theme: String::new(), feishu: true, english: true, remote_images: true, quick_hotkey: true, auto_update: true, appearance: String::new() } }
 }
 
 impl Preferences {
@@ -528,7 +530,8 @@ impl Workspace {
                 .on_click(cx.listener(move |w, _, _, cx| match page { Some(p) => w.open_settings(p, cx), None => w.show_view(View::Trash, cx) }))
         };
         div().w(px(self.sidebar_w(window))).h_full().flex_none().flex().flex_col().text_color(Theme::text()).font_family(theme::UI_FONT)
-            .child(div().h(px(crate::app::HEADER_H)).flex_none().flex().items_center().pl(px(theme::TRAFFIC_LIGHTS_W)).title_bar().child(self.header_navigation(cx)))
+            .child(div().h(px(crate::app::HEADER_H)).flex_none().flex().items_center().pl(px(theme::TRAFFIC_LIGHTS_W)).pr(px(12.)).title_bar().child(self.header_navigation(cx))
+                .child(div().flex_1()).children(update_pill(cx)))
             // The document sidebar's rhythm: 主页 sits 8 under the bar, a section
             // header like 我的文档's, rows on a 31 pitch. 设置's line sits on
             // 主页's, not a section header's: the 34pt box keeps the rows below.
@@ -576,7 +579,7 @@ impl Workspace {
             Page::Appearance => self.appearance_page(cx),
             Page::Shortcuts => self.shortcut_settings(cx),
             Page::Library => self.library_page(cx),
-            Page::About => self.about_page(),
+            Page::About => self.about_page(cx),
         };
         div().flex_1().min_w_0().h_full().flex().flex_col().bg(Theme::bg_body()).text_color(Theme::text()).font_family(theme::UI_FONT)
             // The bar only drags the window; the page title heads the centred column.
@@ -600,6 +603,8 @@ impl Workspace {
                     segmented("lang", &["简体中文", "English"], p.english as usize, |w, i, cx| w.set_pref(|p| p.english = i == 1, cx), cx)).into_any_element(),
                 row(tr("自动下载网络图片", "Download web images"), desc(tr("关闭后不联网，网络图片显示为占位，点击单独加载。", "When off the app stays offline; web images show a placeholder you can click to load.")),
                     switch("pref-remote", p.remote_images).on_click(cx.listener(|w, _, _, cx| w.set_pref(|p| p.remote_images = !p.remote_images, cx)))).into_any_element(),
+                row(tr("自动检查更新", "Check for updates automatically"), desc(tr("只读取一份版本信息，不发送任何数据；新版本由你决定何时下载安装。", "Reads a version file and sends nothing about you; you decide when to download and install.")),
+                    switch("pref-update", p.auto_update).on_click(cx.listener(|w, _, _, cx| w.set_pref(|p| p.auto_update = !p.auto_update, cx)))).into_any_element(),
             ]))
             .into_any_element()
     }
@@ -676,14 +681,62 @@ impl Workspace {
             .into_any_element()
     }
 
-    fn about_page(&self) -> AnyElement {
-        div().w_full().pt(px(24.)).flex().flex_col().items_center().gap(px(10.))
+    fn about_page(&self, cx: &mut Context<Self>) -> AnyElement {
+        div().w_full().flex().flex_col().gap(px(28.)).child(div().w_full().pt(px(24.)).flex().flex_col().items_center().gap(px(10.))
             .child(img(about_icon()).size(px(88.)))
             .child(div().text_size(px(20.)).line_height(px(26.)).font_weight(FontWeight::SEMIBOLD).child("quiet.md"))
             .child(div().text_size(px(13.)).line_height(px(18.)).text_color(Theme::text_caption()).child(format!("{} {}", tr("版本", "Version"), env!("CARGO_PKG_VERSION"))))
-            .child(div().text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child(tr("本地优先的笔记应用：无需账号，文档就是你电脑上的文件。", "Local-first notes: no account, your documents are files on your Mac.")))
+            .child(div().text_size(px(13.)).line_height(px(20.)).text_color(Theme::text_caption()).child(tr("本地优先的笔记应用：无需账号，文档就是你电脑上的文件。", "Local-first notes: no account, your documents are files on your Mac."))))
+            .child(group(None, vec![update_row(cx).into_any_element()]))
             .into_any_element()
     }
+}
+
+/// The sidebar bar's 更新 pill, only while a new version is on offer:
+/// 更新 downloads it, 重启以更新 installs it.
+pub(crate) fn update_pill(cx: &mut Context<Workspace>) -> Option<AnyElement> {
+    use crate::update::State;
+    let state = crate::update::state(cx);
+    let (label, tip) = match &state {
+        State::Available(m) => (tr("更新", "Update"), crate::localized_format!("下载 quiet.md {}", "Download quiet.md {}", m.version)),
+        State::Downloading(m) => (tr("正在下载…", "Downloading…"), crate::localized_format!("正在下载 {}…", "Downloading {}…", m.version)),
+        State::Ready(m, _) => (tr("重启以更新", "Restart to Update"), crate::localized_format!("重启后更新到 {}，打开的文档会先保存", "Restart into {}; open documents are saved first", m.version)),
+        State::Installing(m) => (tr("退出后更新", "Updates on quit"), crate::localized_format!("quiet.md 退出后安装 {}", "{} installs when quiet.md quits", m.version)),
+        _ => return None,
+    };
+    let busy = matches!(state, State::Downloading(_) | State::Installing(_));
+    Some(div().id("update-pill").no_drag().flex_none().h(px(24.)).px(px(10.)).flex().items_center().rounded_full()
+        .text_size(px(12.)).line_height(px(16.)).font_weight(FontWeight::MEDIUM)
+        .when(!busy, |d| d.cursor_pointer().bg(Theme::primary()).text_color(gpui::white()).hover(|s| s.opacity(0.9)))
+        .when(busy, |d| d.bg(Theme::sidebar_hover()).text_color(Theme::text_caption()))
+        .child(label)
+        .tip(&tip, None)
+        .on_click(move |_, _, cx| match &state { State::Available(_) => crate::update::download(cx), State::Ready(..) => crate::update::install(cx), _ => {} })
+        .into_any_element())
+}
+
+/// 软件更新: where the updater stands and the one next step.
+fn update_row(cx: &mut Context<Workspace>) -> Div {
+    use crate::update::State;
+    let state = crate::update::state(cx);
+    let (title, detail): (SharedString, Option<SharedString>) = match &state {
+        State::Idle => (tr("软件更新", "Software update").into(), None),
+        State::Unsupported => (tr("软件更新", "Software update").into(), desc(tr("这个版本不能自动更新，请从网站下载新版本。", "This copy cannot update itself. Download new versions from the website."))),
+        State::Checking => (tr("正在检查更新…", "Checking for updates…").into(), None),
+        State::Current => (tr("已是最新版本", "quiet.md is up to date").into(), None),
+        State::Available(m) => (crate::localized_format!("新版本 {} 可用", "Version {} is available", m.version).into(), None),
+        State::Downloading(m) => (crate::localized_format!("正在下载 {}…", "Downloading {}…", m.version).into(), None),
+        State::Ready(m, _) => (crate::localized_format!("{} 已准备好", "{} is ready to install", m.version).into(), desc(tr("重启后完成更新，打开的文档会先保存。", "quiet.md restarts to finish; open documents are saved first."))),
+        State::Installing(m) => (crate::localized_format!("{} 将在退出后安装", "{} installs when quiet.md quits", m.version).into(), None),
+        State::Failed(e) => (tr("更新失败", "Update failed").into(), Some(e.clone().into())),
+    };
+    let control = match &state {
+        State::Checking | State::Downloading(_) | State::Installing(_) => None,
+        State::Available(_) => Some(button("update-download", tr("下载更新", "Download")).on_click(|_, _, cx| crate::update::download(cx))),
+        State::Ready(..) => Some(button("update-install", tr("重启以更新", "Restart to Update")).on_click(|_, _, cx| crate::update::install(cx))),
+        _ => Some(button("update-check", tr("检查更新", "Check Now")).on_click(|_, _, cx| crate::update::check(true, cx))),
+    };
+    row(title, detail, div().children(control))
 }
 
 /// The app icon resampled once to 176px, its size at 88pt on a 2x screen.
