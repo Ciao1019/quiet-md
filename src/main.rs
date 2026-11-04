@@ -60,6 +60,32 @@ fn set_app_icon() {
     }
 }
 
+/// The main window, centred at the remembered size.
+fn open_main_window(scripted: bool, cx: &mut App) {
+    // Scripted dev runs must not steal keyboard focus from whatever the
+    // user is typing into.
+    let bounds = Bounds::centered(None, quick_note::main_window_size(cx), cx);
+    cx.open_window(
+        WindowOptions {
+            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            window_background: WindowBackgroundAppearance::Blurred,
+            titlebar: Some(TitlebarOptions {
+                title: Some("quiet.md".into()),
+                appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
+                traffic_light_position: Some(point(px(20.), px(app::HEADER_H / 2. - 7.))),
+            }),
+            window_min_size: Some(size(px(480.), px(480.))),
+            focus: !scripted,
+            ..Default::default()
+        },
+        |window, cx| {
+            devtools::start(window, cx);
+            cx.new(|cx| app::Workspace::new(window, cx))
+        },
+    )
+    .expect("open window");
+}
+
 fn main() {
     let scripted = std::env::var_os("FDL_SCRIPT").is_some();
     // No single-instance guard: copies may share a library (builds tested
@@ -69,7 +95,11 @@ fn main() {
         eprintln!("无法初始化开始指南：{err:#}");
         return;
     }
-    Application::new().with_assets(assets::Assets).run(move |cx: &mut App| {
+    let app = Application::new().with_assets(assets::Assets);
+    // macOS keeps running after ⌘W closes the last window (quick notes stay
+    // available); clicking the Dock icon then brings the main window back.
+    app.on_reopen(|cx| if cx.windows().is_empty() { open_main_window(false, cx); });
+    app.run(move |cx: &mut App| {
         #[cfg(target_os = "macos")]
         set_app_icon();
         editor::math::load_fonts(cx);
@@ -84,28 +114,7 @@ fn main() {
         let quick_enabled = !scripted;
         if quick_enabled { quick_note::install(cx); }
         app::set_menus(cx);
-        // Scripted dev runs must not steal keyboard focus from whatever the
-        // user is typing into.
-        let bounds = Bounds::centered(None, quick_note::main_window_size(cx), cx);
-        cx.open_window(
-            WindowOptions {
-                window_bounds: Some(WindowBounds::Windowed(bounds)),
-                window_background: WindowBackgroundAppearance::Blurred,
-                titlebar: Some(TitlebarOptions {
-                    title: Some("quiet.md".into()),
-                    appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
-                    traffic_light_position: Some(point(px(20.), px(app::HEADER_H / 2. - 7.))),
-                }),
-                window_min_size: Some(size(px(480.), px(480.))),
-                focus: !scripted,
-                ..Default::default()
-            },
-            |window, cx| {
-                devtools::start(window, cx);
-                cx.new(|cx| app::Workspace::new(window, cx))
-            },
-        )
-        .expect("open window");
+        open_main_window(scripted, cx);
         cx.on_window_closed(move |cx| {
             if (!quick_enabled || !cfg!(target_os = "macos")) && cx.windows().is_empty() {
                 cx.quit();

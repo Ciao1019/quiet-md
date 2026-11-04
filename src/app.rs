@@ -17,7 +17,8 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 
-actions!(workspace, [NewDoc, ImportDoc, ToggleSidebar, FocusSearch, FindInDoc, ReplaceInDoc, OpenSettings, OpenAbout, GoHome, CloseWindow, Quit]);
+actions!(workspace, [NewDoc, ImportDoc, ToggleSidebar, FocusSearch, FindInDoc, ReplaceInDoc, OpenSettings, OpenAbout, GoHome, CloseWindow, Quit,
+    HideApp, HideOthers, ShowAll, Minimize, Zoom, ToggleFullScreen]);
 
 /// The menu bar, in the interface language.
 pub fn set_menus(cx: &mut App) {
@@ -30,6 +31,12 @@ pub fn set_menus(cx: &mut App) {
                 MenuItem::separator(),
                 MenuItem::action(tr("设置…", "Settings…"), OpenSettings),
                 MenuItem::separator(),
+                MenuItem::os_submenu(tr("服务", "Services"), SystemMenuType::Services),
+                MenuItem::separator(),
+                MenuItem::action(tr("隐藏 quiet.md", "Hide quiet.md"), HideApp),
+                MenuItem::action(tr("隐藏其他", "Hide Others"), HideOthers),
+                MenuItem::action(tr("全部显示", "Show All"), ShowAll),
+                MenuItem::separator(),
                 MenuItem::action(tr("退出 quiet.md", "Quit quiet.md"), Quit),
             ],
         },
@@ -41,6 +48,32 @@ pub fn set_menus(cx: &mut App) {
                 MenuItem::action(tr("导入为文档…", "Import as Document…"), ImportDoc),
                 MenuItem::separator(),
                 MenuItem::action(tr("关闭窗口", "Close Window"), CloseWindow),
+            ],
+        },
+        // The standard Edit menu: its items act on the focused editor, and
+        // macOS adds 听写 and 表情与符号 to it.
+        Menu {
+            name: tr("编辑", "Edit").into(),
+            items: {
+                use crate::editor::keymap as k;
+                vec![
+                    MenuItem::os_action(tr("撤销", "Undo"), k::Undo, OsAction::Undo),
+                    MenuItem::os_action(tr("重做", "Redo"), k::Redo, OsAction::Redo),
+                    MenuItem::separator(),
+                    MenuItem::os_action(tr("剪切", "Cut"), k::Cut, OsAction::Cut),
+                    MenuItem::os_action(tr("拷贝", "Copy"), k::Copy, OsAction::Copy),
+                    MenuItem::os_action(tr("粘贴", "Paste"), k::Paste, OsAction::Paste),
+                    MenuItem::os_action(tr("全选", "Select All"), k::SelectAll, OsAction::SelectAll),
+                ]
+            },
+        },
+        Menu {
+            name: tr("窗口", "Window").into(),
+            items: vec![
+                MenuItem::action(tr("最小化", "Minimize"), Minimize),
+                MenuItem::action(tr("缩放", "Zoom"), Zoom),
+                MenuItem::separator(),
+                MenuItem::action(tr("进入 / 退出全屏幕", "Enter / Exit Full Screen"), ToggleFullScreen),
             ],
         },
     ]);
@@ -61,6 +94,23 @@ pub fn bind_keys(cx: &mut App) {
         KeyBinding::new("cmd-shift-h", ReplaceInDoc, None),
         KeyBinding::new("cmd-q", Quit, None),
     ]);
+    // macOS app and window keys. ⌥⌘H (隐藏其他) stays with the editor's
+    // 应用上次的颜色, the Feishu shortcut; 隐藏其他 is in the menu. On Windows
+    // the system handles these (Win+↓, Alt+F4), and F11 is full screen.
+    #[cfg(target_os = "macos")]
+    cx.bind_keys([
+        KeyBinding::new("cmd-h", HideApp, None),
+        KeyBinding::new("cmd-m", Minimize, None),
+        KeyBinding::new("ctrl-cmd-f", ToggleFullScreen, None),
+    ]);
+    // Windows: F11 for full screen, and Ctrl+H for 查找和替换 as in Office
+    // and Notepad (written cmd-h: `shortcuts::windows_binding` maps cmd to
+    // ctrl and drops a literal ctrl-h, Cocoa's backspace).
+    #[cfg(not(target_os = "macos"))]
+    cx.bind_keys([KeyBinding::new("f11", ToggleFullScreen, None), KeyBinding::new("cmd-h", ReplaceInDoc, None)]);
+    cx.on_action(|_: &HideApp, cx| cx.hide());
+    cx.on_action(|_: &HideOthers, cx| cx.hide_other_apps());
+    cx.on_action(|_: &ShowAll, cx| cx.unhide_other_apps());
     cx.on_action(|_: &CloseWindow, cx| {
         if let Some(handle) = cx.active_window().and_then(|w| w.downcast::<Workspace>()) {
             // Key dispatch already borrows this window; close after it returns.
@@ -1218,6 +1268,15 @@ impl Render for Workspace {
             .bg(Theme::window())
             .font_family(theme::UI_FONT)
             .text_color(Theme::text())
+            // Window keys act on the window they were pressed in, not on
+            // whichever window macOS considers active.
+            .on_action(cx.listener(|w, _: &CloseWindow, window, cx| {
+                crate::quick_note::persist(cx);
+                if w.save_before(cx, |_, window, _| window.remove_window()) { window.remove_window(); }
+            }))
+            .on_action(|_: &Minimize, window, _| window.minimize_window())
+            .on_action(|_: &Zoom, window, _| window.zoom_window())
+            .on_action(|_: &ToggleFullScreen, window, _| window.toggle_fullscreen())
             .on_action(cx.listener(|w, _: &OpenSettings, _, cx| w.show_view(View::Settings, cx)))
             .on_action(cx.listener(|w, _: &OpenAbout, _, cx| w.open_settings(crate::settings::Page::About, cx)))
             .on_action(cx.listener(|w, _: &GoHome, _, cx| w.show_view(View::Home, cx)))
