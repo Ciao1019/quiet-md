@@ -248,8 +248,9 @@ fn thumb_block_in(b: &crate::model::Block, depth: usize, inherited: Hsla, quote:
             if r.marks.italic || quote { f.style = FontStyle::Italic; }
             let mut ink = if r.marks.link.is_some() { Theme::link() } else { r.marks.text_color.as_ref().and_then(|c| theme::text_color(&c.0)).map(bs::display_ink).unwrap_or(color) };
             if done { ink.a = 0.5; }
-            TextRun { len: r.len, font: f, color: ink,
-                background_color: r.marks.bg_color.as_ref().and_then(|c| theme::bg_color(&c.0)).map(bs::highlight).or_else(|| r.marks.code.then(bs::code_surface)),
+            let mark = r.marks.bg_color.as_ref().and_then(|c| theme::bg_color(&c.0)).map(bs::highlight);
+            TextRun { len: r.len, font: f, color: if mark.is_some() { crate::theme::on_mark(ink) } else { ink },
+                background_color: mark.or_else(|| r.marks.code.then(bs::code_surface)),
                 underline: (r.marks.underline || r.marks.link.is_some()).then_some(UnderlineStyle { thickness: px(s), color: None, wavy: false }),
                 strikethrough: (r.marks.strike || done).then_some(StrikethroughStyle { thickness: px(s), color: None }) }
         }).collect::<Vec<_>>();

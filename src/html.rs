@@ -77,7 +77,10 @@ a { color: #0f5492; text-decoration: underline; text-underline-offset: 2px; }
 .bgb { border-radius: 3px; margin: 0 -7px; padding: 9px 7px; }
 "#;
 
-pub fn to_html(doc: &Document, opts: &Options) -> String {
+/// The document as a standalone page, always in the light colours (it is printed or opened elsewhere).
+pub fn to_html(doc: &Document, opts: &Options) -> String { crate::theme::light(|| page(doc, opts)) }
+
+fn page(doc: &Document, opts: &Options) -> String {
     let title = crate::settings::display_title(&doc.title.text);
     let mut out = String::new();
     let _ = write!(out, "<!DOCTYPE html>\n<html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>{}</title><style>{CSS}</style></head><body>", esc(&title));

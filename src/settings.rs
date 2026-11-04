@@ -35,10 +35,12 @@ pub struct Preferences {
     pub remote_images: bool,
     /// The system-wide quick note hotkey is registered.
     pub quick_hotkey: bool,
+    /// Light or dark look: "light", "dark", or empty to follow the system.
+    pub appearance: String,
 }
 
 impl Default for Preferences {
-    fn default() -> Self { Preferences { theme: String::new(), feishu: true, english: true, remote_images: true, quick_hotkey: true } }
+    fn default() -> Self { Preferences { theme: String::new(), feishu: true, english: true, remote_images: true, quick_hotkey: true, appearance: String::new() } }
 }
 
 impl Preferences {
@@ -60,6 +62,37 @@ fn apply(p: Preferences) {
     // Before the themes are read (startup) the base comes from `feishu`.
     themes::select(&p.theme_id());
     *PREFS.write().unwrap() = Some(p);
+}
+
+/// Tell the OS which look the app wants (macOS: the window material, menus
+/// and dialogs follow it); empty follows the system.
+pub fn apply_appearance(pref: &str) {
+    #[cfg(target_os = "macos")]
+    unsafe {
+        use objc::{class, msg_send, sel, sel_impl};
+        use objc::runtime::Object;
+        let app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+        let name = match pref { "light" => Some(c"NSAppearanceNameAqua"), "dark" => Some(c"NSAppearanceNameDarkAqua"), _ => None };
+        let look: *mut Object = match name {
+            Some(n) => { let s: *mut Object = msg_send![class!(NSString), stringWithUTF8String: n.as_ptr()]; msg_send![class!(NSAppearance), appearanceNamed: s] }
+            None => std::ptr::null_mut(),
+        };
+        let _: () = msg_send![app, setAppearance: look];
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = pref;
+}
+
+/// Draw light or dark as the preference and the system say; true when the look changed.
+pub fn sync_dark(cx: &App) -> bool {
+    let on = match prefs().appearance.as_str() {
+        "light" => false,
+        "dark" => true,
+        _ => matches!(cx.window_appearance(), WindowAppearance::Dark | WindowAppearance::VibrantDark),
+    };
+    let changed = theme::set_dark(on);
+    if changed { themes::touch(); }
+    changed
 }
 
 /// The current preferences (loaded on first use).
@@ -84,7 +117,8 @@ fn save(p: &Preferences) -> anyhow::Result<()> {
 /// Redraw every window's document after the theme or language changed.
 pub(crate) fn refresh_all(this: &mut Workspace, cx: &mut Context<Workspace>) {
     fn refresh(ws: &mut Workspace, cx: &mut Context<Workspace>) {
-        ws.settings_filter.update(cx, |f, cx| f.set_placeholder(tr("搜索快捷键", "Search shortcuts"), cx));
+        ws.settings_filter.update(cx, |f, cx| { f.placeholder_color = Theme::text_disabled(); f.set_placeholder(tr("搜索快捷键", "Search shortcuts"), cx) });
+        ws.search.update(cx, |f, _| f.placeholder_color = Theme::text_disabled());
         if let Some(editor) = &ws.editor {
             editor.update(cx, |e, cx| { e.cache.borrow_mut().clear(); e.refresh_theme(); cx.notify(); });
         }
@@ -167,7 +201,7 @@ pub(crate) fn group(title: Option<&'static str>, rows: Vec<AnyElement>) -> Div {
     let n = rows.len();
     div().w_full().flex().flex_col().gap(px(8.))
         .children(title.map(caption))
-        .child(div().w_full().flex().flex_col().rounded(px(12.)).border_1().border_color(Theme::line_border()).bg(Theme::bg_body()).overflow_hidden()
+        .child(div().w_full().flex().flex_col().rounded(px(12.)).border_1().border_color(Theme::line_border()).bg(crate::theme::raised(Theme::bg_body())).overflow_hidden()
             .children(rows.into_iter().enumerate().map(move |(i, r)| div().w_full().flex().flex_col().when(i + 1 < n, |d| d.border_b_1().border_color(ui::list_line())).child(r))))
 }
 
@@ -201,7 +235,8 @@ fn segmented(id: &'static str, labels: &[&'static str], selected: usize, on: imp
             let on = on.clone();
             div().id((id, i)).h_full().px(px(12.)).flex().items_center().justify_center().rounded(px(7.)).cursor_pointer()
                 .text_size(px(13.)).line_height(px(18.))
-                .when(i == selected, |d| d.bg(Theme::bg_body()).shadow(theme::shadow_button()).text_color(Theme::text()))
+                // In dark mode the picked segment is lighter than the groove (macOS: #636366).
+                .when(i == selected, |d| d.bg(if theme::dark() { theme::rgbaf(0x63, 0x63, 0x66, 1.) } else { Theme::bg_body() }).shadow(theme::shadow_button()).text_color(Theme::text()))
                 .when(i != selected, |d| d.text_color(Theme::text_caption()).hover(|s| s.text_color(Theme::text())))
                 .child(*label)
                 .on_click(cx.listener(move |w, _, _, cx| on(w, i, cx)))
@@ -212,7 +247,7 @@ fn segmented(id: &'static str, labels: &[&'static str], selected: usize, on: imp
 pub(crate) fn keycap(id: impl Into<ElementId>, key: &str, recording: bool) -> Stateful<Div> {
     div().id(id).flex_none().min_w(px(144.)).min_h(px(28.)).px(px(14.)).py(px(4.)).flex().items_center().justify_center().rounded(px(7.)).cursor_pointer()
         .text_size(px(12.)).line_height(px(16.))
-        .when(recording, |d| d.bg(Theme::bg_body()).border_1().border_color(Theme::primary()).text_color(Theme::primary()).child(if key.is_empty() { tr("按下新的组合键…", "Press keys…").to_string() } else { crate::shortcuts::pretty(key) }))
+        .when(recording, |d| d.bg(crate::theme::raised(Theme::bg_body())).border_1().border_color(Theme::primary()).text_color(Theme::primary()).child(if key.is_empty() { tr("按下新的组合键…", "Press keys…").to_string() } else { crate::shortcuts::pretty(key) }))
         .when(!recording, |d| d.bg(Theme::fill_hover()).border_1().border_color(transparent_black()).text_color(Theme::text()).hover(|s| s.bg(Theme::fill_hover_strong())).child(crate::shortcuts::pretty(key)))
 }
 
@@ -225,7 +260,7 @@ pub(crate) fn link_button(id: impl Into<ElementId>, label: &'static str) -> Stat
 
 pub(crate) fn button(id: impl Into<ElementId>, label: &'static str) -> Stateful<Div> {
     div().id(id).flex_none().h(px(28.)).px(px(12.)).flex().items_center().justify_center().rounded(px(8.)).cursor_pointer()
-        .bg(Theme::bg_body()).border_1().border_color(Theme::button_border()).shadow(theme::shadow_button())
+        .bg(crate::theme::raised(Theme::bg_body())).border_1().border_color(Theme::button_border()).shadow(theme::shadow_button())
         .hover(|s| s.bg(theme::c(craft::N100))).active(|s| s.bg(theme::c(craft::N200)))
         .text_size(px(13.)).line_height(px(18.)).text_color(Theme::text()).child(label)
 }
@@ -425,7 +460,8 @@ impl Workspace {
         if p.quick_hotkey != old.quick_hotkey {
             if p.quick_hotkey { crate::quick_note::register(cx); } else { crate::quick_note::suspend_hotkey(); }
         }
-        if p.theme_id() != old.theme_id() || p.english != old.english {
+        if p.appearance != old.appearance { apply_appearance(&p.appearance); }
+        if p.theme_id() != old.theme_id() || p.english != old.english || sync_dark(cx) {
             refresh_all(self, cx);
         }
         cx.notify();
@@ -603,6 +639,11 @@ impl Workspace {
         div().w_full().flex().flex_col().gap(px(28.))
             .child(div().w_full().flex().flex_col().gap(px(8.))
                 .child(group(None, vec![
+                    row(tr("外观", "Appearance"), None, {
+                        let at = match prefs().appearance.as_str() { "light" => 1, "dark" => 2, _ => 0 };
+                        segmented("appearance", &[tr("跟随系统", "System"), tr("浅色", "Light"), tr("深色", "Dark")], at,
+                            |w, i, cx| w.set_pref(|p| p.appearance = ["", "light", "dark"][i].into(), cx), cx)
+                    }).into_any_element(),
                     row(tr("文档主题", "Document theme"), None, picker).into_any_element(),
                     sample.into_any_element(),
                     row(tr("主题 CSS", "Theme CSS"), Some(where_),
