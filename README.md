@@ -93,7 +93,7 @@
 
 ## 你的文件在哪
 
-默认在 `~/Documents/Quiet.md`（Windows 是「文档」下的 `Quiet.md`）。每篇笔记是 `docs/` 里的一份 XML，图片和附件在 `assets/`。保存是原子的：先写临时文件再改名，崩溃也不会留下写了一半的笔记。
+默认在 `~/Documents/Quiet.md`（Windows 是「文档」下的 `Quiet.md`）。每篇笔记是 `docs/` 里的一份 XML，图片和附件在 `assets/`。
 
 目录结构和格式细节见 [docs/FORMAT.md](docs/FORMAT.md)。
 
