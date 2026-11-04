@@ -54,6 +54,7 @@ pub(crate) use window::*;
 
 #[cfg(feature = "font-kit")]
 pub(crate) use text_system::*;
+pub use text_system::check_fallback_glyphs;
 
 /// A frame of video captured from a screen.
 pub(crate) type PlatformScreenCaptureFrame = CVImageBuffer;
