@@ -92,6 +92,8 @@ fn main() {
         shortcuts::init(cx);
         // A space whose folder is gone (an unplugged disk …) opens the default library.
         let (_, store, _) = spaces::open(&spaces::last_id(), cx).expect("open document library");
+        let ui = spaces::store_for(spaces::DEFAULT, cx).unwrap_or_else(|_| store.clone());
+        cx.set_global(spaces::UiStore(ui));
         cx.set_global(store);
         let quick_enabled = !scripted;
         if quick_enabled { quick_note::install(cx); }

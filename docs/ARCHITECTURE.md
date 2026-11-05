@@ -107,7 +107,7 @@ Core 的不变量由 `crates/core/src/editor/fuzz_tests.rs` 在每一步随机�
 | `html.rs` / `printing.rs` / `transfer.rs` | 导出 HTML / PDF、打印、导入导出的界面 |
 | `clipboard.rs` | 系统剪贴板的 HTML 读取，以及脚本模式的模拟剪贴板 |
 | `sidebar.rs` / `tree.rs` | 左栏与文档树（子文档、移动到） |
-| `spaces.rs` | 空间：各自的文档库文件夹、文档主题和 `space.css`，侧栏底部切换条、⌃1–⌃9、⌘⌥← / ⌘⌥→、鼠标侧键、侧栏左右轻扫，⌃⌘N 新窗口；`spaces.json` 放在默认文档库。像 Arc 一样每个窗口一个空间（`Workspace::space`），同一空间的窗口共用一个 `SharedStore`（`Libraries`）。路径和文档主题是全局的（`Store::root_dir`、`themes::active`），所以窗口在绘制和处理输入前先 `enter` 自己的空间；放到后台线程的路径要先在主线程算好 |
+| `spaces.rs` | 空间：各自的文档库文件夹、文档主题和 `space.css`，侧栏底部切换条、⌃1–⌃9、⌘⌥← / ⌘⌥→、鼠标侧键、侧栏左右轻扫，⌃⌘N 新窗口；`spaces.json` 放在默认文档库。像 Arc 一样每个窗口一个空间（`Workspace::space`），同一空间的窗口共用一个 `SharedStore`（`Libraries`），`settings.json` 一律读写默认文档库的（`UiStore`、`Workspace::ui`）。切换时侧栏列表从新空间所在一侧滑入、页面淡入（系统开了「减弱动态效果」时不动）；触控板轻扫抬手后的惯性滚动不再算新的一次。路径和文档主题是全局的（`Store::root_dir`、`themes::active`），所以窗口在绘制和处理输入前先 `enter` 自己的空间；放到后台线程的路径要先在主线程算好 |
 | `home.rs` / `trash.rs` | 主页、回收站 |
 | `search.rs` | 搜索弹窗、高级搜索 |
 | `docmenu.rs` / `docinfo.rs` / `modes.rs` | 「…」菜单、文档信息、编辑 / 阅读切换和快捷键面板 |

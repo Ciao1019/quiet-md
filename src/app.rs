@@ -249,6 +249,8 @@ pub struct Workspace {
     /// The space this window shows (`spaces`); `store` is its library.
     pub space: String,
     pub store: SharedStore,
+    /// The default library's store, for `settings.json` (shared by every space).
+    pub ui: SharedStore,
     pub entries: Vec<Entry>,
     pub current: Option<String>,
     pub editor: Option<Entity<Editor>>,
@@ -319,6 +321,10 @@ pub struct Workspace {
     pub space_theme_anchor: Rc<Cell<Option<Bounds<Pixels>>>>,
     /// A sideways swipe over the sidebar in progress (switches spaces).
     pub swipe: crate::spaces::Swipe,
+    /// The space switch animation: when it began, and which way (±1).
+    pub space_anim: Option<(Instant, f32)>,
+    /// This frame's point in it (`space_motion`).
+    pub(crate) motion: Option<(f32, f32)>,
     _subs: Vec<Subscription>,
 }
 
@@ -415,7 +421,8 @@ impl Workspace {
             }
         })
         .detach();
-        let sidebar_width = store.settings().sidebar_width.unwrap_or(theme::SIDEBAR_WIDTH);
+        let ui = cx.try_global::<crate::spaces::UiStore>().map(|u| u.0.clone()).unwrap_or_else(|| store.clone());
+        let sidebar_width = ui.settings().sidebar_width.unwrap_or(theme::SIDEBAR_WIDTH);
         let mut ws = Workspace {
             quick_note: quick,
             shortcut_recording: None,
@@ -427,6 +434,7 @@ impl Workspace {
             settings_filter,
             space,
             store,
+            ui,
             entries,
             current: None,
             editor: None,
@@ -474,6 +482,8 @@ impl Workspace {
             space_theme_menu: false,
             space_theme_anchor: Default::default(),
             swipe: Default::default(),
+            space_anim: None,
+            motion: None,
             _subs: subs,
         };
         ws.sort();
@@ -1061,7 +1071,7 @@ impl Workspace {
 
     /// 隐藏引用列表 / 显示引用列表: confirm first (hiding can skip it with 不再提示).
     pub(crate) fn ask_refs(&mut self, show: bool, cx: &mut Context<Self>) {
-        if !show && self.store.settings().refs_hide_no_ask {
+        if !show && self.ui.settings().refs_hide_no_ask {
             return self.set_refs_hidden(true, cx);
         }
         self.confirm = Some(Confirm::Refs { show, no_ask: false });
@@ -1294,6 +1304,7 @@ impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
         // Paths and the document theme are this window's space's while it draws.
         self.enter(cx);
+        self.motion = self.space_motion(window);
         self.sync_space_edit(window, cx);
         self.native_sidebar.sync(if self.sidebar_open { self.sidebar_w(window) } else { 0. }, window);
         let sidebar = if self.sidebar_open { Some(if matches!(self.view, View::Settings | View::Trash) { self.render_settings_sidebar(window, cx) } else { self.render_sidebar(window, cx) }) } else { None };
@@ -1346,7 +1357,8 @@ impl Render for Workspace {
         // them (no gutter, radius, border or shadow).
         // A document sits on its theme's page colour.
         let page = if self.view == View::Doc { crate::editor_theme::Theme::bg_body() } else { Theme::bg_body() };
-        let note = div().id("note").relative().flex_1().min_w_0().h_full().flex().bg(page).child(main);
+        let note = div().id("note").relative().flex_1().min_w_0().h_full().flex().bg(page).overflow_hidden()
+            .child(div().flex_1().min_w_0().h_full().flex().map(Self::slide_page(self.motion)).child(main));
         let root = div().id("workspace");
         self.space_actions(root, cx)
             .key_context("Workspace")

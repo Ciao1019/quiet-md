@@ -128,6 +128,11 @@ fn set_last(id: &str, cx: &mut App) {
     if let Err(e) = write(c) { eprintln!("无法保存 spaces.json：{e:#}"); }
 }
 
+/// The default library's store: `settings.json` there holds the window and
+/// sidebar settings for every space, so they look the same whichever is open.
+pub struct UiStore(pub SharedStore);
+impl Global for UiStore {}
+
 /// The library of every space a window has open; windows of one space share it.
 #[derive(Default)]
 struct Libraries(Vec<SharedStore>);
@@ -287,14 +292,35 @@ pub struct SpaceEdit {
     _subs: Vec<Subscription>,
 }
 
-/// A sideways two-finger swipe over the sidebar: how far it went, and
-/// whether it already switched (one switch per swipe).
+/// A sideways two-finger swipe over the sidebar: how far it went, whether
+/// it already switched (one switch per swipe), and whether the fingers
+/// lifted (the momentum events macOS sends after that are not a new swipe).
 #[derive(Clone, Copy)]
-pub struct Swipe { dx: f32, done: bool, at: Instant }
-impl Default for Swipe { fn default() -> Self { Swipe { dx: 0., done: false, at: Instant::now() } } }
+pub struct Swipe { dx: f32, done: bool, lifted: bool, at: Instant }
+impl Default for Swipe { fn default() -> Self { Swipe { dx: 0., done: false, lifted: false, at: Instant::now() } } }
 
 /// Sideways travel that switches the space.
 const SWIPE: f32 = 90.;
+
+/// The switch animation, after Arc's: the new space's documents slide in
+/// from the side it lies on and the page fades in.
+const SLIDE: Duration = Duration::from_millis(300);
+/// How far the list travels (the page half that).
+const SLIDE_PX: f32 = 36.;
+
+/// The system's 减弱动态效果 (Reduce motion): switch without the slide.
+fn reduce_motion() -> bool {
+    #[cfg(target_os = "macos")]
+    unsafe {
+        use objc::{class, msg_send, sel, sel_impl};
+        use objc::runtime::{Object, BOOL, YES};
+        let ws: *mut Object = msg_send![class!(NSWorkspace), sharedWorkspace];
+        let on: BOOL = msg_send![ws, accessibilityDisplayShouldReduceMotion];
+        on == YES
+    }
+    #[cfg(not(target_os = "macos"))]
+    false
+}
 
 impl Workspace {
     /// Make this window's space the current one (`enter`).
@@ -306,15 +332,33 @@ impl Workspace {
         if !self.quick_note { set_last(&self.space, cx) }
     }
 
+    /// The switch animation now: (eased progress 0 → 1, direction ±1), or
+    /// `None` when there is none; asks for the next frame while it runs.
+    pub(crate) fn space_motion(&mut self, window: &mut Window) -> Option<(f32, f32)> {
+        let (at, dir) = self.space_anim?;
+        let t = at.elapsed().as_secs_f32() / SLIDE.as_secs_f32();
+        if t >= 1. { self.space_anim = None; return None }
+        window.request_animation_frame();
+        Some((1. - (1. - t).powi(3), dir))
+    }
+
+    /// The new space's sidebar list, sliding in.
+    pub(crate) fn slide_list(&self, d: Stateful<Div>, m: Option<(f32, f32)>) -> Stateful<Div> {
+        match m { Some((e, dir)) => d.relative().left(px(dir * SLIDE_PX * (1. - e))).opacity(e), None => d }
+    }
+
+    /// The new space's page, fading in.
+    pub(crate) fn slide_page(m: Option<(f32, f32)>) -> impl Fn(Div) -> Div {
+        move |d| match m { Some((e, dir)) => d.relative().left(px(dir * SLIDE_PX * 0.5 * (1. - e))).opacity(0.15 + 0.85 * e), None => d }
+    }
+
     /// Key and menu actions; attached to the window's root, which also
     /// enters the window's space before any of its handlers run.
     pub(crate) fn space_actions(&self, root: Stateful<Div>, cx: &mut Context<Self>) -> Stateful<Div> {
         fn go(w: &mut Workspace, i: usize, window: &mut Window, cx: &mut Context<Workspace>) {
             if let Some(s) = list().get(i) { let id = s.id.clone(); w.switch_space(&id, window, cx); }
         }
-        fn step(w: &mut Workspace, by: isize, window: &mut Window, cx: &mut Context<Workspace>) {
-            if let Some(id) = neighbour(&w.space, by) { w.switch_space(&id, window, cx) }
-        }
+        fn step(w: &mut Workspace, by: isize, window: &mut Window, cx: &mut Context<Workspace>) { step_by_swipe(w, by, window, cx) }
         let (a, b, c) = (self.space.clone(), self.space.clone(), self.space.clone());
         // The mouse's side buttons, as in Arc and Zen: back is the previous space, forward the next.
         let side = |by: isize| cx.listener(move |w: &mut Workspace, _: &MouseDownEvent, window, cx| step(w, by, window, cx));
@@ -361,11 +405,12 @@ impl Workspace {
             Ok(st) => st,
             Err(e) => { self.show_toast_kind(ui::ToastKind::Error, &crate::localized_format!("无法打开空间：{}", "Could not open the space: {}", settings::diagnostic(&format!("{e:#}"))), cx); return false }
         };
+        let dir = if index_of(id) >= index_of(&self.space) { 1. } else { -1. };
+        self.space_anim = (!reduce_motion()).then(|| (Instant::now(), dir));
         self.space = id.into();
         self.store = store;
         self.space_edit = None;
         self.space_activated(cx);
-        self.sidebar_width = self.store.settings().sidebar_width.unwrap_or(crate::theme::SIDEBAR_WIDTH);
         self.reload_library(window, cx);
         if let Some(editor) = &self.editor { editor.update(cx, |e, cx| { e.cache.borrow_mut().clear(); e.refresh_theme(); cx.notify(); }) }
         true
@@ -499,10 +544,13 @@ impl Workspace {
         let d = ev.delta.pixel_delta(px(20.));
         let (dx, dy) = (f32::from(d.x), f32::from(d.y));
         let now = Instant::now();
+        // A new swipe: fingers down, or (a wheel, which has no phases) a pause.
         if matches!(ev.touch_phase, TouchPhase::Started) || now.duration_since(self.swipe.at) > Duration::from_millis(350) { self.swipe = Swipe::default(); }
         self.swipe.at = now;
-        if matches!(ev.touch_phase, TouchPhase::Ended) { self.swipe = Swipe::default(); return }
-        if self.swipe.done || dx.abs() <= dy.abs() * 1.5 { return }
+        // Fingers up: the momentum that follows keeps coming without pauses,
+        // and must not switch again (with two spaces that switched straight back).
+        if matches!(ev.touch_phase, TouchPhase::Ended) { self.swipe.lifted = true; return }
+        if self.swipe.lifted || self.swipe.done || dx.abs() <= dy.abs() * 1.5 { return }
         self.swipe.dx += dx;
         if self.swipe.dx.abs() < SWIPE { return }
         self.swipe.done = true;
@@ -641,8 +689,11 @@ impl Workspace {
     }
 }
 
+/// One space along: the slide follows the step, also where it wraps around.
 fn step_by_swipe(w: &mut Workspace, by: isize, window: &mut Window, cx: &mut Context<Workspace>) {
-    if let Some(id) = neighbour(&w.space, by) { w.switch_space(&id, window, cx) }
+    let Some(id) = neighbour(&w.space, by) else { return };
+    w.switch_space(&id, window, cx);
+    if let Some(a) = w.space_anim.as_mut().filter(|_| w.space == id) { a.1 = by.signum() as f32 }
 }
 
 #[cfg(test)]
