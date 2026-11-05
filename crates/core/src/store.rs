@@ -280,13 +280,29 @@ pub fn image_path(src: &str) -> Option<PathBuf> {
     (!src.is_empty() && !src.contains(':') && src.contains('/')).then(|| Store::root_dir().join(p))
 }
 
+/// The open space's library when it is not the default one (`set_root_dir`).
+static ROOT: std::sync::RwLock<Option<PathBuf>> = std::sync::RwLock::new(None);
+
 impl Store {
-    /// `QUIET_MD_HOME`, else a folder of
-    /// its own in the user's Documents, where they can see and back it up.
-    pub fn root_dir() -> PathBuf {
+    /// The default library: `QUIET_MD_HOME`, else a folder of its own in the
+    /// user's Documents, where they can see and back it up. App-wide files
+    /// (preferences, shortcuts, themes, spaces) live here whatever space is open.
+    pub fn base_dir() -> PathBuf {
         std::env::var_os("QUIET_MD_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|| dirs::document_dir().or_else(|| dirs::home_dir().map(|h| h.join("Documents"))).unwrap_or_else(|| PathBuf::from(".")).join("Quiet.md"))
+    }
+
+    /// The library documents are read from and written to: the open space's
+    /// folder, else `base_dir`.
+    pub fn root_dir() -> PathBuf {
+        ROOT.read().unwrap().clone().unwrap_or_else(Self::base_dir)
+    }
+
+    /// Open another space's library from now on; `None` is the default one.
+    /// Reopen the `Store` after this (`open` reads `root_dir`).
+    pub fn set_root_dir(root: Option<PathBuf>) {
+        *ROOT.write().unwrap() = root;
     }
 
     /// Where pasted / inserted images are copied to.

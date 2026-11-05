@@ -218,6 +218,7 @@ impl Workspace {
             .flex_none()
             .flex()
             .flex_col()
+            .when(self.batch.is_none(), |d| d.child(self.space_strip(cx)))
             .child(footer_line())
             .when(self.batch.is_none(), |d| {
                 d.child(footer_slot(
@@ -243,8 +244,12 @@ impl Workspace {
             .flex_col()
             .child(header)
             .child(nav)
-            .child(div().id("doc-list").flex_1().min_h_0().overflow_y_scroll().track_scroll(&self.list_scroll).child(list))
+            .child(div().id("doc-list").flex_1().min_h_0().overflow_y_scroll().track_scroll(&self.list_scroll)
+                // Sideways scrolling is for switching spaces, not the list.
+                .map(|mut d| { d.style().restrict_scroll_to_axis = Some(true); d })
+                .child(list))
             .child(footer)
+            .on_scroll_wheel(cx.listener(|w, ev: &ScrollWheelEvent, window, cx| w.space_swipe(ev, window, cx)))
             .into_any_element()
     }
 

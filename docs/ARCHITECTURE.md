@@ -87,7 +87,7 @@ Core 的不变量由 `crates/core/src/editor/fuzz_tests.rs` 在每一步随机�
 |---|---|
 | `model.rs` | 文档模型，包括行内对象类型、`display_title` |
 | `docxml.rs` | DocxXML 解析与序列化；`to_inline` 构造行内对象 |
-| `store.rs` | 文档库读写、索引恢复、回收站、设置；`image_path` |
+| `store.rs` | 文档库读写、索引恢复、回收站、设置；`image_path`；`base_dir`（默认文档库，放全局文件）与 `root_dir`（当前空间的文档库） |
 | `paste.rs` | HTML / Markdown → block（粘贴和导入共用） |
 | `markdown.rs` | 导出 Markdown |
 | `lang.rs` | 代码语言表 |
@@ -107,6 +107,7 @@ Core 的不变量由 `crates/core/src/editor/fuzz_tests.rs` 在每一步随机�
 | `html.rs` / `printing.rs` / `transfer.rs` | 导出 HTML / PDF、打印、导入导出的界面 |
 | `clipboard.rs` | 系统剪贴板的 HTML 读取，以及脚本模式的模拟剪贴板 |
 | `sidebar.rs` / `tree.rs` | 左栏与文档树（子文档、移动到） |
+| `spaces.rs` | 空间：各自的文档库文件夹和文档主题，侧栏底部切换条、⌃1–⌃9、⌘⌥← / ⌘⌥→、鼠标侧键、侧栏左右轻扫；`spaces.json` 放在默认文档库。切换对整个应用生效：`Store::set_root_dir` 换文档库，所有窗口先保存再重新载入 |
 | `home.rs` / `trash.rs` | 主页、回收站 |
 | `search.rs` | 搜索弹窗、高级搜索 |
 | `docmenu.rs` / `docinfo.rs` / `modes.rs` | 「…」菜单、文档信息、编辑 / 阅读切换和快捷键面板 |

@@ -24,6 +24,7 @@ mod native_header;
 mod printing;
 mod search;
 mod sidebar;
+mod spaces;
 mod settings;
 mod themes;
 mod shortcuts;
@@ -92,7 +93,8 @@ fn main() {
     // No single-instance guard: copies may share a library (builds tested
     // side by side). `Store` rereads an index another copy rewrote before
     // writing its own, and `guides` seeds a new library only once.
-    if !scripted && let Err(err) = guides::initialize(&store::Store::root_dir()) {
+    spaces::load();
+    if !scripted && let Err(err) = guides::initialize(&store::Store::base_dir()) {
         eprintln!("无法初始化开始指南：{err:#}");
         return;
     }
@@ -108,12 +110,15 @@ fn main() {
         editor::keymap::bind_keys(cx);
         editor::image::bind_keys(cx);
         app::bind_keys(cx);
+        spaces::bind_keys(cx);
         settings::load();
         settings::apply_appearance(&settings::prefs().appearance);
         settings::sync_dark(cx);
         themes::load(&settings::prefs().theme_id(), false, || cx.text_system().all_font_names());
         shortcuts::init(cx);
-        cx.set_global(shared_store::SharedStore::open().expect("open document library"));
+        // A space whose folder is gone (an unplugged disk …) opens the default library.
+        let store = shared_store::SharedStore::open().or_else(|e| { eprintln!("无法打开空间：{e:#}"); spaces::fall_back(); shared_store::SharedStore::open() });
+        cx.set_global(store.expect("open document library"));
         let quick_enabled = !scripted;
         if quick_enabled { quick_note::install(cx); }
         app::set_menus(cx);

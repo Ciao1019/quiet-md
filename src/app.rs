@@ -75,6 +75,9 @@ pub fn set_menus(cx: &mut App) {
                 MenuItem::action(tr("缩放", "Zoom"), Zoom),
                 MenuItem::separator(),
                 MenuItem::action(tr("进入 / 退出全屏幕", "Enter / Exit Full Screen"), ToggleFullScreen),
+                MenuItem::separator(),
+                MenuItem::action(tr("下一个空间", "Next Space"), crate::spaces::NextSpace),
+                MenuItem::action(tr("上一个空间", "Previous Space"), crate::spaces::PrevSpace),
             ],
         },
     ]);
@@ -277,6 +280,12 @@ pub struct Workspace {
     /// Held back by a failed save: runs after 重试 succeeds or 放弃修改.
     pub(crate) after_save: Option<AfterSave>,
     editor_sub: Option<Subscription>,
+    /// 设置 › 空间: the space being edited, its theme dropdown and where that was drawn.
+    pub space_edit: Option<crate::spaces::SpaceEdit>,
+    pub space_theme_menu: bool,
+    pub space_theme_anchor: Rc<Cell<Option<Bounds<Pixels>>>>,
+    /// A sideways swipe over the sidebar in progress (switches spaces).
+    pub swipe: crate::spaces::Swipe,
     _subs: Vec<Subscription>,
 }
 
@@ -428,6 +437,10 @@ impl Workspace {
             unsaved: false,
             after_save: None,
             editor_sub: None,
+            space_edit: None,
+            space_theme_menu: false,
+            space_theme_anchor: Default::default(),
+            swipe: Default::default(),
             _subs: subs,
         };
         ws.sort();
@@ -444,6 +457,39 @@ impl Workspace {
             ws.status = SaveStatus::Failed(msg);
         }
         ws
+    }
+
+    /// Start over on the library now open (another space): nothing of the
+    /// old one stays open. Call with the open document already saved.
+    pub(crate) fn reload_library(&mut self, window: &mut Window, cx: &mut Context<Self>) {
+        self.save_task = None;
+        self.unsaved = false;
+        self.after_save = None;
+        self.editor_sub = None;
+        self.editor = None;
+        self.current = None;
+        self.status = SaveStatus::Idle;
+        (self.row_menu, self.rename, self.batch, self.confirm, self.move_dlg, self.export_md, self.doc_info, self.trash_menu) = (None, None, None, None, None, None, None, None);
+        (self.doc_menu, self.doc_sub, self.mode_menu, self.search_open) = (false, None, false, false);
+        self.expanded.clear();
+        self.entries = self.store.list();
+        self.sort();
+        self.load_home();
+        self.list_scroll.set_offset(point(px(0.), px(0.)));
+        match self.view {
+            View::Doc => match self.entries.first().map(|e| e.id.clone()) {
+                Some(id) => self.open(&id, window, cx),
+                None => self.show_view(View::Home, cx),
+            },
+            View::Trash => self.trash = self.store.list_trash(),
+            View::Home | View::Settings => {}
+        }
+        let warnings = self.store.take_warnings();
+        if !warnings.is_empty() {
+            let msg = warnings.iter().map(|s| crate::settings::diagnostic(s)).collect::<Vec<_>>().join(crate::settings::tr("；", "; "));
+            self.show_toast_kind(ToastKind::Error, &msg, cx);
+        }
+        cx.notify();
     }
 
     /// Most recently modified first.
@@ -1213,6 +1259,7 @@ pub(crate) const HEADER_ACTIONS_H: f32 = 32.;
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        self.sync_space_edit(window, cx);
         self.native_sidebar.sync(if self.sidebar_open { self.sidebar_w(window) } else { 0. }, window);
         let sidebar = if self.sidebar_open { Some(if matches!(self.view, View::Settings | View::Trash) { self.render_settings_sidebar(window, cx) } else { self.render_sidebar(window, cx) }) } else { None };
         let row_menu = self.render_row_menu(window, cx);
@@ -1225,6 +1272,7 @@ impl Render for Workspace {
         let trash_menu = self.render_trash_menu(cx);
         let home_menus = self.render_home_menus(cx);
         let theme_menu = self.render_theme_menu(cx);
+        let space_theme_menu = self.render_space_theme_menu(cx);
         let toast = self.render_toast(window);
         let mode_menu = self.render_mode_menu(cx);
         let main = match self.view {
@@ -1264,8 +1312,8 @@ impl Render for Workspace {
         // A document sits on its theme's page colour.
         let page = if self.view == View::Doc { crate::editor_theme::Theme::bg_body() } else { Theme::bg_body() };
         let note = div().id("note").relative().flex_1().min_w_0().h_full().flex().bg(page).child(main);
-        div()
-            .id("workspace")
+        let root = div().id("workspace");
+        self.space_actions(root, cx)
             .key_context("Workspace")
             .track_focus(&self.focus)
             .relative()
@@ -1363,6 +1411,7 @@ impl Render for Workspace {
             .children(trash_menu)
             .children(home_menus)
             .children(theme_menu)
+            .children(space_theme_menu)
             .children(confirm)
             .children(move_dlg)
             .children(export_md)
