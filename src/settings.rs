@@ -97,7 +97,7 @@ pub fn sync_dark(cx: &App) -> bool {
     changed
 }
 
-/// The document theme drawn now: the open space's own, else the preference.
+/// The document theme drawn now: the current window's space's own, else the preference.
 pub fn theme_id() -> String { crate::spaces::theme_override().unwrap_or_else(|| prefs().theme_id()) }
 
 /// The current preferences (loaded on first use).
@@ -148,7 +148,7 @@ pub(crate) fn refresh_all(this: &mut Workspace, cx: &mut Context<Workspace>) {
 
 /// A theme file in the user's editor; scripted runs only log it (they must
 /// not start other apps).
-fn open_in_editor(p: &std::path::Path, cx: &mut App) {
+pub(crate) fn open_in_editor(p: &std::path::Path, cx: &mut App) {
     if std::env::var_os("FDL_SCRIPT").is_some() { eprintln!("devtools: open {}", p.display()); return }
     cx.open_url(&format!("file://{}", p.display()));
 }
@@ -156,10 +156,10 @@ fn open_in_editor(p: &std::path::Path, cx: &mut App) {
 /// Theme files are watched: saving one in an editor redraws at once.
 pub(crate) fn watch_themes(cx: &mut Context<Workspace>) {
     static LAST: Mutex<Option<Vec<(std::path::PathBuf, std::time::SystemTime, u64)>>> = Mutex::new(None);
-    *LAST.lock().unwrap() = Some(themes::stamp());
+    *LAST.lock().unwrap() = Some(themes::stamp(&crate::spaces::css_files()));
     cx.spawn(async |this, cx| loop {
         cx.background_executor().timer(std::time::Duration::from_millis(800)).await;
-        let now = cx.background_executor().spawn(async { themes::stamp() }).await;
+        let now = cx.background_executor().spawn(async { themes::stamp(&crate::spaces::css_files()) }).await;
         let changed = { let mut l = LAST.lock().unwrap(); let c = l.as_ref() != Some(&now); *l = Some(now); c };
         if changed && this.update(cx, |w, cx| w.reload_themes(cx)).is_err() { break }
         if this.upgrade().is_none() { break }
@@ -399,7 +399,7 @@ pub(crate) fn popup_button(id: impl Into<ElementId>, label: impl Into<SharedStri
         .child(ui::icon("chevron-down", 12., Theme::text_caption()))
 }
 
-/// Draw with theme `id`: the open space's when it has its own, else the preference.
+/// Draw with theme `id`: this window's space's when it has its own, else the preference.
 fn apply_theme(w: &mut Workspace, id: String, cx: &mut Context<Workspace>) {
     w.theme_menu = None;
     if crate::spaces::theme_override().is_some() { return w.set_space_theme(&crate::spaces::active().id, id, cx) }

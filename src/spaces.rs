@@ -1,18 +1,25 @@
 //! 空间 (spaces), after Arc's and Zen's: separate libraries side by side,
-//! each with its own folder and, if wanted, its own document theme. The
-//! strip at the sidebar's foot switches them, so do ⌃1 – ⌃9, ⌘⌥← / ⌘⌥→ and
-//! a sideways two-finger swipe over the sidebar, and the mouse's back /
-//! forward side buttons; 设置 › 空间 edits them.
+//! each with its own folder, document theme and CSS laid over that theme
+//! (`space.css` in its folder). The strip at the sidebar's foot switches
+//! them, so do ⌃1 – ⌃9, ⌘⌥← / ⌘⌥→ and a sideways two-finger swipe over the
+//! sidebar, and the mouse's back / forward side buttons; 设置 › 空间 edits them.
 //!
-//! `spaces.json` in the default library (`Store::base_dir`) lists them. The
+//! As in Arc, each window shows a space of its own: switching changes only
+//! that window, and a new window (⌃⌘N) opens in the space of the one it came
+//! from. Windows of one space share its `SharedStore` (`Libraries`). Paths
+//! and the document theme are app-wide statics (`Store::root_dir`,
+//! `themes::active`), so a window `enter`s its space before it draws or
+//! handles input.
+//!
+//! `spaces.json` in the default library (`Store::base_dir`) lists them, and
+//! the space last used, which new windows and the next launch open. The
 //! first space is that default library itself and cannot be removed; the
-//! others keep their folder's path. A space is app-wide, like the library
-//! was: `Store::root_dir` is one for the whole app, so switching saves and
-//! reloads every window. Removing a space never touches its folder.
+//! others keep their folder's path. Removing a space never touches its folder.
 
 use crate::app::{View, Workspace};
 use crate::input::{TextField, TextFieldEvent};
 use crate::settings::{self, tr, Page};
+use crate::shared_store::SharedStore;
 use crate::sidebar as sb;
 use crate::store::Store;
 use crate::theme::Theme;
@@ -23,7 +30,7 @@ use std::path::PathBuf;
 use std::sync::RwLock;
 use std::time::{Duration, Instant};
 
-actions!(workspace, [NextSpace, PrevSpace, GoSpace1, GoSpace2, GoSpace3, GoSpace4, GoSpace5, GoSpace6, GoSpace7, GoSpace8, GoSpace9]);
+actions!(workspace, [NewWindow, NextSpace, PrevSpace, GoSpace1, GoSpace2, GoSpace3, GoSpace4, GoSpace5, GoSpace6, GoSpace7, GoSpace8, GoSpace9]);
 
 /// The default library's id in `spaces.json`.
 pub const DEFAULT: &str = "default";
@@ -47,10 +54,13 @@ pub struct Space {
 #[serde(default)]
 struct Config {
     spaces: Vec<Space>,
+    /// The space last used: new windows and the next launch open it.
     active: String,
 }
 
 static CONFIG: RwLock<Option<Config>> = RwLock::new(None);
+/// The space of the window being drawn or handled (`enter`).
+static CURRENT: RwLock<Option<String>> = RwLock::new(None);
 
 fn path() -> PathBuf { Store::base_dir().join("spaces.json") }
 
@@ -88,23 +98,82 @@ fn write(c: Config) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Startup: read the spaces and open the active one's library.
+/// Startup: read the spaces; paths resolve in the last used one's library.
 pub fn load() {
     let c = read();
-    let active = c.spaces.iter().find(|s| s.id == c.active).cloned().unwrap_or_default();
-    Store::set_root_dir(root(&active));
+    let last = c.spaces.iter().find(|s| s.id == c.active).cloned().unwrap_or_default();
+    Store::set_root_dir(root(&last));
     *CONFIG.write().unwrap() = Some(c);
 }
 
-/// The default library (after a space's folder could not be opened).
-pub fn fall_back() {
-    if let Some(c) = CONFIG.write().unwrap().as_mut() { c.active = DEFAULT.into(); }
-    Store::set_root_dir(None);
+pub fn list() -> Vec<Space> { config().spaces }
+fn find(id: &str) -> Option<Space> { config().spaces.into_iter().find(|s| s.id == id) }
+/// The space of the window being drawn or handled; before any window, the last used.
+pub fn active() -> Space {
+    let c = config();
+    let id = CURRENT.read().unwrap().clone().unwrap_or(c.active.clone());
+    c.spaces.iter().find(|s| s.id == id).or(c.spaces.first()).cloned().unwrap_or_default()
+}
+/// The space last used (new windows open it).
+pub fn last_id() -> String { config().active }
+fn index_of(id: &str) -> usize { list().iter().position(|s| s.id == id).unwrap_or(0) }
+
+/// Remember `id` as the space last used, and make its library the one
+/// windows that are not a space's (quick notes, window sizes) use.
+fn set_last(id: &str, cx: &mut App) {
+    if let Some(st) = cx.try_global::<Libraries>().and_then(|l| find(id).and_then(|s| l.0.iter().find(|st| st.root() == folder(&s)).cloned())) { cx.set_global(st) }
+    let mut c = config();
+    if c.active == id { return }
+    c.active = id.into();
+    if let Err(e) = write(c) { eprintln!("无法保存 spaces.json：{e:#}"); }
 }
 
-pub fn list() -> Vec<Space> { config().spaces }
-pub fn active() -> Space { let c = config(); c.spaces.iter().find(|s| s.id == c.active).cloned().unwrap_or_default() }
-pub fn active_index() -> usize { let c = config(); c.spaces.iter().position(|s| s.id == c.active).unwrap_or(0) }
+/// The library of every space a window has open; windows of one space share it.
+#[derive(Default)]
+struct Libraries(Vec<SharedStore>);
+impl Global for Libraries {}
+
+/// Space `id`'s library, opened once.
+pub fn store_for(id: &str, cx: &mut App) -> anyhow::Result<SharedStore> {
+    let s = find(id).ok_or_else(|| anyhow::anyhow!(tr("找不到这个空间", "That space no longer exists")))?;
+    let dir = folder(&s);
+    if let Some(st) = cx.default_global::<Libraries>().0.iter().find(|st| st.root() == dir) { return Ok(st.clone()) }
+    let st = SharedStore::open_at(dir)?;
+    cx.default_global::<Libraries>().0.push(st.clone());
+    Ok(st)
+}
+
+/// Space `id` and its library, or (its folder gone: an unplugged disk …)
+/// the default one and why.
+pub fn open(id: &str, cx: &mut App) -> anyhow::Result<(String, SharedStore, Option<String>)> {
+    match store_for(id, cx) {
+        Ok(st) => Ok((id.into(), st, None)),
+        Err(e) if id != DEFAULT => store_for(DEFAULT, cx).map(|st| (DEFAULT.into(), st, Some(crate::localized_format!("无法打开空间：{}", "Could not open the space: {}", settings::diagnostic(&format!("{e:#}")))))),
+        Err(e) => Err(e),
+    }
+}
+
+/// Resolve paths in space `id`'s library and draw with its theme and CSS,
+/// until another window enters its own.
+pub fn enter(id: &str, cx: &App) {
+    let c = config();
+    let s = c.spaces.iter().find(|s| s.id == id).or(c.spaces.first()).cloned().unwrap_or_default();
+    Store::set_root_dir(root(&s));
+    let theme = if s.theme.is_empty() { settings::prefs().theme_id() } else { s.theme.clone() };
+    let css = css_path(&s);
+    *CURRENT.write().unwrap() = Some(s.id);
+    crate::themes::show(&theme, &css, || cx.text_system().all_font_names());
+}
+
+/// `enter` the space of the window `window` (from an editor, after an await).
+pub fn enter_window(window: &Window, cx: &App) {
+    if let Some(Some(w)) = window.root::<Workspace>() { enter(&w.read(cx).space, cx) }
+}
+
+/// The CSS a space lays over its document theme.
+pub fn css_path(s: &Space) -> PathBuf { folder(s).join("space.css") }
+/// Every space's CSS file (watched like the theme files).
+pub fn css_files() -> Vec<PathBuf> { list().iter().map(css_path).collect() }
 
 /// The library folder `Store::set_root_dir` takes: `None` for the default library.
 pub fn root(s: &Space) -> Option<PathBuf> {
@@ -138,18 +207,8 @@ pub fn glyph(s: &Space) -> String {
     name(s).chars().next().map(|c| c.to_uppercase().collect()).unwrap_or_default()
 }
 
-/// The active space's own document theme.
+/// The current window's space's own document theme.
 pub fn theme_override() -> Option<String> { Some(active().theme).filter(|t| !t.is_empty()) }
-
-/// Make `id` the active space and point the library there; reopen the store after.
-fn set_active(id: &str) -> anyhow::Result<()> {
-    let mut c = config();
-    let s = c.spaces.iter().find(|s| s.id == id).cloned().ok_or_else(|| anyhow::anyhow!(tr("找不到这个空间", "That space no longer exists")))?;
-    c.active = id.into();
-    write(c)?;
-    Store::set_root_dir(root(&s));
-    Ok(())
-}
 
 /// A new space with a folder of its own inside the default library's `spaces/` (kept relative).
 fn add() -> anyhow::Result<Space> {
@@ -176,14 +235,15 @@ fn remove(id: &str) -> anyhow::Result<()> {
     write(c)
 }
 
-/// Moves one place along the strip, wrapping like Arc.
-fn neighbour(step: isize) -> Option<String> {
+/// One place along the strip from space `from`, wrapping like Arc.
+fn neighbour(from: &str, step: isize) -> Option<String> {
     let list = list();
-    (list.len() > 1).then(|| list[(active_index() as isize + step).rem_euclid(list.len() as isize) as usize].id.clone())
+    (list.len() > 1).then(|| list[(index_of(from) as isize + step).rem_euclid(list.len() as isize) as usize].id.clone())
 }
 
 pub fn bind_keys(cx: &mut App) {
     cx.bind_keys([
+        KeyBinding::new("ctrl-cmd-n", NewWindow, None),
         KeyBinding::new("cmd-alt-right", NextSpace, None),
         KeyBinding::new("cmd-alt-left", PrevSpace, None),
         KeyBinding::new("ctrl-1", GoSpace1, None),
@@ -204,6 +264,21 @@ fn jump_action(i: usize) -> Option<(String, &'static str)> {
     (i < 9).then(|| (format!("workspace::GoSpace{}", i + 1), DEFAULTS[i]))
 }
 
+/// What `space.css` starts as.
+fn css_template(s: &Space) -> String {
+    crate::localized_format!(
+        "/* 空间「{}」的 CSS：叠加在这个空间的文档主题上，写法与主题 CSS 相同（见 docs/THEMES.md）。\n   这里的变量和规则优先于主题，保存后立即生效。例如：\n\n.page {{ background-color: #fbf8f1; font-size: 17px; }}\n.title {{ color: #9a3412; }}\n*/\n",
+        "/* CSS of the space “{}”: laid over this space’s document theme, written like theme CSS (see docs/THEMES.md).\n   Its variables and rules win over the theme’s, as soon as the file is saved. For example:\n\n.page {{ background-color: #fbf8f1; font-size: 17px; }}\n.title {{ color: #9a3412; }}\n*/\n",
+        name(s))
+}
+
+/// The other main windows, and note windows, that may be updated now (not
+/// one on the update stack: GPUI panics on that, and `is_active` is None for it).
+fn other_windows(me: EntityId, cx: &mut App) -> Vec<WindowHandle<Workspace>> {
+    cx.windows().into_iter().filter_map(|w| w.downcast::<Workspace>())
+        .filter(|h| h.is_active(cx).is_some() && h.entity(cx).is_ok_and(|e| e.entity_id() != me)).collect()
+}
+
 /// The space edited in 设置 › 空间: its id and its name and icon fields.
 pub struct SpaceEdit {
     pub id: String,
@@ -222,17 +297,40 @@ impl Default for Swipe { fn default() -> Self { Swipe { dx: 0., done: false, at:
 const SWIPE: f32 = 90.;
 
 impl Workspace {
-    /// Key and menu actions; attached to the window's root.
+    /// Make this window's space the current one (`enter`).
+    pub(crate) fn enter(&self, cx: &App) { enter(&self.space, cx) }
+
+    /// This window became the active one: its space is the last used.
+    pub(crate) fn space_activated(&self, cx: &mut Context<Self>) {
+        self.enter(cx);
+        if !self.quick_note { set_last(&self.space, cx) }
+    }
+
+    /// Key and menu actions; attached to the window's root, which also
+    /// enters the window's space before any of its handlers run.
     pub(crate) fn space_actions(&self, root: Stateful<Div>, cx: &mut Context<Self>) -> Stateful<Div> {
         fn go(w: &mut Workspace, i: usize, window: &mut Window, cx: &mut Context<Workspace>) {
             if let Some(s) = list().get(i) { let id = s.id.clone(); w.switch_space(&id, window, cx); }
         }
+        fn step(w: &mut Workspace, by: isize, window: &mut Window, cx: &mut Context<Workspace>) {
+            if let Some(id) = neighbour(&w.space, by) { w.switch_space(&id, window, cx) }
+        }
+        let (a, b, c) = (self.space.clone(), self.space.clone(), self.space.clone());
         // The mouse's side buttons, as in Arc and Zen: back is the previous space, forward the next.
-        let side = |step: isize| cx.listener(move |w: &mut Workspace, _: &MouseDownEvent, window, cx| if let Some(id) = neighbour(step) { w.switch_space(&id, window, cx) });
-        root.on_mouse_down(MouseButton::Navigate(NavigationDirection::Back), side(-1))
+        let side = |by: isize| cx.listener(move |w: &mut Workspace, _: &MouseDownEvent, window, cx| step(w, by, window, cx));
+        root.capture_any_mouse_down(move |_, _, cx| enter(&a, cx))
+            .capture_any_mouse_up(move |_, _, cx| enter(&b, cx))
+            .capture_key_down(move |_, _, cx| enter(&c, cx))
+            .on_mouse_down(MouseButton::Navigate(NavigationDirection::Back), side(-1))
             .on_mouse_down(MouseButton::Navigate(NavigationDirection::Forward), side(1))
-            .on_action(cx.listener(|w, _: &NextSpace, window, cx| if let Some(id) = neighbour(1) { w.switch_space(&id, window, cx) }))
-            .on_action(cx.listener(|w, _: &PrevSpace, window, cx| if let Some(id) = neighbour(-1) { w.switch_space(&id, window, cx) }))
+            .on_action(cx.listener(|w, _: &NewWindow, window, cx| {
+                // Saved first: the new window may open the same document.
+                w.flush(cx);
+                let (space, from) = (w.space.clone(), window.bounds());
+                cx.defer(move |cx| crate::app::open_main_window(Some(space), Some(from), cx));
+            }))
+            .on_action(cx.listener(|w, _: &NextSpace, window, cx| step(w, 1, window, cx)))
+            .on_action(cx.listener(|w, _: &PrevSpace, window, cx| step(w, -1, window, cx)))
             .on_action(cx.listener(|w, _: &GoSpace1, window, cx| go(w, 0, window, cx)))
             .on_action(cx.listener(|w, _: &GoSpace2, window, cx| go(w, 1, window, cx)))
             .on_action(cx.listener(|w, _: &GoSpace3, window, cx| go(w, 2, window, cx)))
@@ -244,40 +342,42 @@ impl Workspace {
             .on_action(cx.listener(|w, _: &GoSpace9, window, cx| go(w, 8, window, cx)))
     }
 
-    /// Open space `id`. Every window's document is saved first; when one
-    /// cannot be, nothing changes (this window asks 重试 / 放弃修改 first).
+    /// Show space `id` in this window (other windows keep theirs). Its
+    /// document is saved first; when it cannot be, nothing changes (this
+    /// window asks 重试 / 放弃修改 first).
     pub(crate) fn switch_space(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
-        if active().id == id { return }
+        if self.space == id { return }
         let target = id.to_string();
         if !self.save_before(cx, move |w, window, cx| w.switch_space(&target, window, cx)) { return }
-        let me = cx.entity_id();
-        let others: Vec<WindowHandle<Workspace>> = cx.windows().into_iter().filter_map(|w| w.downcast::<Workspace>())
-            .filter(|h| h.is_active(cx).is_some() && h.entity(cx).is_ok_and(|e| e.entity_id() != me)).collect();
-        for h in &others {
-            if !h.update(cx, |ws, _, cx| ws.flush(cx)).unwrap_or(true) {
-                return self.show_toast_kind(ui::ToastKind::Error, tr("另一个窗口的文档未能保存，没有切换空间", "A document in another window could not be saved, so the space was not switched"), cx);
-            }
+        if self.open_space(id, window, cx) {
+            self.show_toast(&crate::localized_format!("已切换到「{}」", "Switched to “{}”", name(&active())), cx);
         }
-        self.open_space(id, window, cx);
-        // Note windows show one document of the old library: they close (already saved).
-        for h in others {
-            let _ = h.update(cx, |ws, window, cx| if ws.quick_note { window.remove_window() } else { ws.reload_library(window, cx) });
-        }
-        settings::refresh_all(self, cx);
-        self.show_toast(&crate::localized_format!("已切换到「{}」", "Switched to “{}”", name(&active())), cx);
     }
 
-    /// Point the app at space `id` (already saved) and reload this window.
-    /// A folder that cannot be opened leaves the space as it was.
-    fn open_space(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
-        let prev = active().id;
-        if let Err(e) = set_active(id).and_then(|_| self.store.reopen()) {
-            let _ = set_active(&prev);
-            let _ = self.store.reopen();
-            return self.show_toast_kind(ui::ToastKind::Error, &crate::localized_format!("无法打开空间：{}", "Could not open the space: {}", settings::diagnostic(&e.to_string())), cx);
-        }
-        crate::themes::load(&settings::theme_id(), crate::themes::all_loaded(), || cx.text_system().all_font_names());
+    /// Show space `id` (this window's document already saved) from its
+    /// folder as it is now. A folder that cannot be opened leaves the window as it was.
+    fn open_space(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) -> bool {
+        let store = match store_for(id, cx) {
+            Ok(st) => st,
+            Err(e) => { self.show_toast_kind(ui::ToastKind::Error, &crate::localized_format!("无法打开空间：{}", "Could not open the space: {}", settings::diagnostic(&format!("{e:#}"))), cx); return false }
+        };
+        self.space = id.into();
+        self.store = store;
+        self.space_edit = None;
+        self.space_activated(cx);
+        self.sidebar_width = self.store.settings().sidebar_width.unwrap_or(crate::theme::SIDEBAR_WIDTH);
         self.reload_library(window, cx);
+        if let Some(editor) = &self.editor { editor.update(cx, |e, cx| { e.cache.borrow_mut().clear(); e.refresh_theme(); cx.notify(); }) }
+        true
+    }
+
+    /// Every other window showing space `id` runs `f` (deferred: this one may be mid-update).
+    fn each_window_of(&self, id: &str, cx: &mut Context<Self>, f: impl Fn(&mut Workspace, &mut Window, &mut Context<Workspace>) + 'static) {
+        let id = id.to_string();
+        let others = other_windows(cx.entity_id(), cx);
+        cx.defer(move |cx| for h in others {
+            let _ = h.update(cx, |w, window, cx| if w.space == id { f(w, window, cx) });
+        });
     }
 
     fn add_space(&mut self, window: &mut Window, cx: &mut Context<Self>) {
@@ -291,18 +391,36 @@ impl Workspace {
         }
     }
 
+    /// Every window that shows space `id` goes to the default one first;
+    /// one whose document cannot be saved keeps the space in the list.
     fn remove_space(&mut self, id: &str, window: &mut Window, cx: &mut Context<Self>) {
         if id == DEFAULT { return }
-        if active().id == id {
+        if self.space == id {
             self.switch_space(DEFAULT, window, cx);
-            if active().id == id { return }
+            if self.space == id { return }
+        }
+        for h in other_windows(cx.entity_id(), cx) {
+            let left = h.update(cx, |w, window, cx| { if w.space == id && w.flush(cx) { w.open_space(DEFAULT, window, cx); } w.space != id }).unwrap_or(true);
+            if !left { return self.show_toast_kind(ui::ToastKind::Error, tr("另一个窗口的文档未能保存，没有移除空间", "A document in another window could not be saved, so the space was not removed"), cx) }
         }
         if let Err(e) = remove(id) { return self.show_toast_kind(ui::ToastKind::Error, &e.to_string(), cx) }
+        if last_id() == id { set_last(DEFAULT, cx) }
         self.space_edit = None;
+        settings::refresh_all(self, cx);
         self.show_toast(tr("已移除空间，文件夹里的文档保留在原处", "Space removed; its documents stay in their folder"), cx);
     }
 
-    /// Choose space `id`'s folder; the active space reopens from there.
+    /// Open (and first write) space `id`'s `space.css` in the user's editor.
+    fn edit_space_css(&mut self, id: &str, cx: &mut Context<Self>) {
+        let Some(s) = find(id) else { return };
+        let p = css_path(&s);
+        let made = if p.exists() { Ok(()) } else { std::fs::create_dir_all(folder(&s)).and_then(|_| std::fs::write(&p, css_template(&s))) };
+        if let Err(e) = made { return self.show_toast_kind(ui::ToastKind::Error, &e.to_string(), cx) }
+        settings::open_in_editor(&p, cx);
+        self.reload_themes(cx);
+    }
+
+    /// Choose space `id`'s folder; windows showing it reopen from there.
     fn pick_space_folder(&mut self, id: &str, cx: &mut Context<Self>) {
         let picked = crate::devtools::take_pick();
         let prompt = picked.is_none().then(|| cx.prompt_for_paths(PathPromptOptions { files: false, directories: true, multiple: false, prompt: Some(tr("选择", "Choose").into()), extensions: None }));
@@ -315,10 +433,14 @@ impl Workspace {
                     return w.show_toast_kind(ui::ToastKind::Error, tr("另一个空间已经使用这个文件夹", "Another space already uses this folder"), cx);
                 }
                 if let Err(e) = update(&id, |s| s.dir = dir.display().to_string()) { return w.show_toast_kind(ui::ToastKind::Error, &e.to_string(), cx) }
-                if active().id == id {
-                    let Some(h) = cx.windows().into_iter().find_map(|h| h.downcast::<Workspace>().filter(|h| h.entity(cx).is_ok_and(|e| e.entity_id() == cx.entity_id()))) else { return };
-                    cx.defer(move |cx| { let _ = h.update(cx, |w, window, cx| { if w.flush(cx) { w.open_space(&id, window, cx); settings::refresh_all(w, cx); } }); });
+                // Windows showing it: saved to the old folder, then reopened from the new one.
+                let reopen = |w: &mut Workspace, window: &mut Window, cx: &mut Context<Workspace>| { let id = w.space.clone(); if w.flush(cx) { w.open_space(&id, window, cx); } };
+                if w.space == id {
+                    let me = cx.entity_id();
+                    let Some(h) = cx.windows().into_iter().find_map(|h| h.downcast::<Workspace>().filter(|h| h.entity(cx).is_ok_and(|e| e.entity_id() == me))) else { return };
+                    cx.defer(move |cx| { let _ = h.update(cx, reopen); });
                 }
+                w.each_window_of(&id, cx, reopen);
                 cx.notify();
             });
         }).detach();
@@ -327,11 +449,8 @@ impl Workspace {
     pub(crate) fn set_space_theme(&mut self, id: &str, theme: String, cx: &mut Context<Self>) {
         self.space_theme_menu = false;
         if let Err(e) = update(id, |s| s.theme = theme) { return self.show_toast_kind(ui::ToastKind::Error, &e.to_string(), cx) }
-        if active().id == id {
-            crate::themes::load(&settings::theme_id(), crate::themes::all_loaded(), || cx.text_system().all_font_names());
-            settings::refresh_all(self, cx);
-        }
-        cx.notify();
+        // Windows of that space draw with it from their next frame.
+        settings::refresh_all(self, cx);
     }
 
     /// Show space `id` in 设置 › 空间's editor.
@@ -370,7 +489,8 @@ impl Workspace {
         // The list names every space's theme, not only the one in use.
         if !crate::themes::all_loaded() { crate::themes::load(&settings::theme_id(), true, || cx.text_system().all_font_names()); }
         if self.space_edit.as_ref().is_some_and(|e| list().iter().any(|s| s.id == e.id)) { return }
-        self.edit_space(&active().id, window, cx);
+        let id = self.space.clone();
+        self.edit_space(&id, window, cx);
     }
 
     /// Sideways scrolling over the sidebar: a two-finger swipe (or a
@@ -386,14 +506,14 @@ impl Workspace {
         self.swipe.dx += dx;
         if self.swipe.dx.abs() < SWIPE { return }
         self.swipe.done = true;
-        if let Some(id) = neighbour(if self.swipe.dx < 0. { 1 } else { -1 }) { self.switch_space(&id, window, cx); }
+        step_by_swipe(self, if self.swipe.dx < 0. { 1 } else { -1 }, window, cx);
     }
 
     /// The strip above the sidebar's footer: one button per space (the
     /// active one on the selection pill), the active name, and +.
     pub(crate) fn space_strip(&self, cx: &mut Context<Self>) -> Div {
         let spaces = list();
-        let at = active_index();
+        let at = index_of(&self.space);
         let current = spaces.get(at).map(name).unwrap_or_default();
         let chip = |id: SharedString| div().id(id).flex_none().size(px(28.)).flex().items_center().justify_center().rounded(px(8.)).cursor_pointer();
         div().flex_none().px(px(sb::SB_X)).pt(px(4.)).pb(px(2.)).flex().items_center().gap(px(2.))
@@ -419,7 +539,7 @@ impl Workspace {
     /// 设置 › 空间: the list (click to edit, 切换 to open), then the edited space's name, icon, folder and theme.
     pub(crate) fn spaces_page(&self, cx: &mut Context<Self>) -> AnyElement {
         let spaces = list();
-        let at = active_index();
+        let at = index_of(&self.space);
         let edit = self.space_edit.as_ref();
         let rows: Vec<AnyElement> = spaces.iter().enumerate().map(|(i, s)| {
             let on = edit.is_some_and(|e| e.id == s.id);
@@ -445,7 +565,7 @@ impl Workspace {
         let list_group = settings::group(None, rows);
         let add = div().flex().justify_between().items_center().gap(px(16.)).px(px(4.))
             .child(div().flex_1().min_w_0().text_size(px(12.)).line_height(px(17.)).text_color(Theme::text_caption())
-                .child(tr("每个空间有自己的文档库文件夹和文档主题。⌃1–⌃9 直接切换，⌘⌥← / ⌘⌥→、鼠标侧键或在侧栏左右轻扫依次切换。", "Each space has its own documents folder and theme. ⌃1–⌃9 jump to a space; ⌘⌥← / ⌘⌥→, the mouse’s side buttons or a sideways swipe on the sidebar step through them.")))
+                .child(tr("每个空间有自己的文档库文件夹、文档主题和 CSS，每个窗口显示自己的空间。⌃1–⌃9 直接切换，⌘⌥← / ⌘⌥→、鼠标侧键或在侧栏左右轻扫依次切换，⌃⌘N 在新窗口打开当前空间。", "Each space has its own documents folder, theme and CSS, and each window shows a space of its own. ⌃1–⌃9 jump to a space; ⌘⌥← / ⌘⌥→, the mouse’s side buttons or a sideways swipe on the sidebar step through them; ⌃⌘N opens this space in a new window.")))
             .child(settings::button("space-add-btn", tr("新建空间", "New Space")).on_click(cx.listener(|w, _, window, cx| w.add_space(window, cx))));
         let detail = edit.and_then(|e| spaces.iter().find(|s| s.id == e.id).map(|s| (e, s.clone()))).map(|(e, s)| {
             let field = |f: &Entity<TextField>, w: f32| div().w(px(w)).h(px(28.)).px(px(8.)).flex().items_center().rounded(px(8.)).bg(Theme::fill_hover()).child(f.clone());
@@ -460,8 +580,12 @@ impl Workspace {
                     w.space_theme_menu = !w.space_theme_menu;
                     cx.notify();
                 }));
-            let (pick_id, rm_id, reveal) = (s.id.clone(), s.id.clone(), folder(&s));
+            let (pick_id, rm_id, css_id, reveal) = (s.id.clone(), s.id.clone(), s.id.clone(), folder(&s));
             let is_default = s.id == DEFAULT;
+            let css = css_path(&s);
+            let theme = if s.theme.is_empty() { settings::prefs().theme_id() } else { s.theme.clone() };
+            let css_note: SharedString = if css.exists() { tr("文件夹里的 space.css，叠加在文档主题上，保存后立即生效。", "space.css in its folder, laid over the document theme; applies as soon as it is saved.").into() }
+                else { tr("还没有。编辑时在文件夹里新建 space.css，叠加在文档主题上。", "None yet. Editing creates space.css in its folder, laid over the document theme.").into() };
             let mut rows = vec![
                 settings::row(tr("名称", "Name"), None, field(&e.name, 200.)).into_any_element(),
                 settings::row(tr("图标", "Icon"), Some(tr("一个表情或一两个字母；留空用名称的首字。", "An emoji or a letter or two; empty uses the name’s first letter.").into()), field(&e.icon, 64.)).into_any_element(),
@@ -471,12 +595,16 @@ impl Workspace {
                     .when(!is_default, |d| d.child(settings::button("space-folder", tr("更改…", "Change…")).on_click(cx.listener(move |w, _, _, cx| w.pick_space_folder(&pick_id, cx))))))
                     .into_any_element(),
                 settings::row(tr("文档主题", "Document theme"), None, picker).into_any_element(),
+                settings::row(tr("空间 CSS", "Space CSS"), Some(css_note),
+                    settings::button("space-css", tr("编辑 CSS", "Edit CSS")).on_click(cx.listener(move |w, _, _, cx| w.edit_space_css(&css_id, cx)))).into_any_element(),
             ];
             if !is_default {
                 rows.push(settings::row(tr("移除空间", "Remove space"), Some(tr("只从列表移除，文件夹和其中的文档不会删除。", "Only leaves the list; the folder and its documents are kept.").into()),
                     settings::link_button("space-remove", tr("移除", "Remove")).on_click(cx.listener(move |w, _, window, cx| w.remove_space(&rm_id, window, cx)))).into_any_element());
             }
-            settings::group(None, rows)
+            let warnings = crate::themes::space_warnings(&theme, &css);
+            div().w_full().flex().flex_col().gap(px(8.)).child(settings::group(None, rows))
+                .children(warnings.into_iter().take(8).map(|w| div().px(px(4.)).text_size(px(12.)).line_height(px(18.)).text_color(Theme::danger()).child(format!("space.css {}：{w}", tr("未生效", "ignored")))))
         });
         div().w_full().flex().flex_col().gap(px(28.))
             .child(div().w_full().flex().flex_col().gap(px(8.)).child(list_group).child(add))
@@ -511,6 +639,10 @@ impl Workspace {
             .child(div().id("space-theme-list").w(px(220.)).max_h(px(302.)).overflow_y_scroll().py(px(ui::MENU_PAD_Y)).flex().flex_col().children(rows));
         Some(deferred(anchored().anchor(Corner::TopRight).position(point(b.right(), b.bottom() + px(4.))).snap_to_window_with_margin(px(8.)).child(menu)).with_priority(2).into_any_element())
     }
+}
+
+fn step_by_swipe(w: &mut Workspace, by: isize, window: &mut Window, cx: &mut Context<Workspace>) {
+    if let Some(id) = neighbour(&w.space, by) { w.switch_space(&id, window, cx) }
 }
 
 #[cfg(test)]

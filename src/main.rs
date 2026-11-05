@@ -62,32 +62,6 @@ fn set_app_icon() {
     }
 }
 
-/// The main window, centred at the remembered size.
-fn open_main_window(scripted: bool, cx: &mut App) {
-    // Scripted dev runs must not steal keyboard focus from whatever the
-    // user is typing into.
-    let bounds = Bounds::centered(None, quick_note::main_window_size(cx), cx);
-    cx.open_window(
-        WindowOptions {
-            window_bounds: Some(WindowBounds::Windowed(bounds)),
-            window_background: WindowBackgroundAppearance::Blurred,
-            titlebar: Some(TitlebarOptions {
-                title: Some("quiet.md".into()),
-                appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
-                traffic_light_position: Some(point(px(20.), px(app::HEADER_H / 2. - 7.))),
-            }),
-            window_min_size: Some(size(px(480.), px(480.))),
-            focus: !scripted,
-            ..Default::default()
-        },
-        |window, cx| {
-            devtools::start(window, cx);
-            cx.new(|cx| app::Workspace::new(window, cx))
-        },
-    )
-    .expect("open window");
-}
-
 fn main() {
     let scripted = std::env::var_os("FDL_SCRIPT").is_some();
     // No single-instance guard: copies may share a library (builds tested
@@ -101,7 +75,7 @@ fn main() {
     let app = Application::new().with_assets(assets::Assets);
     // macOS keeps running after ⌘W closes the last window (quick notes stay
     // available); clicking the Dock icon then brings the main window back.
-    app.on_reopen(|cx| if cx.windows().is_empty() { open_main_window(false, cx); });
+    app.on_reopen(|cx| if cx.windows().is_empty() { app::open_main_window(None, None, cx); });
     app.run(move |cx: &mut App| {
         #[cfg(target_os = "macos")]
         set_app_icon();
@@ -117,13 +91,13 @@ fn main() {
         themes::load(&settings::prefs().theme_id(), false, || cx.text_system().all_font_names());
         shortcuts::init(cx);
         // A space whose folder is gone (an unplugged disk …) opens the default library.
-        let store = shared_store::SharedStore::open().or_else(|e| { eprintln!("无法打开空间：{e:#}"); spaces::fall_back(); shared_store::SharedStore::open() });
-        cx.set_global(store.expect("open document library"));
+        let (_, store, _) = spaces::open(&spaces::last_id(), cx).expect("open document library");
+        cx.set_global(store);
         let quick_enabled = !scripted;
         if quick_enabled { quick_note::install(cx); }
         app::set_menus(cx);
         update::init(cx);
-        open_main_window(scripted, cx);
+        app::open_main_window(None, None, cx);
         cx.on_window_closed(move |cx| {
             if (!quick_enabled || !cfg!(target_os = "macos")) && cx.windows().is_empty() {
                 cx.quit();

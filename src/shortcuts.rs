@@ -142,6 +142,7 @@ fn info(name: &str) -> Option<(usize, &'static str, &'static str)> {
         "AlignLeft" => (4, "左对齐", "Align left"),
         "AlignCenter" => (4, "居中对齐", "Align center"),
         "AlignRight" => (4, "右对齐", "Align right"),
+        "NewWindow" => (5, "新窗口（当前空间）", "New window (this space)"),
         "NextSpace" => (5, "下一个空间", "Next space"),
         "PrevSpace" => (5, "上一个空间", "Previous space"),
         "GoSpace1" => (5, "切换到空间 1", "Go to space 1"),

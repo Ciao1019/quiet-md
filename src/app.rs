@@ -76,11 +76,42 @@ pub fn set_menus(cx: &mut App) {
                 MenuItem::separator(),
                 MenuItem::action(tr("进入 / 退出全屏幕", "Enter / Exit Full Screen"), ToggleFullScreen),
                 MenuItem::separator(),
+                MenuItem::action(tr("新窗口", "New Window"), crate::spaces::NewWindow),
                 MenuItem::action(tr("下一个空间", "Next Space"), crate::spaces::NextSpace),
                 MenuItem::action(tr("上一个空间", "Previous Space"), crate::spaces::PrevSpace),
             ],
         },
     ]);
+}
+
+/// A main window showing space `space` (`None`: the one last used), at the
+/// remembered size: centred, or a step down from `from` (the window it came from).
+pub fn open_main_window(space: Option<String>, from: Option<Bounds<Pixels>>, cx: &mut App) {
+    // Scripted dev runs must not steal keyboard focus from whatever the
+    // user is typing into.
+    let scripted = std::env::var_os("FDL_SCRIPT").is_some();
+    let first = cx.windows().is_empty();
+    let mut bounds = Bounds::centered(None, crate::quick_note::main_window_size(cx), cx);
+    if let Some(b) = from { bounds = Bounds { origin: b.origin + point(px(28.), px(28.)), size: b.size }; }
+    let opened = cx.open_window(
+        WindowOptions {
+            window_bounds: Some(WindowBounds::Windowed(bounds)),
+            window_background: WindowBackgroundAppearance::Blurred,
+            titlebar: Some(TitlebarOptions {
+                title: Some("quiet.md".into()),
+                appears_transparent: cfg!(any(target_os = "macos", target_os = "windows")),
+                traffic_light_position: Some(point(px(20.), px(HEADER_H / 2. - 7.))),
+            }),
+            window_min_size: Some(size(px(480.), px(480.))),
+            focus: !scripted,
+            ..Default::default()
+        },
+        |window, cx| {
+            if first { crate::devtools::start(window, cx); }
+            cx.new(|cx| Workspace::new(space, window, cx))
+        },
+    );
+    if let Err(e) = opened { eprintln!("无法打开窗口：{e:#}"); }
 }
 
 pub fn bind_keys(cx: &mut App) {
@@ -215,6 +246,8 @@ pub struct Workspace {
     /// 快捷键's filter field.
     pub settings_filter: Entity<TextField>,
     native_sidebar: crate::native_header::NativeSidebar,
+    /// The space this window shows (`spaces`); `store` is its library.
+    pub space: String,
     pub store: SharedStore,
     pub entries: Vec<Entry>,
     pub current: Option<String>,
@@ -301,22 +334,21 @@ fn notify_system(title: &str, body: &str) {
 }
 
 impl Workspace {
-    pub fn new(window: &mut Window, cx: &mut Context<Self>) -> Self {
-        Self::new_window(false, window, cx)
+    /// A main window showing space `space` (`None`: the one last used).
+    pub fn new(space: Option<String>, window: &mut Window, cx: &mut Context<Self>) -> Self {
+        Self::build_window(false, None, space, window, cx)
     }
 
-    pub fn new_window(quick: bool, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        Self::build_window(quick, None, window, cx)
-    }
-
+    /// A note window, in the space last used (where the document is).
     pub fn new_document_window(document: Option<String>, window: &mut Window, cx: &mut Context<Self>) -> Self {
-        Self::build_window(true, document, window, cx)
+        Self::build_window(true, document, None, window, cx)
     }
 
-    fn build_window(quick: bool, document: Option<String>, window: &mut Window, cx: &mut Context<Self>) -> Self {
+    fn build_window(quick: bool, document: Option<String>, space: Option<String>, window: &mut Window, cx: &mut Context<Self>) -> Self {
         crate::settings::load();
-        if !cx.has_global::<SharedStore>() { cx.set_global(SharedStore::open().expect("open document library")); }
-        let mut store = cx.global::<SharedStore>().clone();
+        let (space, mut store, space_error) = crate::spaces::open(&space.unwrap_or_else(crate::spaces::last_id), cx).expect("open document library");
+        if !cx.has_global::<SharedStore>() { cx.set_global(store.clone()); }
+        crate::spaces::enter(&space, cx);
         let entries = store.list();
         let search = cx.new(|cx| {
             let mut f = TextField::new("搜索", cx);
@@ -334,7 +366,7 @@ impl Workspace {
             // The system switched between light and dark (or the app's own look changed).
             cx.observe_window_appearance(window, |this, _, cx| if crate::settings::sync_dark(cx) { crate::settings::refresh_all(this, cx); }),
             cx.observe_window_activation(window, |this, window, cx| {
-                if window.is_window_active() { if let Some(id) = &this.current { crate::quick_note::used(id, cx); } this.entries = this.store.list(); this.sort(); cx.notify(); }
+                if window.is_window_active() { this.space_activated(cx); if let Some(id) = &this.current { crate::quick_note::used(id, cx); } this.entries = this.store.list(); this.sort(); cx.notify(); }
                 else { this.cancel_shortcut_recording(cx); this.flush(cx); }
             }),
             cx.subscribe_in(&search, window, |this, _, ev: &TextFieldEvent, window, cx| {
@@ -393,6 +425,7 @@ impl Workspace {
             theme_menu: None,
             theme_anchor: Default::default(),
             settings_filter,
+            space,
             store,
             entries,
             current: None,
@@ -450,7 +483,7 @@ impl Workspace {
             None => ws.new_doc(window, cx),
         }
         // Kept in the top bar (not just a toast): the user should notice.
-        let warnings = ws.store.take_warnings();
+        let warnings: Vec<String> = space_error.into_iter().chain(ws.store.take_warnings()).collect();
         if !warnings.is_empty() {
             let msg = warnings.iter().map(|s| crate::settings::diagnostic(s)).collect::<Vec<_>>().join(crate::settings::tr("；", "; "));
             ws.show_toast_kind(ToastKind::Error, &msg, cx);
@@ -1259,6 +1292,8 @@ pub(crate) const HEADER_ACTIONS_H: f32 = 32.;
 
 impl Render for Workspace {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        // Paths and the document theme are this window's space's while it draws.
+        self.enter(cx);
         self.sync_space_edit(window, cx);
         self.native_sidebar.sync(if self.sidebar_open { self.sidebar_w(window) } else { 0. }, window);
         let sidebar = if self.sidebar_open { Some(if matches!(self.view, View::Settings | View::Trash) { self.render_settings_sidebar(window, cx) } else { self.render_sidebar(window, cx) }) } else { None };

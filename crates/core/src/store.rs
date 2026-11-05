@@ -271,16 +271,20 @@ fn save_json<T: Serialize>(path: &std::path::Path, v: &T) -> Result<()> {
 }
 
 /// Image path for an image block source (only local files are displayed).
-pub fn image_path(src: &str) -> Option<PathBuf> {
+pub fn image_path(src: &str) -> Option<PathBuf> { image_path_in(&Store::root_dir(), src) }
+
+/// `image_path` in the library at `root`.
+pub fn image_path_in(root: &std::path::Path, src: &str) -> Option<PathBuf> {
     let p = PathBuf::from(src.strip_prefix("file://").unwrap_or(src));
     if p.is_absolute() {
         return Some(p);
     }
     // Relative to the library (`assets/…`); not a URI or a cloud token.
-    (!src.is_empty() && !src.contains(':') && src.contains('/')).then(|| Store::root_dir().join(p))
+    (!src.is_empty() && !src.contains(':') && src.contains('/')).then(|| root.join(p))
 }
 
-/// The open space's library when it is not the default one (`set_root_dir`).
+/// The library of the window being drawn or handled when it is not the
+/// default one (`set_root_dir`; each window shows a space of its own).
 static ROOT: std::sync::RwLock<Option<PathBuf>> = std::sync::RwLock::new(None);
 
 impl Store {
@@ -293,14 +297,13 @@ impl Store {
             .unwrap_or_else(|| dirs::document_dir().or_else(|| dirs::home_dir().map(|h| h.join("Documents"))).unwrap_or_else(|| PathBuf::from(".")).join("Quiet.md"))
     }
 
-    /// The library documents are read from and written to: the open space's
-    /// folder, else `base_dir`.
+    /// The library paths resolve against right now: the space of the window
+    /// being drawn or handled, else `base_dir`.
     pub fn root_dir() -> PathBuf {
         ROOT.read().unwrap().clone().unwrap_or_else(Self::base_dir)
     }
 
-    /// Open another space's library from now on; `None` is the default one.
-    /// Reopen the `Store` after this (`open` reads `root_dir`).
+    /// Resolve against another space's library from now on; `None` is the default one.
     pub fn set_root_dir(root: Option<PathBuf>) {
         *ROOT.write().unwrap() = root;
     }
@@ -315,6 +318,9 @@ impl Store {
     pub fn open() -> Result<Self> {
         Self::open_at(Self::root_dir())
     }
+
+    /// The library folder this store reads and writes.
+    pub fn root(&self) -> &std::path::Path { &self.root }
 
     pub fn open_at(root: PathBuf) -> Result<Self> {
         std::fs::create_dir_all(root.join("docs"))?;
@@ -439,7 +445,7 @@ impl Store {
     pub fn size_of(&self, id: &str, doc: &Document) -> u64 {
         let mut n = std::fs::metadata(self.path(id)).map(|m| m.len()).unwrap_or(0);
         for src in doc.asset_sources() {
-            if let Some(p) = image_path(&src) {
+            if let Some(p) = image_path_in(&self.root, &src) {
                 n += std::fs::metadata(p).map(|m| m.len()).unwrap_or(0);
             }
         }
