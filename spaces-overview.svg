@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 490" width="920" height="490" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif">
+  <style>
+    .bg { fill: #ffffff; }
+    .card { fill: #f6f7f9; stroke: #d9dce1; }
+    .space { fill: #ffffff; stroke: #c9ced6; }
+    .active { fill: #eef4ff; stroke: #3d7bfd; stroke-width: 2; }
+    .t { fill: #1f2329; font-size: 14px; }
+    .h { fill: #1f2329; font-size: 15px; font-weight: 600; }
+    .s { fill: #646a73; font-size: 12px; }
+    .m { fill: #646a73; font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .key { fill: #ffffff; stroke: #c9ced6; }
+    .line { stroke: #8f959e; stroke-width: 1.5; fill: none; }
+    .accent { fill: #3d7bfd; }
+    .arrow { fill: #8f959e; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117; }
+      .card { fill: #161b22; stroke: #30363d; }
+      .space { fill: #0d1117; stroke: #30363d; }
+      .active { fill: #10233f; stroke: #4c8dff; }
+      .t, .h { fill: #e6edf3; }
+      .s, .m { fill: #8b949e; }
+      .key { fill: #161b22; stroke: #30363d; }
+      .line { stroke: #6e7681; }
+      .arrow { fill: #6e7681; }
+    }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0 0 L10 5 L0 10 z"/></marker>
+  </defs>
+  <rect class="bg" width="920" height="490" rx="14"/>
+
+  <!-- switching inputs -->
+  <rect class="card" x="20" y="20" width="250" height="450" rx="12"/>
+  <text class="h" x="40" y="52">切换空间</text>
+  <g transform="translate(40 76)">
+    <rect class="key" width="210" height="46" rx="9"/>
+    <text class="t" x="14" y="20">侧栏底部切换条</text>
+    <text class="s" x="14" y="37">点击图标 · 右键编辑 · ＋ 新建</text>
+  </g>
+  <g transform="translate(40 132)">
+    <rect class="key" width="210" height="46" rx="9"/>
+    <text class="t" x="14" y="20">⌃1 – ⌃9</text>
+    <text class="s" x="14" y="37">直接跳到第 N 个空间</text>
+  </g>
+  <g transform="translate(40 188)">
+    <rect class="key" width="210" height="46" rx="9"/>
+    <text class="t" x="14" y="20">⌘⌥← / ⌘⌥→</text>
+    <text class="s" x="14" y="37">上一个 / 下一个，循环</text>
+  </g>
+  <g transform="translate(40 244)">
+    <rect class="key" width="210" height="46" rx="9"/>
+    <text class="t" x="14" y="20">鼠标侧键 后退 / 前进</text>
+    <text class="s" x="14" y="37">窗口内任意位置</text>
+  </g>
+  <g transform="translate(40 300)">
+    <rect class="key" width="210" height="46" rx="9"/>
+    <text class="t" x="14" y="20">双指左右轻扫</text>
+    <text class="s" x="14" y="37">在侧栏上，一次一格</text>
+  </g>
+  <text class="s" x="40" y="380">所有快捷键都能在</text>
+  <text class="s" x="40" y="398">设置 › 快捷键 › 空间 里改</text>
+  <text class="s" x="40" y="428">切换前所有窗口先保存</text>
+
+  <path class="line" d="M270 235 H318" marker-end="url(#a)"/>
+
+  <!-- default library -->
+  <rect class="card" x="320" y="20" width="580" height="450" rx="12"/>
+  <text class="h" x="340" y="52">~/Documents/Quiet.md</text>
+  <text class="s" x="340" y="72">默认文档库：第一个空间「Personal」，也存放全局文件</text>
+
+  <g transform="translate(340 92)">
+    <rect class="card" width="540" height="62" rx="9"/>
+    <text class="t" x="14" y="24">全局（所有空间共用）</text>
+    <text class="m" x="14" y="46">spaces.json · preferences.json · shortcuts.json · themes/ · emoji.json</text>
+  </g>
+
+  <!-- spaces -->
+  <g transform="translate(340 176)">
+    <rect class="space" width="170" height="214" rx="10"/>
+    <text class="t" x="14" y="28">🏠 Personal</text>
+    <text class="s" x="14" y="48">⌃1 · 主题跟随外观</text>
+    <text class="m" x="14" y="82">Quiet.md/</text>
+    <text class="m" x="24" y="102">docs/</text>
+    <text class="m" x="24" y="120">assets/</text>
+    <text class="m" x="24" y="138">trash/</text>
+    <text class="m" x="24" y="156">index.json</text>
+    <text class="m" x="24" y="174">settings.json</text>
+  </g>
+  <g transform="translate(525 176)">
+    <rect class="active" width="170" height="214" rx="10"/>
+    <circle class="accent" cx="154" cy="22" r="5"/>
+    <text class="t" x="14" y="28">💼 Work</text>
+    <text class="s" x="14" y="48">⌃2 · Obsidian 主题</text>
+    <text class="m" x="14" y="82">spaces/work/</text>
+    <text class="m" x="24" y="102">docs/</text>
+    <text class="m" x="24" y="120">assets/</text>
+    <text class="m" x="24" y="138">trash/</text>
+    <text class="m" x="24" y="156">index.json</text>
+    <text class="m" x="24" y="174">settings.json</text>
+  </g>
+  <g transform="translate(710 176)">
+    <rect class="space" width="170" height="214" rx="10"/>
+    <text class="t" x="14" y="28">📚 Reading</text>
+    <text class="s" x="14" y="48">⌃3 · Notion 主题</text>
+    <text class="m" x="14" y="82">D:\any\folder\</text>
+    <text class="m" x="24" y="102">docs/</text>
+    <text class="m" x="24" y="120">assets/</text>
+    <text class="m" x="24" y="138">trash/</text>
+    <text class="m" x="24" y="156">index.json</text>
+    <text class="m" x="24" y="174">settings.json</text>
+  </g>
+  <text class="s" x="340" y="414">每个空间都是一个完整的文档库，目录布局和以前完全一样。</text>
+  <text class="s" x="340" y="434">新建空间默认放在 spaces/&lt;id&gt;（相对路径，文档库搬家也不失效），也可以指向任意文件夹。</text>
+  <text class="s" x="340" y="454">移除空间只改 spaces.json，不删文件；旧版本只看到默认文档库。</text>
+</svg>
